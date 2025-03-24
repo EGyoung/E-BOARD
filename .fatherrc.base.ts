@@ -5,7 +5,10 @@ export default defineConfig({
     input: 'src',
     output: 'dist/esm',
     platform: 'browser',
-    transformer: 'babel'
+    transformer: 'babel',
+    extraBabelPlugins: [
+      ['babel-plugin-import', { style: true }]
+    ]
   },
   cjs: {
     input: 'src',
