@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "es2015",
     "module": "esnext",
     "lib": ["dom", "dom.iterable", "esnext"],
     "skipLibCheck": true,
@@ -12,14 +12,17 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
+    "sourceMap": true,
     "baseUrl": ".",
     "paths": {
       "@e-board/*": ["packages/*/src"]
     }
   },
   "references": [
-    { "path": "./packages/app" },
-    { "path": "./packages/shared" }
+    { "path": "./packages/core" },
+    { "path": "./packages/ui" },
+    { "path": "./packages/utils" },
+    { "path": "./packages/app" }
   ],
   "exclude": ["node_modules"]
 } 

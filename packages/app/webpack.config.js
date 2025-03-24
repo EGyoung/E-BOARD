@@ -7,11 +7,13 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     filename: 'bundle.js',
   },
+  devtool: 'source-map',
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.less'],
     alias: {
       '@e-board/ui': path.resolve(__dirname, '../ui/src'),
-      '@e-board/shared': path.resolve(__dirname, '../shared/src'),
+      '@e-board/utils': path.resolve(__dirname, '../utils/src'),
+      '@e-board/core': path.resolve(__dirname, '../core/src'),
     },
   },
   module: {
@@ -31,13 +33,22 @@ module.exports = {
                 isTSX: true,
                 allExtensions: true
               }]
-            ]
+            ],
+            sourceMaps: true
           }
         }
       },
       {
         test: /\.css$/,
-        use: ['style-loader', 'css-loader'],
+        use: [
+          'style-loader',
+          {
+            loader: 'css-loader',
+            options: {
+              sourceMap: true
+            }
+          }
+        ],
       },
       {
         test: /\.less$/,
@@ -49,9 +60,15 @@ module.exports = {
               modules: {
                 localIdentName: '[name]__[local]--[hash:base64:5]',
               },
+              sourceMap: true
             },
           },
-          'less-loader'
+          {
+            loader: 'less-loader',
+            options: {
+              sourceMap: true
+            }
+          }
         ],
       },
     ],

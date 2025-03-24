@@ -7,7 +7,7 @@
     "build": "webpack --mode production"
   },
   "dependencies": {
-    "@e-board/shared": "workspace:*",
+    "@e-board/utils": "workspace:*",
     "@e-board/ui": "workspace:*",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
