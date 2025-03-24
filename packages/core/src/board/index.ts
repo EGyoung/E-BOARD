@@ -58,6 +58,7 @@ export class EBoard {
         this.services = [];
         this.plugins = [];
         this.container = null;
+        this.canvas = null;
     }
 }
 
