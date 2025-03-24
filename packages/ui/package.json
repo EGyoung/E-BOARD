@@ -2,16 +2,15 @@
   "name": "@e-board/ui",
   "version": "1.0.0",
   "private": true,
-  "type": "module",
-  "main": "dist/index.js",
-  "module": "dist/index.esm.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/esm/index.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "rollup -c",
-    "dev": "rollup -c -w"
+    "build": "father build",
+    "dev": "father dev"
   },
   "dependencies": {
     "react": "^18.2.0",
@@ -19,16 +18,9 @@
     "tslib": "^2.6.2"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^25.0.7",
-    "@rollup/plugin-node-resolve": "^15.2.3",
-    "@rollup/plugin-typescript": "^11.1.6",
     "@types/react": "^18.2.48",
     "@types/react-dom": "^18.2.18",
-    "postcss": "^8.4.35",
-    "rollup": "^4.9.6",
-    "rollup-plugin-dts": "^6.1.0",
-    "rollup-plugin-peer-deps-external": "^2.2.4",
-    "rollup-plugin-postcss": "^4.0.2",
+    "father": "^4.3.8",
     "typescript": "^5.3.3"
   },
   "peerDependencies": {
