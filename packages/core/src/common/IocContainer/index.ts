@@ -1,7 +1,7 @@
-import 'reflect-metadata';
-export * from 'inversify';
+import "reflect-metadata";
+export * from "inversify";
 
-import { Container } from 'inversify';
+import { Container } from "inversify";
 
 let eBoardContainer = new Container();
 

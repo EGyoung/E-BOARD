@@ -1,15 +1,15 @@
-import React, { useEffect } from 'react';
-import { Button } from '@e-board/ui';
-import { EBoard } from '@e-board/core';
+import React, { useEffect } from "react";
+import { Button } from "@e-board/ui";
+import { EBoard } from "@e-board/core";
 let isInit = false;
 const App: React.FC = () => {
   useEffect(() => {
     if (isInit) return;
     isInit = true;
-    console.log('App useEffect');
+    console.log("App useEffect");
     const board = new EBoard({
-      container: document.getElementById('board') as HTMLDivElement,
-      id: 'app-board',
+      container: document.getElementById("board") as HTMLDivElement,
+      id: "app-board",
     });
     (window as any).board = board;
     // board.init();

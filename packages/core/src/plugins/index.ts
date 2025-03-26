@@ -1,15 +1,15 @@
-import { IPlugin } from './type';
+import { IPlugin } from "./type";
 
 class BasePlugin implements IPlugin {
   pluginName: string;
   constructor() {
-    this.pluginName = 'BasePlugin';
+    this.pluginName = "BasePlugin";
   }
   init() {
-    console.log('BasePlugin init');
+    console.log("BasePlugin init");
   }
   dispose() {
-    console.log('BasePlugin dispose');
+    console.log("BasePlugin dispose");
   }
 }
 

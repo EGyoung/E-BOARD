@@ -17,9 +17,9 @@ importers:
       classnames: ^2.5.1
       eslint: ^8.56.0
       eslint-config-prettier: ^9.1.0
-      eslint-plugin-prettier: ^5.1.3
-      eslint-plugin-react: ^7.33.2
-      eslint-plugin-react-hooks: ^4.6.0
+      eslint-plugin-prettier: ^5.2.5
+      eslint-plugin-react: ^7.37.4
+      eslint-plugin-react-hooks: ^4.6.2
       father: ^4.3.8
       less: ^4.2.2
       less-loader: ^12.2.0

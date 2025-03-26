@@ -1,7 +1,7 @@
-import { IBoard, IServiceInitParams } from '../../types';
-import { Emitter } from '@e-board/utils';
-import { IPointerEventService } from './type';
-import { injectable, decorate } from 'inversify';
+import { IBoard, IServiceInitParams } from "../../types";
+import { Emitter } from "@e-board/utils";
+import { IPointerEventService } from "./type";
+import { injectable, decorate } from "inversify";
 
 class PointerEventService implements IPointerEventService {
   private board!: IBoard;
@@ -11,7 +11,7 @@ class PointerEventService implements IPointerEventService {
 
   // 存储事件处理函数的引用
   private handlePointerDown = (e: PointerEvent) => {
-    console.log('pointer down fired');
+    console.log("pointer down fired");
     this._pointerDownEvent.fire(e);
   };
 
@@ -31,7 +31,7 @@ class PointerEventService implements IPointerEventService {
     this.board = board;
     const canvas = this.board.getCanvas();
     if (!canvas) {
-      throw new Error('canvas is not found');
+      throw new Error("canvas is not found");
     }
     this.initPointerEvent();
   }
@@ -39,21 +39,21 @@ class PointerEventService implements IPointerEventService {
   private initPointerEvent = () => {
     const canvas = this.board.getCanvas();
     if (!canvas) {
-      throw new Error('canvas is not found');
+      throw new Error("canvas is not found");
     }
 
-    canvas.addEventListener('pointerdown', this.handlePointerDown);
-    canvas.addEventListener('pointermove', this.handlePointerMove);
-    canvas.addEventListener('pointerup', this.handlePointerUp);
+    canvas.addEventListener("pointerdown", this.handlePointerDown);
+    canvas.addEventListener("pointermove", this.handlePointerMove);
+    canvas.addEventListener("pointerup", this.handlePointerUp);
   };
 
   public dispose(): void {
     const canvas = this.board.getCanvas();
     if (!canvas) return;
 
-    canvas.removeEventListener('pointerdown', this.handlePointerDown);
-    canvas.removeEventListener('pointermove', this.handlePointerMove);
-    canvas.removeEventListener('pointerup', this.handlePointerUp);
+    canvas.removeEventListener("pointerdown", this.handlePointerDown);
+    canvas.removeEventListener("pointermove", this.handlePointerMove);
+    canvas.removeEventListener("pointerup", this.handlePointerUp);
   }
 }
 

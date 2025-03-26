@@ -157,12 +157,18 @@ export class Emitter<T> {
   }
   get event(): Event<T> {
     if (!this._event) {
-      this._event = (listener: (e: T) => any, thisArgs?: any, disposables?: any) => {
+      this._event = (
+        listener: (e: T) => any,
+        thisArgs?: any,
+        disposables?: any,
+      ) => {
         if (!this._listeners) {
           this._listeners = new LinkedList();
         }
-        console.log(this._listeners, 'this._listeners');
-        const remove = this._listeners.push(!thisArgs ? listener : [listener, thisArgs]);
+        console.log(this._listeners, "this._listeners");
+        const remove = this._listeners.push(
+          !thisArgs ? listener : [listener, thisArgs],
+        );
 
         const result = {
           dispose: () => {
@@ -186,13 +192,13 @@ export class Emitter<T> {
       while (this._deliveryQueue.size > 0) {
         const [listener, event] = this._deliveryQueue.shift()!;
         try {
-          if (typeof listener === 'function') {
+          if (typeof listener === "function") {
             listener.call(undefined, event);
           } else {
             listener[0].call(listener[1], event);
           }
         } catch (e: any) {
-          console.error('catch error: ', e);
+          console.error("catch error: ", e);
         }
       }
     }

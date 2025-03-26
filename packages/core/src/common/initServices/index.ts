@@ -1,11 +1,11 @@
-import { Container } from 'inversify';
+import { Container } from "inversify";
 import {
   IPointerEventService,
   ISelectionService,
   PointerEventService,
   SelectionService,
-} from '../../services';
-import { eBoardContainer } from '../IocContainer';
+} from "../../services";
+import { eBoardContainer } from "../IocContainer";
 
 const commonServicesMap = [
   {

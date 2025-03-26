@@ -1,4 +1,4 @@
-import { IBoard } from '../types';
+import { IBoard } from "../types";
 
 export interface IPlugin {
   init({ board }: { board: IBoard }): void;

@@ -1,4 +1,4 @@
-import { IService } from '../type';
+import { IService } from "../type";
 
 export interface ISelectionService extends IService {
   select(element: HTMLElement): void;
@@ -6,4 +6,4 @@ export interface ISelectionService extends IService {
   getSelectedElement(): HTMLElement | null;
 }
 
-export const ISelectionService = Symbol('ISelectionService');
+export const ISelectionService = Symbol("ISelectionService");

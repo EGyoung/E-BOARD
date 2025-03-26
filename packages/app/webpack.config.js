@@ -1,19 +1,19 @@
-const path = require('path');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+const path = require("path");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 module.exports = {
-  entry: './src/index.tsx',
+  entry: "./src/index.tsx",
   output: {
-    path: path.resolve(__dirname, 'dist'),
-    filename: 'bundle.js',
+    path: path.resolve(__dirname, "dist"),
+    filename: "bundle.js",
   },
-  devtool: 'source-map',
+  devtool: "source-map",
   resolve: {
-    extensions: ['.tsx', '.ts', '.js', '.less'],
+    extensions: [".tsx", ".ts", ".js", ".less"],
     alias: {
-      '@e-board/ui': path.resolve(__dirname, '../ui/src'),
-      '@e-board/utils': path.resolve(__dirname, '../utils/src'),
-      '@e-board/core': path.resolve(__dirname, '../core/src'),
+      "@e-board/ui": path.resolve(__dirname, "../ui/src"),
+      "@e-board/utils": path.resolve(__dirname, "../utils/src"),
+      "@e-board/core": path.resolve(__dirname, "../core/src"),
     },
   },
   module: {
@@ -22,18 +22,18 @@ module.exports = {
         test: /\.(ts|tsx)$/,
         exclude: /node_modules/,
         use: {
-          loader: 'babel-loader',
+          loader: "babel-loader",
           options: {
             presets: [
-              '@babel/preset-env',
+              "@babel/preset-env",
               [
-                '@babel/preset-react',
+                "@babel/preset-react",
                 {
-                  runtime: 'automatic',
+                  runtime: "automatic",
                 },
               ],
               [
-                '@babel/preset-typescript',
+                "@babel/preset-typescript",
                 {
                   isTSX: true,
                   allExtensions: true,
@@ -47,9 +47,9 @@ module.exports = {
       {
         test: /\.css$/,
         use: [
-          'style-loader',
+          "style-loader",
           {
-            loader: 'css-loader',
+            loader: "css-loader",
             options: {
               sourceMap: true,
             },
@@ -59,18 +59,18 @@ module.exports = {
       {
         test: /\.less$/,
         use: [
-          'style-loader',
+          "style-loader",
           {
-            loader: 'css-loader',
+            loader: "css-loader",
             options: {
               modules: {
-                localIdentName: '[name]__[local]--[hash:base64:5]',
+                localIdentName: "[name]__[local]--[hash:base64:5]",
               },
               sourceMap: true,
             },
           },
           {
-            loader: 'less-loader',
+            loader: "less-loader",
             options: {
               sourceMap: true,
             },
@@ -81,12 +81,12 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: './public/index.html',
+      template: "./public/index.html",
     }),
   ],
   devServer: {
     static: {
-      directory: path.join(__dirname, 'public'),
+      directory: path.join(__dirname, "public"),
     },
     port: 3001,
     hot: true,

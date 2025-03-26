@@ -1,4 +1,4 @@
-import baseConfig from '../../.fatherrc.base';
+import baseConfig from "../../.fatherrc.base";
 
 export default {
   ...baseConfig,
