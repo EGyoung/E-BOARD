@@ -1,14 +1,33 @@
-import { IService, IPlugin } from '../types';
+import { commonServicesMap } from '../common/initServices';
+import { IService, IPlugin, IBoard } from '../types';
+import { bindServices } from './bindServices';
+import { eBoardContainer } from '../common/IocContainer';
 
-export class EBoard {
+
+
+export class EBoard implements IBoard {
     private canvas: HTMLCanvasElement | null;
     private container: HTMLDivElement | null;
     constructor(container: HTMLDivElement) {
         this.container = container;
         this.canvas = this.createCanvas();
+        this.initEBoard()
+        
     }
     private services: IService[] = [];
     private plugins: IPlugin[] = [];
+
+    private initEBoard() {
+        bindServices();
+        this.initServices()
+    }
+
+    private initServices() {
+        commonServicesMap.forEach(({ name }) => {
+            this.services.push(eBoardContainer.get(name));
+        });
+        this.services.forEach(service => service.init({ board: this }));
+    }
 
     private createCanvas() {
         const canvas = document.createElement('canvas');
@@ -47,7 +66,7 @@ export class EBoard {
     }
 
     init() {
-        this.services.forEach(service => service.init());
+        this.services.forEach(service => service.init({board: this}));
         this.plugins.forEach(plugin => plugin.init());
         console.log('EBoard initialized');
     }

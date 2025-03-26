@@ -7,8 +7,8 @@
     "build": "webpack --mode production"
   },
   "dependencies": {
-    "@e-board/utils": "workspace:*",
     "@e-board/ui": "workspace:*",
+    "@e-board/utils": "workspace:*",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
@@ -28,4 +28,4 @@
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^4.15.1"
   }
-} 
+}
