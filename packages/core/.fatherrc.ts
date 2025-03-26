@@ -6,16 +6,16 @@ export default defineConfig({
     output: 'dist/esm',
     platform: 'browser',
     transformer: 'babel',
-    sourcemap: true
+    sourcemap: true,
   },
   cjs: {
     input: 'src',
     output: 'dist/cjs',
     platform: 'node',
     transformer: 'babel',
-    sourcemap: true
+    sourcemap: true,
   },
   prebundle: {
-    deps: {}
-  }
-}); 
+    deps: {},
+  },
+});

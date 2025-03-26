@@ -9,19 +9,18 @@ const App: React.FC = () => {
     console.log('App useEffect');
     const board = new EBoard({
       container: document.getElementById('board') as HTMLDivElement,
-      id: 'app-board'
+      id: 'app-board',
     });
     (window as any).board = board;
     // board.init();
-  }, [])
+  }, []);
   return (
     <>
-      <div id="board"/>
+      <div id="board" />
       {/* <h1>Welcome to E-Board</h1> */}
       {/* <Button>按钮</Button> */}
     </>
-  
   );
 };
 
-export default App; 
+export default App;

@@ -26,4 +26,7 @@ pnpm-debug.log*
 *.swo
 
 # TypeScript
-*.tsbuildinfo 
+*.tsbuildinfo
+
+# 确保 .vscode 设置可以共享
+!.vscode/ 

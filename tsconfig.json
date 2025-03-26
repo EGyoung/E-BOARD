@@ -25,4 +25,4 @@
     { "path": "./packages/app" }
   ],
   "exclude": ["node_modules"]
-} 
+}

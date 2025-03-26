@@ -26,17 +26,23 @@ module.exports = {
           options: {
             presets: [
               '@babel/preset-env',
-              ['@babel/preset-react', {
-                runtime: 'automatic'
-              }],
-              ['@babel/preset-typescript', {
-                isTSX: true,
-                allExtensions: true
-              }]
+              [
+                '@babel/preset-react',
+                {
+                  runtime: 'automatic',
+                },
+              ],
+              [
+                '@babel/preset-typescript',
+                {
+                  isTSX: true,
+                  allExtensions: true,
+                },
+              ],
             ],
-            sourceMaps: true
-          }
-        }
+            sourceMaps: true,
+          },
+        },
       },
       {
         test: /\.css$/,
@@ -45,9 +51,9 @@ module.exports = {
           {
             loader: 'css-loader',
             options: {
-              sourceMap: true
-            }
-          }
+              sourceMap: true,
+            },
+          },
         ],
       },
       {
@@ -60,15 +66,15 @@ module.exports = {
               modules: {
                 localIdentName: '[name]__[local]--[hash:base64:5]',
               },
-              sourceMap: true
+              sourceMap: true,
             },
           },
           {
             loader: 'less-loader',
             options: {
-              sourceMap: true
-            }
-          }
+              sourceMap: true,
+            },
+          },
         ],
       },
     ],
@@ -85,4 +91,4 @@ module.exports = {
     port: 3001,
     hot: true,
   },
-}; 
+};

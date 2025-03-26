@@ -1,14 +1,14 @@
-import { IServiceInitParams } from "../../types";
+import { IServiceInitParams } from '../../types';
 
 class SelectionService {
-    constructor() {
-        console.log('SelectionService initialized');
-    }
+  constructor() {
+    console.log('SelectionService initialized');
+  }
 
-    init({ board }: IServiceInitParams) {
-        console.log(board,'board');
-        console.log('SelectionService init', board);
-    }
+  init({ board }: IServiceInitParams) {
+    console.log(board, 'board');
+    console.log('SelectionService init', board);
+  }
 }
 
 export default SelectionService;

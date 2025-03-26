@@ -6,8 +6,7 @@ import { Container } from 'inversify';
 let eBoardContainer = new Container();
 
 const resetContainer = () => {
-    eBoardContainer = new Container();
-
+  eBoardContainer = new Container();
 };
 
 export { resetContainer, eBoardContainer };

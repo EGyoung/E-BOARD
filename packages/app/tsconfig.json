@@ -20,9 +20,5 @@
     "rootDir": "src"
   },
   "include": ["src"],
-  "references": [
-    { "path": "../core" },
-    { "path": "../ui" },
-    { "path": "../utils" }
-  ]
-} 
+  "references": [{ "path": "../core" }, { "path": "../ui" }, { "path": "../utils" }]
+}
