@@ -14,7 +14,7 @@ const commonServicesMap = [
 ] as const;
 export const bindCommonServices = () => {
     commonServicesMap.forEach(({ name, service }) => {
-        eBoardContainer.bind(name).to(service);
+        eBoardContainer.bind(name).to(service).inSingletonScope();;
     });
 }
 

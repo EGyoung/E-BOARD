@@ -1,9 +1,9 @@
 import { IService } from "../type";
 
 export interface IPointerEventService extends IService {
-    onPointerDown(event: PointerEvent): void;
-    onPointerMove(event: PointerEvent): void;
-    onPointerUp(event: PointerEvent): void;
+    onPointerDown(cb: (event: PointerEvent) => void ): { dispose: () => void };
+    onPointerMove(cb: (event: PointerEvent) => void): { dispose: () => void };
+    onPointerUp(cb: (event: PointerEvent) => void): { dispose: () => void };
 }
 
 export const IPointerEventService = Symbol('IPointerEventService');

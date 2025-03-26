@@ -1,5 +1,7 @@
+import { IBoard } from "../types";
+
 export interface IPlugin {
-    init(): void;
+    init({ board }: { board: IBoard }): void;
     dispose(): void;
 }
 

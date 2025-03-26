@@ -59,7 +59,6 @@ importers:
       babel-loader: ^9.1.3
       css-loader: ^6.10.0
       html-webpack-plugin: ^5.6.0
-      inversify: ^7.2.0
       react: ^18.2.0
       react-dom: ^18.2.0
       style-loader: ^3.3.4
@@ -70,7 +69,6 @@ importers:
     dependencies:
       '@e-board/ui': link:../ui
       '@e-board/utils': link:../utils
-      inversify: 7.2.0
       react: 18.3.1
       react-dom: 18.3.1_react@18.3.1
     devDependencies:
@@ -1910,16 +1908,6 @@ packages:
     resolution: {integrity: sha512-Qj5BELk11AfI2rgZEAaLPmOftmQRLLmoCXgAjmaF0IngQN5vHomVT5ML7DZ3+CA5fgGcEVMcGbUDAun+Rz+oNg==}
     dev: false
 
-  /@inversifyjs/container/1.6.0:
-    resolution: {integrity: sha512-dntAu6TJRmTJl8+VXksBmvpfNtXQAEG6DkcdwOyv6xIr4ASdMdG2+14XKY5xUX8luk3CDCnK0j5XM8uxROfWuw==}
-    peerDependencies:
-      reflect-metadata: ~0.2.2
-    dependencies:
-      '@inversifyjs/common': 1.5.0
-      '@inversifyjs/core': 5.1.0
-      '@inversifyjs/reflect-metadata-utils': 1.1.0
-    dev: false
-
   /@inversifyjs/container/1.6.0_reflect-metadata@0.2.2:
     resolution: {integrity: sha512-dntAu6TJRmTJl8+VXksBmvpfNtXQAEG6DkcdwOyv6xIr4ASdMdG2+14XKY5xUX8luk3CDCnK0j5XM8uxROfWuw==}
     peerDependencies:
@@ -1929,16 +1917,6 @@ packages:
       '@inversifyjs/core': 5.1.0_reflect-metadata@0.2.2
       '@inversifyjs/reflect-metadata-utils': 1.1.0_reflect-metadata@0.2.2
       reflect-metadata: 0.2.2
-    dev: false
-
-  /@inversifyjs/core/5.1.0:
-    resolution: {integrity: sha512-mxawKEUmRAwQeNGymf2WucPNEnyWnaGMTi2cOyIq9/zqMbo8LpXh8OFkGvJciFWznC6fDnP27O80u+sY/JjU9g==}
-    dependencies:
-      '@inversifyjs/common': 1.5.0
-      '@inversifyjs/prototype-utils': 0.1.0
-      '@inversifyjs/reflect-metadata-utils': 1.1.0
-    transitivePeerDependencies:
-      - reflect-metadata
     dev: false
 
   /@inversifyjs/core/5.1.0_reflect-metadata@0.2.2:
@@ -1955,12 +1933,6 @@ packages:
     resolution: {integrity: sha512-lNz1yyajMRDXBHLvJsYYX81FcmeD15e5Qz1zAZ/3zeYTl+u7ZF/GxNRKJzNOloeMPMtuR8BnvzHA1SZxjR+J9w==}
     dependencies:
       '@inversifyjs/common': 1.5.0
-    dev: false
-
-  /@inversifyjs/reflect-metadata-utils/1.1.0:
-    resolution: {integrity: sha512-jmuAuC3eL1GnFAYfJGJOMKRDL9q1mgzOyrban6zxfM8Yg1FUHsj25h27bW2G7p8X1Amvhg3MLkaOuogszkrofA==}
-    peerDependencies:
-      reflect-metadata: 0.2.2
     dev: false
 
   /@inversifyjs/reflect-metadata-utils/1.1.0_reflect-metadata@0.2.2:
@@ -5599,16 +5571,6 @@ packages:
     resolution: {integrity: sha512-6xwYfHbajpoF0xLW+iwLkhwgvLoZDfjYfoFNu8ftMoXINzwuymNLd9u/KmwtdT2GbR+/Cz66otEGEVVUHX9QLQ==}
     engines: {node: '>=10.13.0'}
     dev: true
-
-  /inversify/7.2.0:
-    resolution: {integrity: sha512-zPXKp7ybicPsrhlNZaJscZ9yeg0DZtnCGuNfMpMsso9Jx1tNepSS2CqPrrP8Pc75nH/5d/qB2rYKiv1BEI1gFQ==}
-    peerDependencies:
-      reflect-metadata: ~0.2.2
-    dependencies:
-      '@inversifyjs/common': 1.5.0
-      '@inversifyjs/container': 1.6.0
-      '@inversifyjs/core': 5.1.0
-    dev: false
 
   /inversify/7.2.0_reflect-metadata@0.2.2:
     resolution: {integrity: sha512-zPXKp7ybicPsrhlNZaJscZ9yeg0DZtnCGuNfMpMsso9Jx1tNepSS2CqPrrP8Pc75nH/5d/qB2rYKiv1BEI1gFQ==}

@@ -5,8 +5,8 @@ export interface IBoard {
   // 获取容器元素
   getContainer(): HTMLDivElement | null;
   
-  // 初始化方法
-  init(): void;
+  // // 初始化方法
+  // init(): void;
   
   // 销毁方法
   dispose(): void;
@@ -15,12 +15,15 @@ export interface IBoard {
 export interface IServiceInitParams {
   board: IBoard;
 }
+export interface IPluginInitParams {
+  board: IBoard;
+}
 export interface IService {
   init({ board }: IServiceInitParams): void;
   dispose(): void;
 }
 
 export interface IPlugin {
-  init(): void;
+  init({ board }: IPluginInitParams): void;
   dispose(): void;
 } 

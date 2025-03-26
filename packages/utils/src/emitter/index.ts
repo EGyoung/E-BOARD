@@ -6,7 +6,7 @@ export interface IDisposable {
     (listener: (e: T) => any, thisArgs?: any, disposables?: any): IDisposable;
   }
   
-  export type SheEvent<T = any> = Event<T>;
+  export type BoardEvent<T = any> = Event<T>;
   
   export type Listener<T> = [(e: T) => void, any] | ((e: T) => void);
   
@@ -165,6 +165,7 @@ export interface IDisposable {
           if (!this._listeners) {
             this._listeners = new LinkedList();
           }
+          console.log(this._listeners,'this._listeners');
           const remove = this._listeners.push(
             !thisArgs ? listener : [listener, thisArgs],
           );
