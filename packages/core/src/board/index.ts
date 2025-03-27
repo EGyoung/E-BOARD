@@ -10,22 +10,27 @@ interface IBoardInitParams {
 }
 
 export class EBoard implements IBoard {
-  private id: string;
-  private canvas: HTMLCanvasElement | null;
-  private container: HTMLDivElement | null;
+  private id!: string;
+  private canvas: HTMLCanvasElement | null = null;
+  private container: HTMLDivElement | null = null;
   constructor(params: IBoardInitParams) {
-    console.log("EBoard constructor", params);
-    this.id = params.id;
-    const isExistCanvas = document?.querySelector(`#${this.id}`);
-    if (!isExistCanvas) {
-      this.container = params.container;
-      this.canvas = this.createCanvas();
-      this.initEBoard();
-    } else {
-      this.container = params.container;
-      this.canvas = isExistCanvas as HTMLCanvasElement;
-    }
+    this.initParams(params);
+    this.initCanvas();
+    this.initEBoard();
   }
+
+  private initParams(params: IBoardInitParams) {
+    this.id = params.id;
+    this.container = params.container;
+  }
+
+  private initCanvas() {
+    const canvasElement = document?.querySelector(`#${this.id}`);
+    this.canvas = !!canvasElement
+      ? (canvasElement as HTMLCanvasElement)
+      : this.createCanvas();
+  }
+
   private services: IService[] = [];
   private plugins: IPlugin[] = [];
 
@@ -42,10 +47,6 @@ export class EBoard implements IBoard {
   public registerPlugin(plugin: new ({ board }: IPluginInitParams) => IPlugin) {
     this.plugins.push(new plugin({ board: this }));
   }
-
-  // public registerPlugins(plugins: IPlugin[]) {
-  //     this.plugins.push(...plugins);
-  // }
 
   private initServices() {
     commonServicesMap.forEach(({ name }) => {
@@ -92,7 +93,7 @@ export class EBoard implements IBoard {
   }
 
   dispose() {
-    this.services.forEach((service) => service.dispose());
+    this.services.forEach((service) => service.dispose?.());
     this.plugins.forEach((plugin) => plugin.dispose());
     this.services = [];
     this.plugins = [];

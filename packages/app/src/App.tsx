@@ -4,15 +4,19 @@ import { EBoard } from "@e-board/core";
 let isInit = false;
 const App: React.FC = () => {
   useEffect(() => {
-    if (isInit) return;
-    isInit = true;
     console.log("App useEffect");
+    // if (!isInit) {
+    // isInit = true;
     const board = new EBoard({
       container: document.getElementById("board") as HTMLDivElement,
       id: "app-board",
     });
     (window as any).board = board;
     // board.init();
+    return () => {
+      board.dispose();
+    };
+    // }
   }, []);
   return (
     <>
