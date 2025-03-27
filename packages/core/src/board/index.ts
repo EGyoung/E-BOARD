@@ -60,26 +60,13 @@ export class EBoard implements IBoard {
     canvas.id = this.id;
     canvas.style.width = "100%";
     canvas.style.height = "100%";
-    // canvas.style.position = 'absolute';
-    canvas.style.top = "500px";
-    canvas.style.left = "500px";
     canvas.style.zIndex = "1";
-    canvas.style.backgroundColor = "transparent";
-    // canvas.style.pointerEvents = 'none';
+    canvas.style.backgroundColor = "black";
     canvas.style.userSelect = "none";
     canvas.style.touchAction = "none";
-    canvas.style.imageRendering = "pixelated";
     canvas.style.imageRendering = "-webkit-optimize-contrast";
-    canvas.style.imageRendering = "-moz-crisp-edges";
-    canvas.style.imageRendering = "-o-crisp-edges";
-    canvas.style.imageRendering = "-webkit-optimize-contrast";
-
-    // canvas 里随便画点东西
-    const ctx = canvas.getContext("2d");
-    if (ctx) {
-      ctx.fillStyle = "red";
-      ctx.fillRect(0, 0, 100, 100);
-    }
+    canvas.width = document.documentElement.clientWidth;
+    canvas.height = document.documentElement.clientHeight;
     this.container?.appendChild(canvas);
     return canvas;
   }
