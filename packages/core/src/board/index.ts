@@ -1,7 +1,7 @@
 import { commonServicesMap } from "../common/initServices";
 import { IService, IPlugin, IBoard, IPluginInitParams } from "../types";
 import { bindServices } from "./bindServices";
-import { eBoardContainer } from "../common/IocContainer";
+import { eBoardContainer, resetContainer } from "../common/IocContainer";
 import DrawPlugin from "../plugins/draw";
 
 interface IBoardInitParams {
@@ -99,6 +99,7 @@ export class EBoard implements IBoard {
     this.plugins = [];
     this.container = null;
     this.canvas = null;
+    resetContainer();
   }
 }
 
