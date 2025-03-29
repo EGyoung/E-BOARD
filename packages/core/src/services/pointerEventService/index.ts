@@ -11,15 +11,22 @@ class PointerEventService implements IPointerEventService {
 
   // 存储事件处理函数的引用
   private handlePointerDown = (e: PointerEvent) => {
-    console.log("pointer down fired");
+    e.preventDefault();
     this._pointerDownEvent.fire(e);
   };
 
   private handlePointerMove = (e: PointerEvent) => {
+    e.preventDefault();
     this._pointerMoveEvent.fire(e);
   };
 
   private handlePointerUp = (e: PointerEvent) => {
+    e.preventDefault();
+    this._pointerUpEvent.fire(e);
+  };
+
+  private handlePointerLeave = (e: PointerEvent) => {
+    e.preventDefault();
     this._pointerUpEvent.fire(e);
   };
 
@@ -42,9 +49,12 @@ class PointerEventService implements IPointerEventService {
       throw new Error("canvas is not found");
     }
 
+    canvas.style.touchAction = "none"; // 禁用触摸事件的默认行为
+
     canvas.addEventListener("pointerdown", this.handlePointerDown);
     canvas.addEventListener("pointermove", this.handlePointerMove);
     canvas.addEventListener("pointerup", this.handlePointerUp);
+    canvas.addEventListener("pointerleave", this.handlePointerLeave);
   };
 
   public dispose(): void {
@@ -54,6 +64,7 @@ class PointerEventService implements IPointerEventService {
     canvas.removeEventListener("pointerdown", this.handlePointerDown);
     canvas.removeEventListener("pointermove", this.handlePointerMove);
     canvas.removeEventListener("pointerup", this.handlePointerUp);
+    canvas.removeEventListener("pointerleave", this.handlePointerLeave);
   }
 }
 
