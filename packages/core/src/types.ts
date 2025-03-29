@@ -12,6 +12,12 @@ export interface IBoard {
   dispose(): void;
 }
 
+export enum EBoardMode {
+  PEN = "pen",
+  SELECT = "select",
+  ZOOM = "zoom",
+}
+
 export interface IServiceInitParams {
   board: IBoard;
 }
