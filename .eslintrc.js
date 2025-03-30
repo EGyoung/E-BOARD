@@ -1,3 +1,4 @@
+const { rules } = require("./.prettierrc");
 module.exports = {
   root: true,
   parser: "@typescript-eslint/parser",
@@ -20,20 +21,7 @@ module.exports = {
     }
   },
   rules: {
-    "prettier/prettier": [
-      "error",
-      {
-        semi: true,
-        singleQuote: false,
-        trailingComma: "none",
-        printWidth: 100,
-        tabWidth: 2,
-        useTabs: false,
-        bracketSpacing: true,
-        arrowParens: "avoid",
-        endOfLine: "lf"
-      }
-    ],
+    "prettier/prettier": ["error", rules],
     "@typescript-eslint/explicit-module-boundary-types": "off",
     "@typescript-eslint/no-explicit-any": "warn",
     "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
