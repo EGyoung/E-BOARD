@@ -9,17 +9,9 @@ interface ButtonProps {
   onClick?: () => void;
 }
 
-const Button: React.FC<ButtonProps> = ({
-  type = "default",
-  className,
-  children,
-  onClick,
-}) => {
+const Button: React.FC<ButtonProps> = ({ type = "default", className, children, onClick }) => {
   return (
-    <button
-      className={classNames(styles.button, styles[type], className)}
-      onClick={onClick}
-    >
+    <button className={classNames(styles.button, styles[type], className)} onClick={onClick}>
       {children}
     </button>
   );

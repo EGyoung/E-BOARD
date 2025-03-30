@@ -9,7 +9,6 @@ class PointerEventService implements IPointerEventService {
   private _pointerMoveEvent = new Emitter<PointerEvent>();
   private _pointerUpEvent = new Emitter<PointerEvent>();
 
-  // 存储事件处理函数的引用
   private handlePointerDown = (e: PointerEvent) => {
     e.preventDefault();
     this._pointerDownEvent.fire(e);

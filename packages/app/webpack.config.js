@@ -5,7 +5,7 @@ module.exports = {
   entry: "./src/index.tsx",
   output: {
     path: path.resolve(__dirname, "dist"),
-    filename: "bundle.js",
+    filename: "bundle.js"
   },
   devtool: "source-map",
   resolve: {
@@ -13,8 +13,8 @@ module.exports = {
     alias: {
       "@e-board/ui": path.resolve(__dirname, "../ui/src"),
       "@e-board/utils": path.resolve(__dirname, "../utils/src"),
-      "@e-board/core": path.resolve(__dirname, "../core/src"),
-    },
+      "@e-board/core": path.resolve(__dirname, "../core/src")
+    }
   },
   module: {
     rules: [
@@ -29,20 +29,20 @@ module.exports = {
               [
                 "@babel/preset-react",
                 {
-                  runtime: "automatic",
-                },
+                  runtime: "automatic"
+                }
               ],
               [
                 "@babel/preset-typescript",
                 {
                   isTSX: true,
-                  allExtensions: true,
-                },
-              ],
+                  allExtensions: true
+                }
+              ]
             ],
-            sourceMaps: true,
-          },
-        },
+            sourceMaps: true
+          }
+        }
       },
       {
         test: /\.css$/,
@@ -51,10 +51,10 @@ module.exports = {
           {
             loader: "css-loader",
             options: {
-              sourceMap: true,
-            },
-          },
-        ],
+              sourceMap: true
+            }
+          }
+        ]
       },
       {
         test: /\.less$/,
@@ -64,31 +64,31 @@ module.exports = {
             loader: "css-loader",
             options: {
               modules: {
-                localIdentName: "[name]__[local]--[hash:base64:5]",
+                localIdentName: "[name]__[local]--[hash:base64:5]"
               },
-              sourceMap: true,
-            },
+              sourceMap: true
+            }
           },
           {
             loader: "less-loader",
             options: {
-              sourceMap: true,
-            },
-          },
-        ],
-      },
-    ],
+              sourceMap: true
+            }
+          }
+        ]
+      }
+    ]
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: "./public/index.html",
-    }),
+      template: "./public/index.html"
+    })
   ],
   devServer: {
     static: {
-      directory: path.join(__dirname, "public"),
+      directory: path.join(__dirname, "public")
     },
     port: 3001,
-    hot: true,
-  },
+    hot: true
+  }
 };

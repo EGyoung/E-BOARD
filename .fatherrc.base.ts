@@ -6,15 +6,15 @@ export default defineConfig({
     output: "dist/esm",
     platform: "browser",
     transformer: "babel",
-    extraBabelPlugins: [["babel-plugin-import", { style: true }]],
+    extraBabelPlugins: [["babel-plugin-import", { style: true }]]
   },
   cjs: {
     input: "src",
     output: "dist/cjs",
     platform: "node",
-    transformer: "babel",
+    transformer: "babel"
   },
   prebundle: {
-    deps: {},
-  },
+    deps: {}
+  }
 });

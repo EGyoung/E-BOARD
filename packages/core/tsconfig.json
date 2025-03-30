@@ -6,9 +6,5 @@
     "composite": true
   },
   "include": ["src"],
-  "references": [
-    { "path": "../ui" },
-    { "path": "../app" },
-    { "path": "../utils" }
-  ]
+  "references": [{ "path": "../ui" }, { "path": "../app" }, { "path": "../utils" }]
 }

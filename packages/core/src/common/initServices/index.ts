@@ -3,19 +3,19 @@ import {
   IPointerEventService,
   ISelectionService,
   PointerEventService,
-  SelectionService,
+  SelectionService
 } from "../../services";
 import { eBoardContainer } from "../IocContainer";
 
 const commonServicesMap = [
   {
     name: IPointerEventService,
-    service: PointerEventService,
+    service: PointerEventService
   },
   {
     name: ISelectionService,
-    service: SelectionService,
-  },
+    service: SelectionService
+  }
 ] as const;
 export const bindCommonServices = () => {
   commonServicesMap.forEach(({ name, service }) => {

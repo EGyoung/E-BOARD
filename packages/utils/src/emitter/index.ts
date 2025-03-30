@@ -157,23 +157,17 @@ export class Emitter<T> {
   }
   get event(): Event<T> {
     if (!this._event) {
-      this._event = (
-        listener: (e: T) => any,
-        thisArgs?: any,
-        disposables?: any,
-      ) => {
+      this._event = (listener: (e: T) => any, thisArgs?: any, disposables?: any) => {
         if (!this._listeners) {
           this._listeners = new LinkedList();
         }
         console.log(this._listeners, "this._listeners");
-        const remove = this._listeners.push(
-          !thisArgs ? listener : [listener, thisArgs],
-        );
+        const remove = this._listeners.push(!thisArgs ? listener : [listener, thisArgs]);
 
         const result = {
           dispose: () => {
             remove();
-          },
+          }
         };
         return result;
       };

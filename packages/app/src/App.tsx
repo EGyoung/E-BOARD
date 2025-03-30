@@ -6,7 +6,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const board = new EBoard({
       container: document.getElementById("board") as HTMLDivElement,
-      id: "app-board",
+      id: "app-board"
     });
 
     return () => {

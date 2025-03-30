@@ -6,64 +6,75 @@ import { IPlugin } from "../type";
 class DrawPlugin implements IPlugin {
   private board!: IBoard;
   private disposeList: (() => void)[] = [];
+
   public init({ board }: IPluginInitParams) {
     this.board = board;
-    console.log("DrawPlugin init", board);
     this.initDraw();
   }
 
-  private initDraw = () => {
+  private getCanvasPoint(clientX: number, clientY: number) {
     const canvas = this.board.getCanvas();
-    const ctx = canvas?.getContext("2d");
-    if (!ctx) {
-      throw new Error("ctx is not found");
-    }
-    const pointerEventService =
-      eBoardContainer.get<IPointerEventService>(IPointerEventService);
+    if (!canvas) return { x: 0, y: 0 };
 
-    // 实现绘制功能
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: clientX - rect.left,
+      y: clientY - rect.top
+    };
+  }
+
+  private setupContext(ctx: CanvasRenderingContext2D) {
+    // 设置绘制样式
+    ctx.lineCap = "round"; // 设置线条端点样式
+    ctx.lineJoin = "round"; // 设置线条连接处样式
+    ctx.strokeStyle = "white"; // 设置线条颜色
+    ctx.lineWidth = 2; // 设置线条宽度
+  }
+
+  private initDraw = () => {
+    const ctx = this.board.getCtx();
+    if (!ctx) return;
+    const pointerEventService = eBoardContainer.get<IPointerEventService>(IPointerEventService);
+
     let isDrawing = false;
-    let lastX = 0;
-    let lastY = 0;
-    console.error(pointerEventService, "pointerEventService");
-    const { dispose: disposePointerDown } = pointerEventService.onPointerDown(
-      (event) => {
-        console.log("pointerdown");
-        isDrawing = true;
-        lastX = event.clientX;
-        lastY = event.clientY;
-      },
-    );
-    const { dispose: disposePointerMove } = pointerEventService.onPointerMove(
-      (event) => {
-        if (!isDrawing) return;
-        ctx.beginPath();
-        ctx.moveTo(lastX, lastY);
-        ctx.lineTo(event.clientX, event.clientY);
-        // 设置绘制颜色
-        ctx.strokeStyle = "white";
-        ctx.stroke();
-        console.log("???????");
-        lastX = event.clientX;
-        lastY = event.clientY;
-      },
-    );
+    let lastPoint = { x: 0, y: 0 };
 
-    const { dispose: disposePointerUp } = pointerEventService.onPointerUp(
-      (event) => {
-        isDrawing = false;
-      },
-    );
+    const { dispose: disposePointerDown } = pointerEventService.onPointerDown(event => {
+      isDrawing = true;
+      lastPoint = this.getCanvasPoint(event.clientX, event.clientY);
+      this.setupContext(ctx);
+      ctx.beginPath();
+      ctx.moveTo(lastPoint.x, lastPoint.y);
+    });
 
-    this.disposeList.push(
-      disposePointerDown,
-      disposePointerMove,
-      disposePointerUp,
-    );
+    const { dispose: disposePointerMove } = pointerEventService.onPointerMove(event => {
+      if (!isDrawing) return;
+
+      const currentPoint = this.getCanvasPoint(event.clientX, event.clientY);
+      const ctx = this.board.getCtx();
+      if (!ctx) return;
+      // 继续当前路径
+      ctx.lineTo(currentPoint.x, currentPoint.y);
+      ctx.stroke();
+
+      lastPoint = currentPoint;
+    });
+
+    const { dispose: disposePointerUp } = pointerEventService.onPointerUp(() => {
+      if (!isDrawing) return;
+
+      const ctx = this.board.getCtx();
+      if (!ctx) return;
+      // 结束当前路径
+      ctx.closePath();
+      isDrawing = false;
+    });
+
+    this.disposeList.push(disposePointerDown, disposePointerMove, disposePointerUp);
   };
 
   public dispose() {
-    // this.disposeList.forEach(dispose => dispose());
+    this.disposeList.forEach(dispose => dispose());
   }
 }
 

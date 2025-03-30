@@ -2,6 +2,9 @@ export interface IBoard {
   // 获取画布元素
   getCanvas(): HTMLCanvasElement | null;
 
+  // 获取上下文
+  getCtx(): CanvasRenderingContext2D | null;
+
   // 获取容器元素
   getContainer(): HTMLDivElement | null;
 
@@ -15,7 +18,7 @@ export interface IBoard {
 export enum EBoardMode {
   PEN = "pen",
   SELECT = "select",
-  ZOOM = "zoom",
+  ZOOM = "zoom"
 }
 
 export interface IServiceInitParams {
