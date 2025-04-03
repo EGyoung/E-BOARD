@@ -3,6 +3,7 @@ import { IService, IPlugin, IBoard, IPluginInitParams, EBoardMode } from "../typ
 import { bindServices } from "./bindServices";
 import { eBoardContainer, resetContainer } from "../common/IocContainer";
 import DrawPlugin from "../plugins/draw";
+import RoamPlugin from "../plugins/roam";
 
 interface IBoardInitParams {
   container: HTMLDivElement;
@@ -34,7 +35,6 @@ export class EBoard implements IBoard {
     this.resizeObserver = new ResizeObserver(entries => {
       for (const entry of entries) {
         const { width, height } = entry.contentRect;
-        // this.updateCanvasSize(width, height);
         this.resetView(width, height);
       }
     });
@@ -52,10 +52,8 @@ export class EBoard implements IBoard {
 
     this.updateCanvasSize(width, height);
 
-    const ctx = this.canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    ctx.drawImage(
+    this.ctx?.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx?.drawImage(
       offscreenCanvas,
       0,
       0,
@@ -125,6 +123,7 @@ export class EBoard implements IBoard {
 
     // todo 不要再core 里注册具体插件 待抽离
     this.registerPlugin(DrawPlugin);
+    this.registerPlugin(RoamPlugin);
     this.plugins.forEach(plugin => plugin.init({ board: this }));
   }
 
@@ -194,6 +193,7 @@ export class EBoard implements IBoard {
     this.plugins = [];
     // this.container = null;
     this.canvas = null;
+    this.ctx = null;
     resetContainer();
   }
 }
