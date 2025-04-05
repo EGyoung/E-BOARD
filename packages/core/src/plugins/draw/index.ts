@@ -1,12 +1,63 @@
+import { throttle, uuid } from "@e-board/utils";
 import { eBoardContainer } from "../../common/IocContainer";
 import { IPointerEventService } from "../../services";
 import { IBoard, IPluginInitParams } from "../../types";
 import { IPlugin } from "../type";
+import { ILine } from "./type";
+
+class LineFactory {
+  public createLine(points: { x: number; y: number }[] = []) {
+    return {
+      id: uuid(),
+      points
+    };
+  }
+}
 
 class DrawPlugin implements IPlugin {
   private board!: IBoard;
   private disposeList: (() => void)[] = [];
+  private lineFactory = new LineFactory();
+  private linesList: ILine[] = [];
+  private currentLine: ILine | null = null;
 
+  public setCurrentLineWithDraw(point: { x: number; y: number }, isEnd = false) {
+    const ctx = this.board.getCtx();
+    if (!ctx) return;
+
+    if (!this.currentLine) {
+      ctx.beginPath();
+      ctx.moveTo(point.x, point.y);
+      this.currentLine = this.lineFactory.createLine([point]);
+      return;
+    }
+
+    this.currentLine.points.push(point);
+    const points = this.currentLine.points;
+
+    // 如果点数太少，直接画直线
+    if (points.length < 3) {
+      ctx.lineTo(point.x, point.y);
+    } else {
+      // 获取最后三个点
+      const p0 = points[points.length - 3]; // 前前一个点
+      const p1 = points[points.length - 2]; // 前一个点
+      const p2 = point; // 当前点
+
+      const midPointX = (p1.x + p2.x) / 2;
+      const midPointY = (p1.y + p2.y) / 2;
+
+      ctx.quadraticCurveTo(p1.x, p1.y, midPointX, midPointY);
+    }
+
+    ctx.stroke();
+
+    if (isEnd) {
+      ctx.closePath();
+      this.linesList.push(this.currentLine);
+      this.currentLine = null;
+    }
+  }
   public init({ board }: IPluginInitParams) {
     this.board = board;
     this.initDraw();
@@ -23,12 +74,12 @@ class DrawPlugin implements IPlugin {
     };
   }
 
-  private setupContext(ctx: CanvasRenderingContext2D) {
+  private initContextAttrs(ctx: CanvasRenderingContext2D) {
     // 设置绘制样式
     ctx.lineCap = "round"; // 设置线条端点样式
     ctx.lineJoin = "round"; // 设置线条连接处样式
     ctx.strokeStyle = "white"; // 设置线条颜色
-    ctx.lineWidth = 2; // 设置线条宽度
+    ctx.lineWidth = 1; // 设置线条宽度
   }
 
   private initDraw = () => {
@@ -42,31 +93,26 @@ class DrawPlugin implements IPlugin {
     const { dispose: disposePointerDown } = pointerEventService.onPointerDown(event => {
       isDrawing = true;
       lastPoint = this.getCanvasPoint(event.clientX, event.clientY);
-      this.setupContext(ctx);
-      ctx.beginPath();
-      ctx.moveTo(lastPoint.x, lastPoint.y);
+      this.initContextAttrs(ctx);
+      this.setCurrentLineWithDraw(lastPoint);
     });
 
     const { dispose: disposePointerMove } = pointerEventService.onPointerMove(event => {
       if (!isDrawing) return;
-
       const currentPoint = this.getCanvasPoint(event.clientX, event.clientY);
       const ctx = this.board.getCtx();
       if (!ctx) return;
-      // 继续当前路径
-      ctx.lineTo(currentPoint.x, currentPoint.y);
-      ctx.stroke();
-
-      lastPoint = currentPoint;
+      this.setCurrentLineWithDraw(currentPoint);
     });
 
-    const { dispose: disposePointerUp } = pointerEventService.onPointerUp(() => {
+    const { dispose: disposePointerUp } = pointerEventService.onPointerUp(event => {
       if (!isDrawing) return;
 
       const ctx = this.board.getCtx();
       if (!ctx) return;
+      const lastPoint = this.getCanvasPoint(event.clientX, event.clientY);
+      this.setCurrentLineWithDraw(lastPoint, true);
       // 结束当前路径
-      ctx.closePath();
       isDrawing = false;
     });
 

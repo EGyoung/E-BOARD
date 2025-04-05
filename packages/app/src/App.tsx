@@ -8,6 +8,7 @@ const App: React.FC = () => {
       container: document.getElementById("board") as HTMLDivElement,
       id: "app-board"
     });
+    (window as any).board = board;
 
     return () => {
       board.dispose();
