@@ -4,6 +4,7 @@ import { IPointerEventService } from "../../services";
 import { IBoard, IPluginInitParams } from "../../types";
 import { IPlugin } from "../type";
 import { ILine } from "./type";
+import { defaultData } from "./defaultData";
 
 class LineFactory {
   public createLine(points: { x: number; y: number }[] = []) {
@@ -20,6 +21,31 @@ class DrawPlugin implements IPlugin {
   private lineFactory = new LineFactory();
   private linesList: ILine[] = [];
   private currentLine: ILine | null = null;
+
+  public redrawByLinesList(list: ILine[]) {
+    const ctx = this.board.getCtx();
+    const canvas = this.board.getCanvas();
+    if (!ctx || !canvas) return;
+    this.initContextAttrs(ctx);
+    list.forEach(line => {
+      ctx.beginPath();
+      line.points.forEach((point, index) => {
+        if (index === 0) {
+          ctx.moveTo(point.x, point.y);
+        } else if (index < 3) {
+          ctx.lineTo(point.x, point.y);
+        } else {
+          const p1 = line.points[index - 1];
+          const p2 = point;
+          const midPointX = (p1.x + p2.x) / 2;
+          const midPointY = (p1.y + p2.y) / 2;
+          ctx.quadraticCurveTo(p1.x, p1.y, midPointX, midPointY);
+        }
+        ctx.stroke();
+      });
+    });
+    ctx.closePath();
+  }
 
   public setCurrentLineWithDraw(point: { x: number; y: number }, isEnd = false) {
     const ctx = this.board.getCtx();
@@ -40,10 +66,8 @@ class DrawPlugin implements IPlugin {
       ctx.lineTo(point.x, point.y);
     } else {
       // 获取最后三个点
-      const p0 = points[points.length - 3]; // 前前一个点
       const p1 = points[points.length - 2]; // 前一个点
       const p2 = point; // 当前点
-
       const midPointX = (p1.x + p2.x) / 2;
       const midPointY = (p1.y + p2.y) / 2;
 
