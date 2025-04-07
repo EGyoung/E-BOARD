@@ -66,7 +66,7 @@ class DrawPlugin implements IPlugin {
         const transformedPoint = this.transformPoint(point);
         if (index === 0) {
           context.moveTo(transformedPoint.x, transformedPoint.y);
-        } else if (index < 3) {
+        } else if (index < 2) {
           context.lineTo(transformedPoint.x, transformedPoint.y);
         } else {
           const p1 = this.transformPoint(line.points[index - 1]);
@@ -93,7 +93,7 @@ class DrawPlugin implements IPlugin {
     }
     const points = this.currentLine.points;
     // 如果点数太少，直接画直线
-    if (points.length < 3) {
+    if (points.length < 2) {
       ctx.lineTo(point.x, point.y);
     } else {
       // 获取最后三个点
