@@ -1,8 +1,8 @@
 import { throttle, uuid } from "@e-board/utils";
 import { eBoardContainer } from "../../common/IocContainer";
 import { IPointerEventService } from "../../services";
-import { IBoard, IPluginInitParams } from "../../types";
-import { IPlugin } from "../type";
+import { IBoard, IPlugin, IPluginInitParams } from "../../types";
+
 import { ILine } from "./type";
 import { defaultData } from "./defaultData";
 
@@ -22,58 +22,99 @@ class DrawPlugin implements IPlugin {
   private linesList: ILine[] = [];
   private currentLine: ILine | null = null;
 
-  public redrawByLinesList(list: ILine[]) {
-    const ctx = this.board.getCtx();
-    const canvas = this.board.getCanvas();
-    if (!ctx || !canvas) return;
-    this.initContextAttrs(ctx);
-    list.forEach(line => {
-      ctx.beginPath();
-      line.points.forEach((point, index) => {
-        if (index === 0) {
-          ctx.moveTo(point.x, point.y);
-        } else if (index < 3) {
-          ctx.lineTo(point.x, point.y);
-        } else {
-          const p1 = line.points[index - 1];
-          const p2 = point;
-          const midPointX = (p1.x + p2.x) / 2;
-          const midPointY = (p1.y + p2.y) / 2;
-          ctx.quadraticCurveTo(p1.x, p1.y, midPointX, midPointY);
-        }
-        ctx.stroke();
-      });
-    });
-    ctx.closePath();
+  public pluginName = "DrawPlugin";
+
+  private view = {
+    x: 0,
+    y: 0
+  };
+
+  public setView(view: { x: number; y: number }) {
+    this.view = view;
   }
 
-  public setCurrentLineWithDraw(point: { x: number; y: number }, isEnd = false) {
+  public transformPoint(point: { x: number; y: number }, inverse = false) {
+    if (inverse) {
+      return {
+        x: point.x + this.view.x,
+        y: point.y + this.view.y
+      };
+    }
+    return {
+      x: point.x - this.view.x,
+      y: point.y - this.view.y
+    };
+  }
+
+  public redrawByLinesList({
+    list,
+    ctx,
+    delta
+  }: {
+    list?: ILine[];
+    ctx?: CanvasRenderingContext2D;
+    delta?: { x: number; y: number };
+  }) {
+    console.log(delta, "delta");
+    const context = ctx || this.board.getCtx();
+    const linesList = list || this.linesList;
+    const _delta = delta || { x: 0, y: 0 };
+    if (!context) return;
+    // context.translate(_delta.x, _delta.y);
+    this.initContextAttrs(context);
+    linesList.forEach(line => {
+      context.beginPath();
+      line.points.forEach((point, index) => {
+        const transformedPoint = this.transformPoint(point);
+        if (index === 0) {
+          context.moveTo(transformedPoint.x, transformedPoint.y);
+        } else if (index < 3) {
+          context.lineTo(transformedPoint.x, transformedPoint.y);
+        } else {
+          const p1 = this.transformPoint(line.points[index - 1]);
+          const p2 = this.transformPoint(point);
+          const midPointX = (p1.x + p2.x) / 2;
+          const midPointY = (p1.y + p2.y) / 2;
+          context.quadraticCurveTo(p1.x, p1.y, midPointX, midPointY);
+        }
+        context.stroke();
+      });
+      context.closePath();
+    });
+  }
+
+  public setCurrentLineWithDraw(_point: { x: number; y: number }, isEnd = false) {
+    const point = this.transformPoint(_point, true);
     const ctx = this.board.getCtx();
     if (!ctx) return;
 
     if (!this.currentLine) {
       ctx.beginPath();
-      ctx.moveTo(point.x, point.y);
+      const transformedPoint = this.transformPoint(point);
+      ctx.moveTo(transformedPoint.x, transformedPoint.y);
       this.currentLine = this.lineFactory.createLine([point]);
       return;
     }
 
-    this.currentLine.points.push(point);
     const points = this.currentLine.points;
 
     // 如果点数太少，直接画直线
     if (points.length < 3) {
-      ctx.lineTo(point.x, point.y);
+      const transformedPoint = this.transformPoint(point);
+      ctx.lineTo(transformedPoint.x, transformedPoint.y);
     } else {
       // 获取最后三个点
-      const p1 = points[points.length - 2]; // 前一个点
-      const p2 = point; // 当前点
+      const p1 = this.transformPoint(points[points.length - 1]); // 前一个点
+      const p2 = _point; // 当前点
       const midPointX = (p1.x + p2.x) / 2;
       const midPointY = (p1.y + p2.y) / 2;
 
       ctx.quadraticCurveTo(p1.x, p1.y, midPointX, midPointY);
     }
-
+    this.currentLine.points.push({
+      x: point.x,
+      y: point.y
+    });
     ctx.stroke();
 
     if (isEnd) {

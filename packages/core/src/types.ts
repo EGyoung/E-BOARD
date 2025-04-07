@@ -13,6 +13,8 @@ export interface IBoard {
 
   // 销毁方法
   dispose(): void;
+
+  getPlugin(name: string): IPlugin | undefined;
 }
 
 export enum EBoardMode {
@@ -33,6 +35,7 @@ export interface IService {
 }
 
 export interface IPlugin {
+  pluginName: string;
   init({ board }: IPluginInitParams): void;
   dispose(): void;
 }

@@ -1,4 +1,4 @@
-import { IPlugin } from "./type";
+import { IPlugin } from "../types";
 
 class BasePlugin implements IPlugin {
   pluginName: string;

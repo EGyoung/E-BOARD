@@ -18,7 +18,6 @@ export class EBoard implements IBoard {
   private mode: typeof EBoardMode | string = EBoardMode.PEN;
   private dpr: number = window.devicePixelRatio || 1;
   private resizeObserver: ResizeObserver | null = null;
-
   private services: IService[] = [];
   private plugins: IPlugin[] = [];
 
@@ -195,6 +194,10 @@ export class EBoard implements IBoard {
     this.canvas = null;
     this.ctx = null;
     resetContainer();
+  }
+
+  getPlugin(name: string) {
+    return this.plugins.find(plugin => plugin.pluginName === name);
   }
 }
 
