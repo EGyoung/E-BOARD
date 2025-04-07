@@ -58,9 +58,7 @@ class DrawPlugin implements IPlugin {
     console.log(delta, "delta");
     const context = ctx || this.board.getCtx();
     const linesList = list || this.linesList;
-    const _delta = delta || { x: 0, y: 0 };
     if (!context) return;
-    // context.translate(_delta.x, _delta.y);
     this.initContextAttrs(context);
     linesList.forEach(line => {
       context.beginPath();
@@ -83,37 +81,31 @@ class DrawPlugin implements IPlugin {
     });
   }
 
-  public setCurrentLineWithDraw(_point: { x: number; y: number }, isEnd = false) {
-    const point = this.transformPoint(_point, true);
+  public setCurrentLineWithDraw(point: { x: number; y: number }, isEnd = false) {
     const ctx = this.board.getCtx();
     if (!ctx) return;
-
+    const transformedPoint = this.transformPoint(point, true);
     if (!this.currentLine) {
       ctx.beginPath();
-      const transformedPoint = this.transformPoint(point);
-      ctx.moveTo(transformedPoint.x, transformedPoint.y);
-      this.currentLine = this.lineFactory.createLine([point]);
+      ctx.moveTo(point.x, point.y);
+      this.currentLine = this.lineFactory.createLine([transformedPoint]);
       return;
     }
-
     const points = this.currentLine.points;
-
     // 如果点数太少，直接画直线
     if (points.length < 3) {
-      const transformedPoint = this.transformPoint(point);
-      ctx.lineTo(transformedPoint.x, transformedPoint.y);
+      ctx.lineTo(point.x, point.y);
     } else {
       // 获取最后三个点
       const p1 = this.transformPoint(points[points.length - 1]); // 前一个点
-      const p2 = _point; // 当前点
+      const p2 = point; // 当前点
       const midPointX = (p1.x + p2.x) / 2;
       const midPointY = (p1.y + p2.y) / 2;
-
       ctx.quadraticCurveTo(p1.x, p1.y, midPointX, midPointY);
     }
     this.currentLine.points.push({
-      x: point.x,
-      y: point.y
+      x: transformedPoint.x,
+      y: transformedPoint.y
     });
     ctx.stroke();
 
