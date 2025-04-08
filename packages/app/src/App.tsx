@@ -1,12 +1,13 @@
 import React, { useEffect } from "react";
 import { EBoard } from "@e-board/core";
 import "./styles.css";
-
+import { RoamPlugin, DrawPlugin } from "@e-board/core";
 const App: React.FC = () => {
   useEffect(() => {
     const board = new EBoard({
       container: document.getElementById("board") as HTMLDivElement,
-      id: "app-board"
+      id: "app-board",
+      plugins: [RoamPlugin]
     });
     (window as any).board = board;
 

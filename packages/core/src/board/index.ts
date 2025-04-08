@@ -1,14 +1,21 @@
 import { commonServicesMap } from "../common/initServices";
-import { IService, IPlugin, IBoard, IPluginInitParams, EBoardMode } from "../types";
+import {
+  IService,
+  IPlugin,
+  IBoard,
+  IPluginInitParams,
+  EBoardMode,
+  CorePlugins,
+  IBoardInitParams
+} from "../types";
 import { bindServices } from "./bindServices";
 import { eBoardContainer, resetContainer } from "../common/IocContainer";
 import DrawPlugin from "../plugins/draw";
-import RoamPlugin from "../plugins/roam";
 
-interface IBoardInitParams {
-  container: HTMLDivElement;
-  id: string;
-}
+// 默认插件映射
+const DEFAULT_PLUGINS = {
+  [CorePlugins.DRAW]: DrawPlugin
+} as const;
 
 export class EBoard implements IBoard {
   private id!: string;
@@ -19,13 +26,76 @@ export class EBoard implements IBoard {
   private dpr: number = window.devicePixelRatio || 1;
   private resizeObserver: ResizeObserver | null = null;
   private services: IService[] = [];
-  private plugins: IPlugin[] = [];
+  private plugins: Map<string, IPlugin> = new Map();
+  private disableDefaultPlugins: boolean = false;
 
   constructor(params: IBoardInitParams) {
     this.initParams(params);
     this.initCanvas();
-    this.initEBoard();
+    this.init();
     this.initResizeObserver();
+  }
+
+  public init() {
+    bindServices();
+    this.initServices();
+    this.initPlugins();
+  }
+
+  public isCorePlugin(name: string): boolean {
+    return Object.values(CorePlugins).includes(name as any);
+  }
+
+  private initPlugins() {
+    // 初始化注册的插件
+    this.plugins.forEach(plugin => {
+      try {
+        plugin.init({ board: this });
+      } catch (error) {
+        console.error(`Failed to initialize plugin ${plugin.pluginName}:`, error);
+      }
+    });
+  }
+
+  public registerPlugin(PluginClass: new ({ board }: IPluginInitParams) => IPlugin) {
+    try {
+      const plugin = new PluginClass({ board: this });
+      if (!plugin.pluginName) {
+        throw new Error("Plugin must have a pluginName");
+      }
+
+      // 检查插件名称是否已存在
+      if (this.plugins.has(plugin.pluginName)) {
+        throw new Error(`Plugin with name ${plugin.pluginName} already exists`);
+      }
+
+      this.plugins.set(plugin.pluginName, plugin);
+
+      // 如果画板已经初始化，立即初始化插件
+      if (this.canvas) {
+        plugin.init({ board: this });
+      }
+    } catch (error) {
+      console.error("Failed to register plugin:", error);
+    }
+  }
+
+  public removePlugin(name: string) {
+    // 防止移除核心插件
+    if (this.isCorePlugin(name) && !this.disableDefaultPlugins) {
+      console.warn(`Cannot remove core plugin: ${name}`);
+      return;
+    }
+
+    const plugin = this.plugins.get(name);
+    if (plugin) {
+      plugin.dispose();
+      this.plugins.delete(name);
+    }
+  }
+
+  public getPlugin(name: string): IPlugin | undefined {
+    return this.plugins.get(name);
   }
 
   private initResizeObserver() {
@@ -72,13 +142,13 @@ export class EBoard implements IBoard {
     this.canvas.width = width * this.dpr;
     this.canvas.height = height * this.dpr;
 
-    // 设置画布的显示大
+    // 设置画布的显示大小
     this.canvas.style.width = `${width}px`;
     this.canvas.style.height = `${height}px`;
 
     const ctx = this.canvas.getContext("2d", {
-      willReadFrequently: true, // 频繁读取
-      alpha: false // 不透明
+      willReadFrequently: true,
+      alpha: false
     });
 
     if (ctx) {
@@ -106,28 +176,22 @@ export class EBoard implements IBoard {
     if (!params.id) {
       throw new Error("id is required");
     }
+    this.disableDefaultPlugins = params.disableDefaultPlugins || false;
     this.id = params.id;
     this.container = params.container;
+
+    // // 注册初始插件
+    const plugins = [
+      ...(this.disableDefaultPlugins ? [] : Object.values(DEFAULT_PLUGINS)),
+      ...(params.plugins || [])
+    ];
+    plugins.forEach(plugin => this.registerPlugin(plugin));
   }
 
   private initCanvas() {
     const canvasElement = document?.querySelector(`#${this.id}`);
     this.canvas = canvasElement ? (canvasElement as HTMLCanvasElement) : this.createCanvas();
     this.updateCanvasSize(this.container.clientWidth || 800, this.container.clientHeight || 600);
-  }
-
-  public initEBoard() {
-    bindServices();
-    this.initServices();
-
-    // todo 不要再core 里注册具体插件 待抽离
-    this.registerPlugin(DrawPlugin);
-    this.registerPlugin(RoamPlugin);
-    this.plugins.forEach(plugin => plugin.init({ board: this }));
-  }
-
-  public registerPlugin(plugin: new ({ board }: IPluginInitParams) => IPlugin) {
-    this.plugins.push(new plugin({ board: this }));
   }
 
   private initServices() {
@@ -159,7 +223,7 @@ export class EBoard implements IBoard {
       this.container.style.width = "100%";
       this.container.style.height = "100%";
       this.container.style.minHeight = "400px";
-      // 重置一下背景色
+      // 重置背景色
       if (this.ctx) {
         this.ctx.fillStyle = "black";
         this.ctx.fillRect(
@@ -183,21 +247,16 @@ export class EBoard implements IBoard {
     return this.container;
   }
 
-  dispose() {
+  public dispose() {
     this.resizeObserver?.disconnect();
     this.resizeObserver = null;
     this.services.forEach(service => service.dispose?.());
     this.plugins.forEach(plugin => plugin.dispose());
     this.services = [];
-    this.plugins = [];
-    // this.container = null;
+    this.plugins.clear();
     this.canvas = null;
     this.ctx = null;
     resetContainer();
-  }
-
-  getPlugin(name: string) {
-    return this.plugins.find(plugin => plugin.pluginName === name);
   }
 }
 

@@ -1,17 +1,6 @@
 import { IPlugin } from "../types";
+import { default as DrawPlugin } from "./draw";
+import { default as RoamPlugin } from "./roam";
 
-class BasePlugin implements IPlugin {
-  pluginName: string;
-  constructor() {
-    this.pluginName = "BasePlugin";
-  }
-  init() {
-    console.log("BasePlugin init");
-  }
-  dispose() {
-    console.log("BasePlugin dispose");
-  }
-}
-
-export default BasePlugin;
+export { DrawPlugin, RoamPlugin };
 export type { IPlugin };

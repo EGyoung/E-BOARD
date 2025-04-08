@@ -1,41 +1,61 @@
 export interface IBoard {
-  // 获取画布元素
+  // Canvas 相关方法
   getCanvas(): HTMLCanvasElement | null;
-
-  // 获取上下文
   getCtx(): CanvasRenderingContext2D | null;
-
-  // 获取容器元素
   getContainer(): HTMLDivElement | null;
 
-  // // 初始化方法
-  // init(): void;
+  // 画板模式管理
+  setBoardMode(mode: typeof EBoardMode | string): void;
+  getBoardMode(): typeof EBoardMode | string;
 
-  // 销毁方法
-  dispose(): void;
-
+  // 插件管理
+  registerPlugin(plugin: new ({ board }: IPluginInitParams) => IPlugin): void;
   getPlugin(name: string): IPlugin | undefined;
-}
+  removePlugin(name: string): void;
+  isCorePlugin(name: string): boolean;
 
-export enum EBoardMode {
-  PEN = "pen",
-  SELECT = "select",
-  ZOOM = "zoom"
-}
-
-export interface IServiceInitParams {
-  board: IBoard;
-}
-export interface IPluginInitParams {
-  board: IBoard;
-}
-export interface IService {
-  init({ board }: IServiceInitParams): void;
+  // 生命周期方法
+  init(): void;
   dispose(): void;
 }
 
 export interface IPlugin {
   pluginName: string;
   init({ board }: IPluginInitParams): void;
+  dispose(): void;
+}
+
+export interface IPluginInitParams {
+  board: IBoard;
+}
+
+export interface IServiceInitParams {
+  board: IBoard;
+}
+
+export const EBoardMode = {
+  PEN: "PEN",
+  ERASER: "ERASER",
+  SELECT: "SELECT",
+  ROAM: "ROAM"
+} as const;
+
+// 定义核心插件类型
+export const CorePlugins = {
+  DRAW: "DrawPlugin"
+} as const;
+
+export type CorePluginType = (typeof CorePlugins)[keyof typeof CorePlugins];
+
+// 扩展 IBoardInitParams 接口
+export interface IBoardInitParams {
+  container: HTMLDivElement;
+  id: string;
+  plugins?: Array<new ({ board }: IPluginInitParams) => IPlugin>;
+  disableDefaultPlugins?: boolean; // 是否禁用默认插件
+}
+
+export interface IService {
+  init({ board }: IServiceInitParams): void;
   dispose(): void;
 }
