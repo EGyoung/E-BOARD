@@ -1,14 +1,64 @@
-import { IServiceInitParams } from "../../types";
+import { eBoardContainer } from "../../common/IocContainer";
+import { IBoard, IServiceInitParams } from "../../types";
+import { IPointerEventService } from "../pointerEventService/type";
 
 class SelectionService {
-  constructor() {
-    console.log("SelectionService initialized");
-  }
+  private board!: IBoard;
+  private disposeList: (() => void)[] = [];
+  private pointerDownPoint: { x: number; y: number } | null = null;
 
   init({ board }: IServiceInitParams) {
-    console.log(board, "board");
-    console.log("SelectionService init", board);
+    return;
+    this.board = board;
+    const pointerEventService = eBoardContainer.get<IPointerEventService>(IPointerEventService);
+    const { dispose: pointerDownDispose } = pointerEventService.onPointerDown(
+      this.handlePointerDown
+    );
+    const { dispose: pointerMoveDispose } = pointerEventService.onPointerMove(
+      this.handlePointerMove
+    );
+    const { dispose: pointerUpDispose } = pointerEventService.onPointerUp(this.handlePointerUp);
+
+    this.disposeList.push(() => {
+      pointerDownDispose();
+      pointerMoveDispose();
+      pointerUpDispose();
+    });
   }
+
+  private handlePointerMove = (e: PointerEvent) => {
+    if (!this.pointerDownPoint) return;
+    const { clientX, clientY } = e;
+    const deltaX = clientX - this.pointerDownPoint.x;
+    const deltaY = clientY - this.pointerDownPoint.y;
+
+    const ctx = this.board.getCtx();
+    if (!ctx) return;
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height); // Clear the canvas
+    ctx.strokeRect(this.pointerDownPoint.x, this.pointerDownPoint.y, deltaX, deltaY);
+    // ctx.fillStyle = "rgba(0, 0, 255, 0.5)"; // Set the fill color with transparency
+
+    ctx.fillRect(this.pointerDownPoint.x, this.pointerDownPoint.y, deltaX, deltaY);
+    ctx.strokeStyle = "blue"; // Set the stroke color
+    ctx.lineWidth = 2; // Set the line width
+    ctx.stroke(); // Draw the rectangle
+  };
+
+  private handlePointerUp = (e: PointerEvent) => {
+    console.log("Pointer up event", e);
+    this.pointerDownPoint = null; // Reset the pointer down point
+    // if (!this.pointerDownPoint) return;
+    // const { clientX, clientY } = e;
+    // const deltaX = clientX - this.pointerDownPoint.x;
+    // const deltaY = clientY - this.pointerDownPoint.y;
+    // const ctx = this.board.getCtx();
+    // if (!ctx) return;
+    // ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height); // Clear the canvas
+  };
+
+  private handlePointerDown = (e: PointerEvent) => {
+    this.pointerDownPoint = { x: e.clientX, y: e.clientY };
+  };
 }
 
 export default SelectionService;
