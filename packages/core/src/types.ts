@@ -15,7 +15,7 @@ export interface IBoard {
   isCorePlugin(name: string): boolean;
 
   // 生命周期方法
-  init(): void;
+  // init(): void;
   dispose(): void;
 }
 

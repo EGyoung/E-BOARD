@@ -1,26 +1,14 @@
-import { throttle, uuid } from "@e-board/utils";
 import { eBoardContainer } from "../../common/IocContainer";
-import { IPointerEventService } from "../../services";
+import { IModelService, IPointerEventService } from "../../services";
+import type { IModel } from "../../services";
 import { IBoard, IPlugin, IPluginInitParams } from "../../types";
-
-import { ILine } from "./type";
 import { defaultData } from "./defaultData";
-
-class LineFactory {
-  public createLine(points: { x: number; y: number }[] = []) {
-    return {
-      id: uuid(),
-      points
-    };
-  }
-}
-
 class DrawPlugin implements IPlugin {
   private board!: IBoard;
   private disposeList: (() => void)[] = [];
-  private lineFactory = new LineFactory();
-  private linesList: ILine[] = [];
-  private currentLine: ILine | null = null;
+  private modelService = eBoardContainer.get<IModelService>(IModelService);
+  // private linesList: ILine[] = [];
+  private currentLine: IModel | null = null;
 
   public pluginName = "DrawPlugin";
 
@@ -51,25 +39,25 @@ class DrawPlugin implements IPlugin {
     ctx,
     delta
   }: {
-    list?: ILine[];
+    list?: IModel[];
     ctx?: CanvasRenderingContext2D;
     delta?: { x: number; y: number };
   }) {
     console.log(delta, "delta");
     const context = ctx || this.board.getCtx();
-    const linesList = list || this.linesList;
+    const linesList = list || this.modelService.getAllModels();
     if (!context) return;
     this.initContextAttrs(context);
     linesList.forEach(line => {
       context.beginPath();
-      line.points.forEach((point, index) => {
+      line.points?.forEach((point, index) => {
         const transformedPoint = this.transformPoint(point);
         if (index === 0) {
           context.moveTo(transformedPoint.x, transformedPoint.y);
         } else if (index < 2) {
           context.lineTo(transformedPoint.x, transformedPoint.y);
         } else {
-          const p1 = this.transformPoint(line.points[index - 1]);
+          const p1 = this.transformPoint(line.points![index - 1]);
           const p2 = this.transformPoint(point);
           const midPointX = (p1.x + p2.x) / 2;
           const midPointY = (p1.y + p2.y) / 2;
@@ -88,10 +76,11 @@ class DrawPlugin implements IPlugin {
     if (!this.currentLine) {
       ctx.beginPath();
       ctx.moveTo(point.x, point.y);
-      this.currentLine = this.lineFactory.createLine([transformedPoint]);
+      this.currentLine = this.modelService.createModel("line", { points: [transformedPoint] });
+      this.currentLine.points?.push(transformedPoint);
       return;
     }
-    const points = this.currentLine.points;
+    const points = this.currentLine.points!;
     // 如果点数太少，直接画直线
     if (points.length < 2) {
       ctx.lineTo(point.x, point.y);
@@ -103,7 +92,7 @@ class DrawPlugin implements IPlugin {
       const midPointY = (p1.y + p2.y) / 2;
       ctx.quadraticCurveTo(p1.x, p1.y, midPointX, midPointY);
     }
-    this.currentLine.points.push({
+    this.currentLine.points?.push({
       x: transformedPoint.x,
       y: transformedPoint.y
     });
@@ -111,7 +100,7 @@ class DrawPlugin implements IPlugin {
 
     if (isEnd) {
       ctx.closePath();
-      this.linesList.push(this.currentLine);
+      this.modelService.createModel("line", { points: this.currentLine.points });
       this.currentLine = null;
     }
   }

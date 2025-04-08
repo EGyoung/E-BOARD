@@ -3,8 +3,6 @@ import { IBoard, IPlugin, IPluginInitParams } from "../../types";
 class RoamPlugin implements IPlugin {
   private board!: IBoard;
   private disposeList: (() => void)[] = [];
-  private offscreenCanvas!: HTMLCanvasElement;
-  private offscreenCtx!: CanvasRenderingContext2D;
   private view = {
     x: 0,
     y: 0,

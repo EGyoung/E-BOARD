@@ -27,28 +27,17 @@ export class EBoard implements IBoard {
   constructor(params: IBoardInitParams) {
     this.initParams(params);
     this.initCanvas();
-    this.init();
+    this.prepareServices();
+    this.registerPlugins(params.plugins);
   }
 
-  public init() {
+  public prepareServices() {
     bindServices();
     this.initServices();
-    this.initPlugins();
   }
 
   public isCorePlugin(name: string): boolean {
     return Object.values(CorePlugins).includes(name as any);
-  }
-
-  private initPlugins() {
-    // 初始化注册的插件
-    this.plugins.forEach(plugin => {
-      try {
-        plugin.init({ board: this });
-      } catch (error) {
-        console.error(`Failed to initialize plugin ${plugin.pluginName}:`, error);
-      }
-    });
   }
 
   public registerPlugin(PluginClass: new ({ board }: IPluginInitParams) => IPlugin) {
@@ -136,13 +125,16 @@ export class EBoard implements IBoard {
     this.disableDefaultPlugins = params.disableDefaultPlugins || false;
     this.id = params.id;
     this.container = params.container;
+  }
+
+  private registerPlugins(plugins?: Array<new ({ board }: IPluginInitParams) => IPlugin>) {
     const DEFAULT_PLUGINS = getDefaultPlugins();
     // // 注册初始插件
-    const plugins = [
+    const allPlugins = [
       ...(this.disableDefaultPlugins ? [] : Object.values(DEFAULT_PLUGINS)),
-      ...(params.plugins || [])
+      ...(plugins || [])
     ];
-    plugins.forEach(plugin => this.registerPlugin(plugin));
+    allPlugins.forEach(plugin => this.registerPlugin(plugin));
   }
 
   private initCanvas() {

@@ -36,7 +36,7 @@ class SelectionService {
     if (!ctx) return;
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height); // Clear the canvas
     ctx.strokeRect(this.pointerDownPoint.x, this.pointerDownPoint.y, deltaX, deltaY);
-    // ctx.fillStyle = "rgba(0, 0, 255, 0.5)"; // Set the fill color with transparency
+    ctx.fillStyle = "rgba(189, 189, 251, 0.5)"; // Set the fill color with transparency
 
     ctx.fillRect(this.pointerDownPoint.x, this.pointerDownPoint.y, deltaX, deltaY);
     ctx.strokeStyle = "blue"; // Set the stroke color
@@ -45,15 +45,8 @@ class SelectionService {
   };
 
   private handlePointerUp = (e: PointerEvent) => {
-    console.log("Pointer up event", e);
-    this.pointerDownPoint = null; // Reset the pointer down point
-    // if (!this.pointerDownPoint) return;
-    // const { clientX, clientY } = e;
-    // const deltaX = clientX - this.pointerDownPoint.x;
-    // const deltaY = clientY - this.pointerDownPoint.y;
-    // const ctx = this.board.getCtx();
-    // if (!ctx) return;
-    // ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height); // Clear the canvas
+    this.pointerDownPoint = null;
+    // 触发重新渲染
   };
 
   private handlePointerDown = (e: PointerEvent) => {
