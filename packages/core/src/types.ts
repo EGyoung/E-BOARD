@@ -17,6 +17,9 @@ export interface IBoard {
   // 生命周期方法
   // init(): void;
   dispose(): void;
+
+  // 重绘
+  redraw(): void;
 }
 
 export interface IPlugin {
