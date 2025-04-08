@@ -10,12 +10,7 @@ import {
 } from "../types";
 import { bindServices } from "./bindServices";
 import { eBoardContainer, resetContainer } from "../common/IocContainer";
-import DrawPlugin from "../plugins/draw";
-
-// 默认插件映射
-const DEFAULT_PLUGINS = {
-  [CorePlugins.DRAW]: DrawPlugin
-} as const;
+import { getDefaultPlugins } from "../common/getDefaultPlugins";
 
 export class EBoard implements IBoard {
   private id!: string;
@@ -33,7 +28,6 @@ export class EBoard implements IBoard {
     this.initParams(params);
     this.initCanvas();
     this.init();
-    this.initResizeObserver();
   }
 
   public init() {
@@ -98,43 +92,6 @@ export class EBoard implements IBoard {
     return this.plugins.get(name);
   }
 
-  private initResizeObserver() {
-    if (!this.canvas) return;
-
-    this.resizeObserver = new ResizeObserver(entries => {
-      for (const entry of entries) {
-        const { width, height } = entry.contentRect;
-        this.resetView(width, height);
-      }
-    });
-
-    this.resizeObserver.observe(this.container);
-  }
-
-  private resetView(width: number, height: number) {
-    if (!this.canvas) return;
-    const offscreenCanvas = document.createElement("canvas");
-    const offscreenCanvasCtx = offscreenCanvas.getContext("2d");
-    offscreenCanvas.width = this.canvas.width;
-    offscreenCanvas.height = this.canvas.height;
-    offscreenCanvasCtx?.drawImage(this.canvas, 0, 0);
-
-    this.updateCanvasSize(width, height);
-
-    this.ctx?.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    this.ctx?.drawImage(
-      offscreenCanvas,
-      0,
-      0,
-      this.canvas.width,
-      this.canvas.height,
-      0,
-      0,
-      this.canvas.width / this.dpr,
-      this.canvas.height / this.dpr
-    );
-  }
-
   private updateCanvasSize(width: number, height: number) {
     if (!this.canvas) return;
 
@@ -179,7 +136,7 @@ export class EBoard implements IBoard {
     this.disableDefaultPlugins = params.disableDefaultPlugins || false;
     this.id = params.id;
     this.container = params.container;
-
+    const DEFAULT_PLUGINS = getDefaultPlugins();
     // // 注册初始插件
     const plugins = [
       ...(this.disableDefaultPlugins ? [] : Object.values(DEFAULT_PLUGINS)),
