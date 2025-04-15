@@ -43,7 +43,6 @@ class DrawPlugin implements IPlugin {
     ctx?: CanvasRenderingContext2D;
     delta?: { x: number; y: number };
   }) {
-    console.log(delta, "delta");
     const context = ctx || this.board.getCtx();
     const linesList = list || this.modelService.getAllModels();
     if (!context) return;
