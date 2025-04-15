@@ -6,6 +6,8 @@
 
 当你首次在 VS Code 中打开这个项目时，VS Code 会提示你安装推荐的扩展：
 
+预览地址: https://egyoung.github.io/E-BOARD
+
 - ESLint
 - Prettier
 
