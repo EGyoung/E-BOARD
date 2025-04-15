@@ -9,6 +9,7 @@ class SelectionService implements ISelectionService {
   private pointerDownPoint: { x: number; y: number } | null = null;
 
   init({ board }: IServiceInitParams) {
+    return;
     this.board = board;
     const pointerEventService = eBoardContainer.get<IPointerEventService>(IPointerEventService);
     const { dispose: pointerDownDispose } = pointerEventService.onPointerDown(
