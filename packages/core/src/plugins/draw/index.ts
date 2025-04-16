@@ -47,8 +47,8 @@ class DrawPlugin implements IPlugin {
     const linesList = list || this.modelService.getAllModels();
     if (!context) return;
     this.initContextAttrs(context);
+    context.beginPath();
     linesList.forEach(line => {
-      context.beginPath();
       line.points?.forEach((point, index) => {
         const transformedPoint = this.transformPoint(point);
         if (index === 0) {
@@ -62,10 +62,9 @@ class DrawPlugin implements IPlugin {
           const midPointY = (p1.y + p2.y) / 2;
           context.quadraticCurveTo(p1.x, p1.y, midPointX, midPointY);
         }
-        context.stroke();
       });
-      context.closePath();
     });
+    context.stroke();
   }
 
   public setCurrentLineWithDraw(point: { x: number; y: number }, isEnd = false) {
