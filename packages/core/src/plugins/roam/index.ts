@@ -1,3 +1,5 @@
+import { eBoardContainer } from "../../common/IocContainer";
+import { IPluginService } from "../../services/pluginService/type";
 import { IBoard, IPlugin, IPluginInitParams } from "../../types";
 
 class RoamPlugin implements IPlugin {
@@ -25,8 +27,8 @@ class RoamPlugin implements IPlugin {
     // this.offscreenCanvas.width = canvas.width;
     // this.offscreenCanvas.height = canvas.height;
     // this.offscreenCtx = this.offscreenCanvas.getContext("2d")!;
-
-    const drawPlugin = this.board.getPlugin("DrawPlugin");
+    const pluginService = eBoardContainer.get<IPluginService>(IPluginService);
+    const drawPlugin = pluginService.getPlugin("DrawPlugin");
 
     canvas.addEventListener("wheel", e => {
       const { deltaX, deltaY } = e;
@@ -37,7 +39,8 @@ class RoamPlugin implements IPlugin {
       this.view.x += deltaX;
       this.view.y += deltaY;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      drawPlugin?.setView(this.view);
+      // TODO 优化
+      (drawPlugin as any)?.setView(this.view);
       (drawPlugin as any)?.redrawByLinesList({
         // ctx: this.offscreenCtx,
         delta: {

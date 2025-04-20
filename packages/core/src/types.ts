@@ -1,4 +1,5 @@
 export interface IBoard {
+  config: Partial<IBoardInitParams>;
   // Canvas 相关方法
   getCanvas(): HTMLCanvasElement | null;
   getCtx(): CanvasRenderingContext2D | null;
@@ -7,12 +8,6 @@ export interface IBoard {
   // 画板模式管理
   setBoardMode(mode: typeof EBoardMode | string): void;
   getBoardMode(): typeof EBoardMode | string;
-
-  // 插件管理
-  registerPlugin(plugin: new ({ board }: IPluginInitParams) => IPlugin): void;
-  getPlugin(name: string): IPlugin | undefined;
-  removePlugin(name: string): void;
-  isCorePlugin(name: string): boolean;
 
   // 生命周期方法
   // init(): void;

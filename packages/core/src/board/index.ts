@@ -1,16 +1,7 @@
 import { commonServicesMap } from "../common/initServices";
-import {
-  IService,
-  IPlugin,
-  IBoard,
-  IPluginInitParams,
-  EBoardMode,
-  CorePlugins,
-  IBoardInitParams
-} from "../types";
+import { IService, IPlugin, IBoard, EBoardMode, IBoardInitParams } from "../types";
 import { bindServices } from "./bindServices";
 import { eBoardContainer, resetContainer } from "../common/IocContainer";
-import { getDefaultPlugins } from "../common/getDefaultPlugins";
 import { IModel, IModelService } from "../services";
 
 export class EBoard implements IBoard {
@@ -23,7 +14,7 @@ export class EBoard implements IBoard {
   private resizeObserver: ResizeObserver | null = null;
   private services: IService[] = [];
   private plugins: Map<string, IPlugin> = new Map();
-  private disableDefaultPlugins: boolean = false;
+  public config: Partial<IBoardInitParams> = {};
   private view = {
     x: 0,
     y: 0
@@ -37,57 +28,11 @@ export class EBoard implements IBoard {
     this.initParams(params);
     this.initCanvas();
     this.prepareServices();
-    this.registerPlugins(params.plugins);
   }
 
   public prepareServices() {
     bindServices();
     this.initServices();
-  }
-
-  public isCorePlugin(name: string): boolean {
-    return Object.values(CorePlugins).includes(name as any);
-  }
-
-  public registerPlugin(PluginClass: new ({ board }: IPluginInitParams) => IPlugin) {
-    try {
-      const plugin = new PluginClass({ board: this });
-      if (!plugin.pluginName) {
-        throw new Error("Plugin must have a pluginName");
-      }
-
-      // 检查插件名称是否已存在
-      if (this.plugins.has(plugin.pluginName)) {
-        throw new Error(`Plugin with name ${plugin.pluginName} already exists`);
-      }
-
-      this.plugins.set(plugin.pluginName, plugin);
-
-      // 如果画板已经初始化，立即初始化插件
-      if (this.canvas) {
-        plugin.init({ board: this });
-      }
-    } catch (error) {
-      console.error("Failed to register plugin:", error);
-    }
-  }
-
-  public removePlugin(name: string) {
-    // 防止移除核心插件
-    if (this.isCorePlugin(name) && !this.disableDefaultPlugins) {
-      console.warn(`Cannot remove core plugin: ${name}`);
-      return;
-    }
-
-    const plugin = this.plugins.get(name);
-    if (plugin) {
-      plugin.dispose();
-      this.plugins.delete(name);
-    }
-  }
-
-  public getPlugin(name: string): IPlugin | undefined {
-    return this.plugins.get(name);
   }
 
   private updateCanvasSize(width: number, height: number) {
@@ -131,19 +76,9 @@ export class EBoard implements IBoard {
     if (!params.id) {
       throw new Error("id is required");
     }
-    this.disableDefaultPlugins = params.disableDefaultPlugins || false;
     this.id = params.id;
     this.container = params.container;
-  }
-
-  private registerPlugins(plugins?: Array<new ({ board }: IPluginInitParams) => IPlugin>) {
-    const DEFAULT_PLUGINS = getDefaultPlugins();
-    // // 注册初始插件
-    const allPlugins = [
-      ...(this.disableDefaultPlugins ? [] : Object.values(DEFAULT_PLUGINS)),
-      ...(plugins || [])
-    ];
-    allPlugins.forEach(plugin => this.registerPlugin(plugin));
+    this.config = params;
   }
 
   private initCanvas() {
