@@ -2,7 +2,7 @@ import { commonServicesMap } from "../common/initServices";
 import { IService, IPlugin, IBoard, EBoardMode, IBoardInitParams } from "../types";
 import { bindServices } from "./bindServices";
 import { eBoardContainer, resetContainer } from "../common/IocContainer";
-import { IModel, IModelService } from "../services";
+import { IModelService } from "../services";
 
 export class EBoard implements IBoard {
   private id!: string;
@@ -127,7 +127,6 @@ export class EBoard implements IBoard {
         );
       }
     }
-
     this.container?.appendChild(canvas);
     return canvas;
   }

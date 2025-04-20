@@ -1,5 +1,4 @@
-import { IPlugin, IPluginInitParams } from "../type";
-import { IBoard } from "../../types";
+import { IBoard, IPlugin, IPluginInitParams } from "../../types";
 // import { eBoardContainer } from "../../common/IocContainer";
 // import { IModelService } from "../../services/modelService/type";
 

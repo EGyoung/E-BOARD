@@ -7,7 +7,6 @@ class DrawPlugin implements IPlugin {
   private board!: IBoard;
   private disposeList: (() => void)[] = [];
   private modelService = eBoardContainer.get<IModelService>(IModelService);
-  // private linesList: ILine[] = [];
   private currentLine: IModel | null = null;
 
   public pluginName = "DrawPlugin";
