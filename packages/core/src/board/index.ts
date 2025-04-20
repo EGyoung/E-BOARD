@@ -2,7 +2,6 @@ import { commonServicesMap } from "../common/initServices";
 import { IService, IPlugin, IBoard, EBoardMode, IBoardInitParams } from "../types";
 import { bindServices } from "./bindServices";
 import { eBoardContainer, resetContainer } from "../common/IocContainer";
-import { IModelService } from "../services";
 
 export class EBoard implements IBoard {
   private id!: string;
@@ -15,6 +14,7 @@ export class EBoard implements IBoard {
   private services: IService[] = [];
   private plugins: Map<string, IPlugin> = new Map();
   public config: Partial<IBoardInitParams> = {};
+
   private view = {
     x: 0,
     y: 0
@@ -22,6 +22,10 @@ export class EBoard implements IBoard {
 
   public setView(view: { x: number; y: number }) {
     this.view = view;
+  }
+
+  public getView() {
+    return this.view;
   }
 
   constructor(params: IBoardInitParams) {
@@ -149,46 +153,6 @@ export class EBoard implements IBoard {
     this.canvas = null;
     this.ctx = null;
     resetContainer();
-  }
-
-  public transformPoint(point: { x: number; y: number }) {
-    return {
-      x: point.x - this.view.x,
-      y: point.y - this.view.y
-    };
-  }
-
-  public redraw() {
-    const context = this.getCtx();
-    const modelService = eBoardContainer.get<IModelService>(IModelService);
-    const linesList = modelService.getAllModels();
-    if (!context) return;
-
-    // 设置绘制样式
-    context.lineCap = "round"; // 设置线条端点样式
-    context.lineJoin = "round"; // 设置线条连接处样式
-    context.strokeStyle = "white"; // 设置线条颜色
-    context.lineWidth = 1; // 设置线条宽度
-
-    linesList.forEach(line => {
-      context.beginPath();
-      line.points?.forEach((point, index) => {
-        const transformedPoint = this.transformPoint(point);
-        if (index === 0) {
-          context.moveTo(transformedPoint.x, transformedPoint.y);
-        } else if (index < 2) {
-          context.lineTo(transformedPoint.x, transformedPoint.y);
-        } else {
-          const p1 = this.transformPoint(line.points![index - 1]);
-          const p2 = this.transformPoint(point);
-          const midPointX = (p1.x + p2.x) / 2;
-          const midPointY = (p1.y + p2.y) / 2;
-          context.quadraticCurveTo(p1.x, p1.y, midPointX, midPointY);
-        }
-        context.stroke();
-      });
-      context.closePath();
-    });
   }
 }
 

@@ -8,6 +8,8 @@ import {
 } from "../../services";
 import PluginService from "../../services/pluginService";
 import { IPluginService } from "../../services/pluginService/type";
+import RenderService from "../../services/renderService";
+import { IRenderService } from "../../services/renderService/type";
 import { eBoardContainer } from "../IocContainer";
 
 const commonServicesMap = [
@@ -26,6 +28,10 @@ const commonServicesMap = [
   {
     name: ISelectionService,
     service: SelectionService
+  },
+  {
+    name: IRenderService,
+    service: RenderService
   }
 ] as const;
 export const bindCommonServices = () => {

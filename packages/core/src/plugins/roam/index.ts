@@ -1,5 +1,5 @@
 import { eBoardContainer } from "../../common/IocContainer";
-import { IPluginService } from "../../services/pluginService/type";
+import { IRenderService } from "../../services/renderService/type";
 import { IBoard, IPlugin, IPluginInitParams } from "../../types";
 
 class RoamPlugin implements IPlugin {
@@ -17,27 +17,20 @@ class RoamPlugin implements IPlugin {
     this.board = board;
     this.initRoam();
   }
+
   public initRoam = () => {
     const canvas = this.board.getCanvas();
     if (!canvas) return;
     const ctx = this.board.getCtx();
     if (!ctx) return;
-    const pluginService = eBoardContainer.get<IPluginService>(IPluginService);
-    const drawPlugin = pluginService.getPlugin("DrawPlugin");
-
+    const renderService = eBoardContainer.get<IRenderService>(IRenderService);
     canvas.addEventListener("wheel", e => {
       const { deltaX, deltaY } = e;
       this.view.x += deltaX;
       this.view.y += deltaY;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      // TODO 优化
-      (drawPlugin as any)?.setView(this.view);
-      (drawPlugin as any)?.redrawByLinesList({
-        delta: {
-          x: this.view.x,
-          y: this.view.y
-        }
-      });
+      this.board.setView(this.view);
+      renderService.reRender();
     });
   };
 

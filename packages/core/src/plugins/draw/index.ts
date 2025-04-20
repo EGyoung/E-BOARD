@@ -1,69 +1,44 @@
 import { eBoardContainer } from "../../common/IocContainer";
 import { IModelService, IPointerEventService } from "../../services";
 import type { IModel } from "../../services";
+import { IRenderService } from "../../services/renderService/type";
 import { IBoard, IPlugin, IPluginInitParams } from "../../types";
-import { defaultData } from "./defaultData";
+
 class DrawPlugin implements IPlugin {
   private board!: IBoard;
   private disposeList: (() => void)[] = [];
   private modelService = eBoardContainer.get<IModelService>(IModelService);
+  private renderService = eBoardContainer.get<IRenderService>(IRenderService);
+
   private currentLine: IModel | null = null;
 
   public pluginName = "DrawPlugin";
 
-  private view = {
-    x: 0,
-    y: 0
+  // private view = {
+  //   x: 0,
+  //   y: 0
+  // };
+
+  private getView = () => {
+    return this.board.getView();
   };
 
-  public setView(view: { x: number; y: number }) {
-    this.view = view;
-  }
+  // public setView(view: { x: number; y: number }) {
+  //   this.view = view;
+  // }
 
   public transformPoint(point: { x: number; y: number }, inverse = false) {
+    const view = this.getView();
     if (inverse) {
       return {
-        x: point.x + this.view.x,
-        y: point.y + this.view.y
+        x: point.x + view.x,
+        y: point.y + view.y
       };
     }
     return {
-      x: point.x - this.view.x,
-      y: point.y - this.view.y
+      x: point.x - view.x,
+      y: point.y - view.y
     };
-  }
-
-  public redrawByLinesList({
-    list,
-    ctx,
-    delta
-  }: {
-    list?: IModel[];
-    ctx?: CanvasRenderingContext2D;
-    delta?: { x: number; y: number };
-  }) {
-    const context = ctx || this.board.getCtx();
-    const linesList = list || this.modelService.getAllModels();
-    if (!context) return;
-    this.initContextAttrs(context);
-    context.beginPath();
-    linesList.forEach(line => {
-      line.points?.forEach((point, index) => {
-        const transformedPoint = this.transformPoint(point);
-        if (index === 0) {
-          context.moveTo(transformedPoint.x, transformedPoint.y);
-        } else if (index < 2) {
-          context.lineTo(transformedPoint.x, transformedPoint.y);
-        } else {
-          const p1 = this.transformPoint(line.points![index - 1]);
-          const p2 = this.transformPoint(point);
-          const midPointX = (p1.x + p2.x) / 2;
-          const midPointY = (p1.y + p2.y) / 2;
-          context.quadraticCurveTo(p1.x, p1.y, midPointX, midPointY);
-        }
-      });
-    });
-    context.stroke();
   }
 
   public setCurrentLineWithDraw(point: { x: number; y: number }, isEnd = false) {
@@ -104,7 +79,32 @@ class DrawPlugin implements IPlugin {
   public init({ board }: IPluginInitParams) {
     this.board = board;
     this.initDraw();
+    this.registerLineDrawHandler();
   }
+
+  private registerLineDrawHandler() {
+    this.renderService.registerDrawModelHandler("line", this.drawLineModelHandler);
+  }
+
+  private drawLineModelHandler = (model: IModel) => {
+    const context = this.board.getCtx();
+    if (!context) return;
+
+    model.points?.forEach((point, index) => {
+      const transformedPoint = this.transformPoint(point);
+      if (index === 0) {
+        context.moveTo(transformedPoint.x, transformedPoint.y);
+      } else if (index < 2) {
+        context.lineTo(transformedPoint.x, transformedPoint.y);
+      } else {
+        const p1 = this.transformPoint(model.points![index - 1]);
+        const p2 = this.transformPoint(point);
+        const midPointX = (p1.x + p2.x) / 2;
+        const midPointY = (p1.y + p2.y) / 2;
+        context.quadraticCurveTo(p1.x, p1.y, midPointX, midPointY);
+      }
+    });
+  };
 
   private getCanvasPoint(clientX: number, clientY: number) {
     const canvas = this.board.getCanvas();
@@ -164,6 +164,7 @@ class DrawPlugin implements IPlugin {
 
   public dispose() {
     this.disposeList.forEach(dispose => dispose());
+    this.renderService.unregisterDrawModelHandler("line");
   }
 }
 

@@ -14,7 +14,11 @@ export interface IBoard {
   dispose(): void;
 
   // 重绘
-  redraw(): void;
+  // redraw(): void;
+
+  // 画板视图
+  setView(view: { x: number; y: number }): void;
+  getView(): { x: number; y: number };
 }
 
 export interface IPlugin {
