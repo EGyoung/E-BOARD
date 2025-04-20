@@ -52,7 +52,10 @@ class SelectionService implements ISelectionService {
     const ctx = this.board.getCtx();
     if (!ctx) return;
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height); // Clear the canvas
-    this.board.redraw();
+
+    // TODO 调用renderService重新渲染
+    // this.board.redraw();
+
     // 触发重新渲染
   };
 
