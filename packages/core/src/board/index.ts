@@ -1,7 +1,8 @@
 import { commonServicesMap } from "../common/initServices";
-import { IService, IPlugin, IBoard, EBoardMode, IBoardInitParams } from "../types";
+import { IService, IBoard, EBoardMode, IBoardInitParams } from "../types";
 import { bindServices } from "./bindServices";
 import { eBoardContainer, resetContainer } from "../common/IocContainer";
+import { IPlugin } from "../plugins/type";
 
 export class EBoard implements IBoard {
   private id!: string;

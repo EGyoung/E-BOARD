@@ -1,4 +1,5 @@
-import { IPlugin, IServiceInitParams, IPluginInitParams } from "../../types";
+import { IPlugin } from "../../plugins/type";
+import { IServiceInitParams, IPluginInitParams } from "../../types";
 
 export const IPluginService = Symbol("IPluginService");
 

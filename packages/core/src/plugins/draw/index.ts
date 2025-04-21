@@ -2,7 +2,8 @@ import { eBoardContainer } from "../../common/IocContainer";
 import { IModelService, IPointerEventService } from "../../services";
 import type { IModel } from "../../services";
 import { IRenderService } from "../../services/renderService/type";
-import { IBoard, IPlugin, IPluginInitParams } from "../../types";
+import { IBoard, IPluginInitParams } from "../../types";
+import { IPlugin } from "../type";
 
 class DrawPlugin implements IPlugin {
   private board!: IBoard;

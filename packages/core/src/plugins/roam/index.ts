@@ -1,6 +1,7 @@
 import { eBoardContainer } from "../../common/IocContainer";
 import { IRenderService } from "../../services/renderService/type";
-import { IBoard, IPlugin, IPluginInitParams } from "../../types";
+import { IBoard, IPluginInitParams } from "../../types";
+import { IPlugin } from "../type";
 
 class RoamPlugin implements IPlugin {
   private board!: IBoard;

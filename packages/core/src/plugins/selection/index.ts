@@ -1,6 +1,7 @@
-import { IBoard, IPlugin, IPluginInitParams } from "../../types";
+import { IBoard, IPluginInitParams } from "../../types";
 import { eBoardContainer } from "../../common/IocContainer";
 import { IModelService } from "../../services/modelService/type";
+import { IPlugin } from "../type";
 
 export class SelectionPlugin implements IPlugin {
   private board!: IBoard;

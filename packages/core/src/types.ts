@@ -1,3 +1,5 @@
+import { IPlugin } from "./plugins/type";
+
 export interface IBoard {
   config: Partial<IBoardInitParams>;
   // Canvas 相关方法
@@ -19,13 +21,6 @@ export interface IBoard {
   // 画板视图
   setView(view: { x: number; y: number }): void;
   getView(): { x: number; y: number };
-}
-
-export interface IPlugin {
-  pluginName: string;
-  init({ board }: IPluginInitParams): void;
-  dispose(): void;
-  dependencies?: string[]; // 依赖的插件
 }
 
 export interface IPluginInitParams {
