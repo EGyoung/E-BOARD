@@ -25,6 +25,7 @@ export interface IPlugin {
   pluginName: string;
   init({ board }: IPluginInitParams): void;
   dispose(): void;
+  dependencies?: string[]; // 依赖的插件
 }
 
 export interface IPluginInitParams {

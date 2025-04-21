@@ -14,6 +14,8 @@ class DrawPlugin implements IPlugin {
 
   public pluginName = "DrawPlugin";
 
+  public dependencies = [];
+
   // private view = {
   //   x: 0,
   //   y: 0

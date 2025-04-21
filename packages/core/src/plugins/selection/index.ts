@@ -1,14 +1,15 @@
 import { IBoard, IPlugin, IPluginInitParams } from "../../types";
-// import { eBoardContainer } from "../../common/IocContainer";
-// import { IModelService } from "../../services/modelService/type";
+import { eBoardContainer } from "../../common/IocContainer";
+import { IModelService } from "../../services/modelService/type";
 
 export class SelectionPlugin implements IPlugin {
   private board!: IBoard;
   private disposeList: (() => void)[] = [];
   private pointerDownPoint: { x: number; y: number } | null = null;
-  // private modelService = eBoardContainer.get<IModelService>(IModelService);
+  private modelService = eBoardContainer.get<IModelService>(IModelService);
 
   public pluginName = "SelectionPlugin";
+  // public dependencies = ["DrawPlugin"];
 
   public init({ board }: IPluginInitParams) {
     this.board = board;
