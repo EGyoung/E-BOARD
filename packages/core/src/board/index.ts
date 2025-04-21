@@ -1,5 +1,5 @@
 import { commonServicesMap } from "../common/initServices";
-import { IService, IBoard, EBoardMode, IBoardInitParams } from "../types";
+import { IService, IBoard, IBoardInitParams } from "../types";
 import { bindServices } from "./bindServices";
 import { eBoardContainer, resetContainer } from "../common/IocContainer";
 import { IPlugin } from "../plugins/type";
@@ -9,7 +9,6 @@ export class EBoard implements IBoard {
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
   private container!: HTMLDivElement;
-  private mode: typeof EBoardMode | string = EBoardMode.PEN;
   private dpr: number = window.devicePixelRatio || 1;
   private resizeObserver: ResizeObserver | null = null;
   private services: IService[] = [];
@@ -62,19 +61,9 @@ export class EBoard implements IBoard {
       this.ctx.scale(this.dpr, this.dpr);
     }
   }
-
   public getCtx() {
     return this.ctx;
   }
-
-  public setBoardMode(mode: typeof EBoardMode | string) {
-    this.mode = mode;
-  }
-
-  public getBoardMode() {
-    return this.mode;
-  }
-
   private initParams(params: IBoardInitParams) {
     if (!params.container) {
       throw new Error("container is required");

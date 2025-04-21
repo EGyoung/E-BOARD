@@ -8,8 +8,8 @@ export interface IBoard {
   getContainer(): HTMLDivElement | null;
 
   // 画板模式管理
-  setBoardMode(mode: typeof EBoardMode | string): void;
-  getBoardMode(): typeof EBoardMode | string;
+  // setBoardMode(mode: typeof EBoardMode | string): void;
+  // getBoardMode(): typeof EBoardMode | string;
 
   // 生命周期方法
   // init(): void;
@@ -30,14 +30,6 @@ export interface IPluginInitParams {
 export interface IServiceInitParams {
   board: IBoard;
 }
-
-export const EBoardMode = {
-  PEN: "PEN",
-  ERASER: "ERASER",
-  SELECT: "SELECT",
-  ROAM: "ROAM"
-} as const;
-
 // 定义核心插件类型
 export const CorePlugins = {
   DRAW: "DrawPlugin"
