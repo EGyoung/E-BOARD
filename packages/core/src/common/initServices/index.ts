@@ -3,12 +3,14 @@ import {
   IPointerEventService,
   ISelectionService,
   ModelService,
+  ModeService,
   PointerEventService,
-  SelectionService
+  SelectionService,
+  RenderService,
+  IModeService
 } from "../../services";
 import PluginService from "../../services/pluginService";
 import { IPluginService } from "../../services/pluginService/type";
-import RenderService from "../../services/renderService";
 import { IRenderService } from "../../services/renderService/type";
 import { eBoardContainer } from "../IocContainer";
 
@@ -32,6 +34,10 @@ const commonServicesMap = [
   {
     name: IRenderService,
     service: RenderService
+  },
+  {
+    name: IModeService,
+    service: ModeService
   }
 ] as const;
 export const bindCommonServices = () => {

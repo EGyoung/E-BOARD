@@ -13,6 +13,7 @@ export class EBoard implements IBoard {
   private dpr: number = window.devicePixelRatio || 1;
   private resizeObserver: ResizeObserver | null = null;
   private services: IService[] = [];
+  private servicesMap: Map<Symbol, IService> = new Map();
   private plugins: Map<string, IPlugin> = new Map();
   public config: Partial<IBoardInitParams> = {};
 
@@ -95,8 +96,13 @@ export class EBoard implements IBoard {
   private initServices() {
     commonServicesMap.forEach(({ name }) => {
       this.services.push(eBoardContainer.get(name));
+      this.servicesMap.set(name, eBoardContainer.get(name));
     });
     this.services.forEach(service => service.init({ board: this }));
+  }
+
+  public getService(name: Symbol) {
+    return this.servicesMap.get(name);
   }
 
   private createCanvas() {
@@ -142,6 +148,10 @@ export class EBoard implements IBoard {
 
   public getContainer(): HTMLDivElement | null {
     return this.container;
+  }
+
+  public getServices() {
+    return this.services;
   }
 
   public dispose() {

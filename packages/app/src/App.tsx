@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
-import { EBoard } from "@e-board/core";
+import { EBoard, IModeService } from "@e-board/core";
 import "./styles.css";
-import { RoamPlugin, DrawPlugin } from "@e-board/core";
+import { RoamPlugin } from "@e-board/core";
 const App: React.FC = () => {
   useEffect(() => {
     const board = new EBoard({
@@ -10,7 +10,8 @@ const App: React.FC = () => {
       plugins: [RoamPlugin]
     });
     (window as any).board = board;
-
+    const modeService = board.getService(IModeService) as IModeService;
+    modeService.switchMode("draw");
     return () => {
       board.dispose();
     };

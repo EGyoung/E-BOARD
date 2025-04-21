@@ -1,9 +1,11 @@
 import { eBoardContainer } from "../../common/IocContainer";
-import { IModelService, IPointerEventService } from "../../services";
+import { IModelService, IModeService, IPointerEventService } from "../../services";
 import type { IModel } from "../../services";
 import { IRenderService } from "../../services/renderService/type";
 import { IBoard, IPluginInitParams } from "../../types";
 import { IPlugin } from "../type";
+
+const CURRENT_MODE = "draw";
 
 class DrawPlugin implements IPlugin {
   private board!: IBoard;
@@ -17,21 +19,8 @@ class DrawPlugin implements IPlugin {
 
   public dependencies = [];
 
-  // private view = {
-  //   x: 0,
-  //   y: 0
-  // };
-
-  private getView = () => {
-    return this.board.getView();
-  };
-
-  // public setView(view: { x: number; y: number }) {
-  //   this.view = view;
-  // }
-
   public transformPoint(point: { x: number; y: number }, inverse = false) {
-    const view = this.getView();
+    const view = this.board.getView();
     if (inverse) {
       return {
         x: point.x + view.x,
@@ -81,8 +70,24 @@ class DrawPlugin implements IPlugin {
   }
   public init({ board }: IPluginInitParams) {
     this.board = board;
-    this.initDraw();
+    this.initDrawMode();
     this.registerLineDrawHandler();
+  }
+
+  private initDrawMode() {
+    const modeService = eBoardContainer.get<IModeService>(IModeService);
+    modeService.registerMode(CURRENT_MODE, {
+      beforeSwitchMode: ({ currentMode }) => {
+        if (currentMode === CURRENT_MODE) {
+          this.disposeList.forEach(dispose => dispose());
+        }
+      },
+      afterSwitchMode: ({ currentMode }) => {
+        if (currentMode === CURRENT_MODE) {
+          this.initDraw();
+        }
+      }
+    });
   }
 
   private registerLineDrawHandler() {
@@ -131,6 +136,7 @@ class DrawPlugin implements IPlugin {
   private initDraw = () => {
     const ctx = this.board.getCtx();
     if (!ctx) return;
+
     const pointerEventService = eBoardContainer.get<IPointerEventService>(IPointerEventService);
 
     let isDrawing = false;
