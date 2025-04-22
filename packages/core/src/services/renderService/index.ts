@@ -23,10 +23,18 @@ class RenderService implements IRenderService {
 
   private initOffscreenCanvas() {
     const mainCanvas = this.board.getCanvas()!;
+    const dpr = window.devicePixelRatio;
     this.offscreenCanvas = document.createElement("canvas");
-    this.offscreenCanvas.width = mainCanvas.width;
-    this.offscreenCanvas.height = mainCanvas.height;
-    this.offscreenCtx = this.offscreenCanvas.getContext("2d");
+    this.offscreenCanvas.width = mainCanvas.width * dpr;
+    this.offscreenCanvas.height = mainCanvas.height * dpr;
+    this.offscreenCanvas.style.width = `${mainCanvas.width}px`;
+    this.offscreenCanvas.style.height = `${mainCanvas.height}px`;
+    this.offscreenCtx = this.offscreenCanvas.getContext("2d", {
+      willReadFrequently: true,
+      alpha: false
+    });
+
+    this.initContextAttrs(this.offscreenCtx!);
   }
 
   public registerDrawModelHandler(key: string, handler: IDrawModelHandler) {
@@ -48,7 +56,9 @@ class RenderService implements IRenderService {
     context.lineCap = "round"; // 设置线条端点样式
     context.lineJoin = "round"; // 设置线条连接处样式
     context.strokeStyle = "white"; // 设置线条颜色
-    context.lineWidth = 1; // 设置线条宽度
+    context.lineWidth = 4; // 设置线条宽度
+    context.globalCompositeOperation = "source-over";
+    context.globalAlpha = 1.0;
   }
 
   public reRender = () => {

@@ -130,7 +130,9 @@ class DrawPlugin implements IPlugin {
     ctx.lineCap = "round"; // 设置线条端点样式
     ctx.lineJoin = "round"; // 设置线条连接处样式
     ctx.strokeStyle = "white"; // 设置线条颜色
-    ctx.lineWidth = 1; // 设置线条宽度
+    ctx.lineWidth = 4; // 设置线条宽度
+    ctx.globalCompositeOperation = "source-over";
+    ctx.globalAlpha = 1.0;
   }
 
   private initDraw = () => {
