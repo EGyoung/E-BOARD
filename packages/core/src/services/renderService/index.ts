@@ -25,12 +25,11 @@ class RenderService implements IRenderService {
     const mainCanvas = this.board.getCanvas()!;
     const dpr = window.devicePixelRatio;
     this.offscreenCanvas = document.createElement("canvas");
-    this.offscreenCanvas.width = mainCanvas.width * dpr;
-    this.offscreenCanvas.height = mainCanvas.height * dpr;
+    this.offscreenCanvas.width = mainCanvas.width * 2;
+    this.offscreenCanvas.height = mainCanvas.height * 2;
     this.offscreenCanvas.style.width = `${mainCanvas.width}px`;
     this.offscreenCanvas.style.height = `${mainCanvas.height}px`;
     this.offscreenCtx = this.offscreenCanvas.getContext("2d", {
-      willReadFrequently: true,
       alpha: false
     });
 
@@ -59,6 +58,8 @@ class RenderService implements IRenderService {
     context.lineWidth = 4; // 设置线条宽度
     context.globalCompositeOperation = "source-over";
     context.globalAlpha = 1.0;
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = "high";
   }
 
   public reRender = () => {

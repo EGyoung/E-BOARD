@@ -131,8 +131,10 @@ class DrawPlugin implements IPlugin {
     ctx.lineJoin = "round"; // 设置线条连接处样式
     ctx.strokeStyle = "white"; // 设置线条颜色
     ctx.lineWidth = 4; // 设置线条宽度
-    ctx.globalCompositeOperation = "source-over";
-    ctx.globalAlpha = 1.0;
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    // ctx.globalCompositeOperation = "source-over";
+    // ctx.globalAlpha = 1.0;
   }
 
   private initDraw = () => {
