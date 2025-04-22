@@ -7,10 +7,6 @@ export interface IBoard {
   getCtx(): CanvasRenderingContext2D | null;
   getContainer(): HTMLDivElement | null;
 
-  // 画板模式管理
-  // setBoardMode(mode: typeof EBoardMode | string): void;
-  // getBoardMode(): typeof EBoardMode | string;
-
   // 生命周期方法
   // init(): void;
   dispose(): void;
