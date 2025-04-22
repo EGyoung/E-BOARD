@@ -94,8 +94,8 @@ class DrawPlugin implements IPlugin {
     this.renderService.registerDrawModelHandler("line", this.drawLineModelHandler);
   }
 
-  private drawLineModelHandler = (model: IModel) => {
-    const context = this.board.getCtx();
+  private drawLineModelHandler = (model: IModel, ctx?: CanvasRenderingContext2D) => {
+    const context = ctx || this.board.getCtx();
     if (!context) return;
 
     model.points?.forEach((point, index) => {

@@ -5,7 +5,7 @@ import { IModelService } from "../modelService/type";
 import { IRenderService } from "./type";
 
 interface IDrawModelHandler {
-  (model: any): void;
+  (model: any, ctx?: CanvasRenderingContext2D): void;
 }
 
 class RenderService implements IRenderService {
@@ -13,10 +13,21 @@ class RenderService implements IRenderService {
   private modelService = eBoardContainer.get<IModelService>(IModelService);
   private modelHandler = new Map<string, IDrawModelHandler>();
 
+  private offscreenCanvas: HTMLCanvasElement | null = null;
+  private offscreenCtx: CanvasRenderingContext2D | null = null;
+
   init = ({ board }: IServiceInitParams) => {
-    console.log(board, "board");
     this.board = board;
+    this.initOffscreenCanvas();
   };
+
+  private initOffscreenCanvas() {
+    const mainCanvas = this.board.getCanvas()!;
+    this.offscreenCanvas = document.createElement("canvas");
+    this.offscreenCanvas.width = mainCanvas.width;
+    this.offscreenCanvas.height = mainCanvas.height;
+    this.offscreenCtx = this.offscreenCanvas.getContext("2d");
+  }
 
   public registerDrawModelHandler(key: string, handler: IDrawModelHandler) {
     this.modelHandler.set(key, handler);
@@ -28,6 +39,8 @@ class RenderService implements IRenderService {
 
   public dispose(): void {
     this.modelHandler = new Map();
+    this.offscreenCtx = null;
+    this.offscreenCanvas = document.createElement("canvas");
   }
 
   private initContextAttrs(context: CanvasRenderingContext2D) {
@@ -42,15 +55,19 @@ class RenderService implements IRenderService {
     const context = this.board.getCtx();
     const models = this.modelService.getAllModels();
     if (!context) return;
-    this.initContextAttrs(context);
-    context.beginPath();
+    if (!this.offscreenCtx || !this.offscreenCanvas) return;
+    this.offscreenCtx!.clearRect(0, 0, this.offscreenCanvas.width, this.offscreenCanvas.height);
+    this.initContextAttrs(this.offscreenCtx!);
+    this.offscreenCtx!.beginPath();
     models.forEach(model => {
       const handler = this.modelHandler.get(model.type);
-      if (handler) {
-        handler(model);
+      if (handler && this.offscreenCtx) {
+        handler(model, this.offscreenCtx as any);
       }
     });
-    context.stroke();
+    this.offscreenCtx!.stroke();
+    context.clearRect(0, 0, this.board.getCanvas()!.width, this.board.getCanvas()!.height);
+    context.drawImage(this.offscreenCanvas, 0, 0);
   };
 }
 
