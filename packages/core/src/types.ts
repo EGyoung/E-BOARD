@@ -10,13 +10,6 @@ export interface IBoard {
   // 生命周期方法
   // init(): void;
   dispose(): void;
-
-  // 重绘
-  // redraw(): void;
-
-  // 画板视图
-  setView(view: { x: number; y: number }): void;
-  getView(): { x: number; y: number };
 }
 
 export interface IPluginInitParams {

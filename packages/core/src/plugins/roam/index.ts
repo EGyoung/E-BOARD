@@ -1,5 +1,5 @@
 import { eBoardContainer } from "../../common/IocContainer";
-import { IRenderService } from "../../services/renderService/type";
+import { ITransformService } from "../../services/transformService/type";
 import { IBoard, IPluginInitParams } from "../../types";
 import { IPlugin } from "../type";
 
@@ -24,14 +24,12 @@ class RoamPlugin implements IPlugin {
     if (!canvas) return;
     const ctx = this.board.getCtx();
     if (!ctx) return;
-    const renderService = eBoardContainer.get<IRenderService>(IRenderService);
+    const transformService = eBoardContainer.get<ITransformService>(ITransformService);
     canvas.addEventListener("wheel", e => {
       const { deltaX, deltaY } = e;
       this.view.x += deltaX;
       this.view.y += deltaY;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      this.board.setView(this.view);
-      renderService.reRender();
+      transformService.setView(this.view);
     });
   };
 

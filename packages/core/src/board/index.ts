@@ -16,19 +16,6 @@ export class EBoard implements IBoard {
   private plugins: Map<string, IPlugin> = new Map();
   public config: Partial<IBoardInitParams> = {};
 
-  private view = {
-    x: 0,
-    y: 0
-  };
-
-  public setView(view: { x: number; y: number }) {
-    this.view = view;
-  }
-
-  public getView() {
-    return this.view;
-  }
-
   constructor(params: IBoardInitParams) {
     this.initParams(params);
     this.initCanvas();
@@ -52,7 +39,6 @@ export class EBoard implements IBoard {
     this.canvas.style.height = `${height}px`;
 
     const ctx = this.canvas.getContext("2d", {
-      willReadFrequently: true,
       alpha: false
     });
 

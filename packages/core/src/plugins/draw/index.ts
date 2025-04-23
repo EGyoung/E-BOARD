@@ -2,6 +2,7 @@ import { eBoardContainer } from "../../common/IocContainer";
 import { IModelService, IModeService, IPointerEventService } from "../../services";
 import type { IModel } from "../../services";
 import { IRenderService } from "../../services/renderService/type";
+import { ITransformService } from "../../services/transformService/type";
 import { IBoard, IPluginInitParams } from "../../types";
 import { IPlugin } from "../type";
 
@@ -12,6 +13,7 @@ class DrawPlugin implements IPlugin {
   private disposeList: (() => void)[] = [];
   private modelService = eBoardContainer.get<IModelService>(IModelService);
   private renderService = eBoardContainer.get<IRenderService>(IRenderService);
+  private transformService = eBoardContainer.get<ITransformService>(ITransformService);
 
   private currentLine: IModel | null = null;
 
@@ -20,17 +22,7 @@ class DrawPlugin implements IPlugin {
   public dependencies = [];
 
   public transformPoint(point: { x: number; y: number }, inverse = false) {
-    const view = this.board.getView();
-    if (inverse) {
-      return {
-        x: point.x + view.x,
-        y: point.y + view.y
-      };
-    }
-    return {
-      x: point.x - view.x,
-      y: point.y - view.y
-    };
+    return this.transformService.transformPoint(point, inverse);
   }
 
   public setCurrentLineWithDraw(point: { x: number; y: number }, isEnd = false) {
