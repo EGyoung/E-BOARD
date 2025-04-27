@@ -2,6 +2,10 @@ import { eBoardContainer } from "../../common/IocContainer";
 import { IBoard, IServiceInitParams } from "../../types";
 import { IPointerEventService } from "../pointerEventService/type";
 import { ISelectionService } from "./type";
+interface Point {
+  x: number;
+  y: number;
+}
 
 class SelectionService implements ISelectionService {
   private board!: IBoard;
@@ -9,12 +13,16 @@ class SelectionService implements ISelectionService {
   private pointerDownPoint: { x: number; y: number } | null = null;
 
   init({ board }: IServiceInitParams) {
-    return;
     this.board = board;
     const pointerEventService = eBoardContainer.get<IPointerEventService>(IPointerEventService);
     const { dispose: pointerDownDispose } = pointerEventService.onPointerDown(
       this.handlePointerDown
     );
+    this.disposeList.push(() => {
+      pointerDownDispose();
+    });
+    return;
+
     const { dispose: pointerMoveDispose } = pointerEventService.onPointerMove(
       this.handlePointerMove
     );
@@ -60,8 +68,33 @@ class SelectionService implements ISelectionService {
   };
 
   private handlePointerDown = (e: PointerEvent) => {
-    this.pointerDownPoint = { x: e.clientX, y: e.clientY };
+    // this.pointerDownPoint = { x: e.clientX, y: e.clientY };
   };
+
+  /**
+   * 计算点到线段的最短距离
+   * @param point 要计算的点
+   * @param p1 线段起点
+   * @param p2 线段终点
+   * @returns 点到线段的最短距离
+   *
+   * 算法步骤:
+   * 1. 将点和线段转换为向量:
+   *    - A,B 是点到线段起点的向量
+   *    - C,D 是线段的向量
+   *
+   * 2. 计算点在线段上的投影位置:
+   *    - dot 是两个向量的点积
+   *    - len_sq 是线段向量的长度平方
+   *    - param 是投影点在线段上的参数(0-1之间表示在线段内)
+   *
+   * 3. 根据 param 确定最近点:
+   *    - param < 0: 最近点是线段起点
+   *    - param > 1: 最近点是线段终点
+   *    - 0 <= param <= 1: 最近点在线段上
+   *
+   * 4. 计算点到最近点的距离
+   */
 }
 
 export default SelectionService;

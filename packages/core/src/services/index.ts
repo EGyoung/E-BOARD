@@ -10,4 +10,5 @@ export { default as ModelService } from "./modelService";
 export { default as ModeService } from "./modeService";
 export { default as RenderService } from "./renderService";
 export { default as TransformService } from "./transformService";
+export { default as ShapeService } from "./shapeService";
 export type { IService };

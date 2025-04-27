@@ -8,11 +8,13 @@ import {
   SelectionService,
   RenderService,
   IModeService,
-  TransformService
+  TransformService,
+  ShapeService
 } from "../../services";
 import PluginService from "../../services/pluginService";
 import { IPluginService } from "../../services/pluginService/type";
 import { IRenderService } from "../../services/renderService/type";
+import { IShapeService } from "../../services/shapeService/type";
 import { ITransformService } from "../../services/transformService/type";
 import { eBoardContainer } from "../IocContainer";
 
@@ -41,6 +43,10 @@ const commonServicesMap = [
   {
     name: ITransformService,
     service: TransformService
+  },
+  {
+    name: IShapeService,
+    service: ShapeService
   },
   {
     name: IModeService,
