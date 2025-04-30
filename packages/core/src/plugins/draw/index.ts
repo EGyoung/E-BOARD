@@ -53,11 +53,22 @@ class DrawPlugin implements IPlugin {
       const midPointY = (p1.y + p2.y) / 2;
       ctx.quadraticCurveTo(p1.x, p1.y, midPointX, midPointY);
     }
+
+    ctx.stroke();
+    // 如果不beginPath 会导致每次stroke 会重新绘制整条线段 导致降20倍速禁用GPU加速情况下长线段卡顿
+    // FIXME: 优化贝塞尔
+    ctx.beginPath();
+    const p1 = this.transformPoint(points[points.length - 1]); // 前一个点
+    const p2 = point; // 当前点
+    const midPointX = (p1.x + p2.x) / 2;
+    const midPointY = (p1.y + p2.y) / 2;
+    ctx.moveTo(midPointX, midPointY);
+    ctx.lineTo(point.x, point.y);
+
     this.currentLine.points?.push({
       x: transformedPoint.x,
       y: transformedPoint.y
     });
-    ctx.stroke();
 
     if (isEnd) {
       ctx.closePath();
@@ -197,8 +208,8 @@ class DrawPlugin implements IPlugin {
 
   private initContextAttrs(ctx: CanvasRenderingContext2D) {
     // 设置绘制样式
-    ctx.lineCap = "round"; // 设置线条端点样式
-    ctx.lineJoin = "round"; // 设置线条连接处样式
+    // ctx.lineCap = "round"; // 设置线条端点样式
+    // ctx.lineJoin = "round"; // 设置线条连接处样式
     ctx.strokeStyle = "white"; // 设置线条颜色
     ctx.lineWidth = 4; // 设置线条宽度
     ctx.imageSmoothingEnabled = true;
