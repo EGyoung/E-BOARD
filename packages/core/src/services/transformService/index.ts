@@ -45,7 +45,6 @@ class TransformService implements ITransformService {
       const ctx = this.board.getCtx();
       const canvas = this.board.getCanvas();
       if (!ctx || !canvas) return;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
       this.renderService.reRender();
     }
   };
