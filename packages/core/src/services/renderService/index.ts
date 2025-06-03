@@ -23,12 +23,10 @@ class RenderService implements IRenderService {
 
   private initOffscreenCanvas() {
     const mainCanvas = this.board.getCanvas()!;
-    const dpr = window.devicePixelRatio;
+    const { width, height } = mainCanvas.style;
     this.offscreenCanvas = document.createElement("canvas");
-    this.offscreenCanvas.width = mainCanvas.width * dpr;
-    this.offscreenCanvas.height = mainCanvas.height * dpr;
-    this.offscreenCanvas.style.width = `${mainCanvas.width}px`;
-    this.offscreenCanvas.style.height = `${mainCanvas.height}px`;
+    this.offscreenCanvas.width = parseInt(width);
+    this.offscreenCanvas.height = parseInt(height);
     this.offscreenCtx = this.offscreenCanvas.getContext("2d", {
       alpha: false
     });
@@ -68,7 +66,7 @@ class RenderService implements IRenderService {
     if (!context) return;
     if (!this.offscreenCtx || !this.offscreenCanvas) return;
     this.offscreenCtx!.clearRect(0, 0, this.offscreenCanvas.width, this.offscreenCanvas.height);
-    this.initContextAttrs(this.offscreenCtx!);
+    // this.initContextAttrs(this.offscreenCtx!);
     this.offscreenCtx!.beginPath();
     models.forEach(model => {
       const handler = this.modelHandler.get(model.type);
@@ -77,7 +75,6 @@ class RenderService implements IRenderService {
       }
     });
     this.offscreenCtx!.stroke();
-    context.clearRect(0, 0, this.board.getCanvas()!.width, this.board.getCanvas()!.height);
     context.drawImage(this.offscreenCanvas, 0, 0);
   };
 }
