@@ -60,6 +60,7 @@ class RenderService implements IRenderService {
     context.imageSmoothingQuality = "high";
   }
 
+  // todo: 性能较差
   public reRender = () => {
     const context = this.board.getCtx();
     const models = this.modelService.getAllModels();
