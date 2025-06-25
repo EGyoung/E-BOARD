@@ -71,23 +71,28 @@ class RenderService implements IRenderService {
     }
   };
 
-  // todo: 性能较差
   private _render = () => {
+    console.time("render");
     const context = this.board.getCtx();
     const models = this.modelService.getAllModels();
     if (!context) return;
-    if (!this.offscreenCtx || !this.offscreenCanvas) return;
-    this.offscreenCtx!.clearRect(0, 0, this.offscreenCanvas.width, this.offscreenCanvas.height);
-    // this.initContextAttrs(this.offscreenCtx!);
-    this.offscreenCtx!.beginPath();
+    const canvas = this.board.getCanvas();
+    if (!canvas) return;
+    // 清空画布
+    context.save();
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.restore();
+
+    // 绘制笔记
+    context.beginPath();
     models.forEach(model => {
       const handler = this.modelHandler.get(model.type);
-      if (handler && this.offscreenCtx) {
-        handler(model, this.offscreenCtx as any);
+      if (handler) {
+        handler(model, context as any);
       }
     });
-    this.offscreenCtx!.stroke();
-    context.drawImage(this.offscreenCanvas, 0, 0);
+    context.stroke();
+    console.timeEnd("render");
   };
 }
 
