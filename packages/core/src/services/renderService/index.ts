@@ -15,6 +15,7 @@ class RenderService implements IRenderService {
 
   private offscreenCanvas: HTMLCanvasElement | null = null;
   private offscreenCtx: CanvasRenderingContext2D | null = null;
+  private redrawRequested = false;
 
   init = ({ board }: IServiceInitParams) => {
     this.board = board;
@@ -60,8 +61,18 @@ class RenderService implements IRenderService {
     context.imageSmoothingQuality = "high";
   }
 
-  // todo: 性能较差
   public reRender = () => {
+    if (!this.redrawRequested) {
+      this.redrawRequested = true;
+      requestAnimationFrame(() => {
+        this._render();
+        this.redrawRequested = false;
+      });
+    }
+  };
+
+  // todo: 性能较差
+  private _render = () => {
     const context = this.board.getCtx();
     const models = this.modelService.getAllModels();
     if (!context) return;
