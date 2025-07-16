@@ -6,7 +6,7 @@ export default defineConfig({
     output: "dist/esm",
     platform: "browser",
     transformer: "babel",
-    extraBabelPlugins: [["babel-plugin-import", { style: true }]]
+    extraBabelPlugins: []
   },
   cjs: {
     input: "src",
