@@ -1,4 +1,4 @@
-const { rules } = require("./.prettierrc");
+const prettierConfig = require("./.prettierrc.json");
 module.exports = {
   root: true,
   parser: "@typescript-eslint/parser",
@@ -21,7 +21,7 @@ module.exports = {
     }
   },
   rules: {
-    "prettier/prettier": ["error", rules],
+    "prettier/prettier": ["error", prettierConfig],
     "@typescript-eslint/explicit-module-boundary-types": "off",
     "@typescript-eslint/no-explicit-any": "warn",
     "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
