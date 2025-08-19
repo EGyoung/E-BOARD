@@ -1,6 +1,7 @@
 import { eBoardContainer } from "../../common/IocContainer";
 import { IBoard, IServiceInitParams } from "../../types";
 import { IModelService } from "../modelService/type";
+import { ITransformService } from "../transformService/type";
 
 import { IRenderService } from "./type";
 
@@ -50,11 +51,16 @@ class RenderService implements IRenderService {
   }
 
   private initContextAttrs(context: CanvasRenderingContext2D) {
+    // 获取当前缩放比例
+    const transformService = eBoardContainer.get<ITransformService>(ITransformService);
+    const view = transformService.getView();
+
     // 设置绘制样式
     context.lineCap = "round"; // 设置线条端点样式
     context.lineJoin = "round"; // 设置线条连接处样式
     context.strokeStyle = "white"; // 设置线条颜色
-    context.lineWidth = 4; // 设置线条宽度
+    // 根据缩放比例调整线条宽度，保持视觉一致性
+    context.lineWidth = 4 * view.zoom;
     context.globalCompositeOperation = "source-over";
     context.globalAlpha = 1.0;
     context.imageSmoothingEnabled = true;
@@ -82,6 +88,9 @@ class RenderService implements IRenderService {
     context.save();
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.restore();
+
+    // 设置绘制属性（包括根据缩放调整的线条宽度）
+    this.initContextAttrs(context);
 
     // 绘制笔记
     context.beginPath();

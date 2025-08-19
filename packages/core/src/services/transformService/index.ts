@@ -41,6 +41,7 @@ class TransformService implements ITransformService {
     if (view.x !== undefined) this.x = view.x;
     if (view.y !== undefined) this.y = view.y;
     if (view.zoom !== undefined) this.zoom = view.zoom;
+    console.log(this.getView(), "getView");
     if (view.x !== undefined || view.y !== undefined || view.zoom !== undefined) {
       const ctx = this.board.getCtx();
       const canvas = this.board.getCanvas();
@@ -51,15 +52,18 @@ class TransformService implements ITransformService {
 
   public transformPoint(point: { x: number; y: number }, inverse: boolean = false) {
     const view = this.getView();
+    // console.log(view.zoom, "view.zoom");
     if (inverse) {
+      // 从画布坐标转换到世界坐标
       return {
-        x: point.x + view.x,
-        y: point.y + view.y
+        x: point.x / view.zoom + view.x,
+        y: point.y / view.zoom + view.y
       };
     }
+    // 从世界坐标转换到画布坐标
     return {
-      x: point.x - view.x,
-      y: point.y - view.y
+      x: (point.x - view.x) * view.zoom,
+      y: (point.y - view.y) * view.zoom
     };
   }
 

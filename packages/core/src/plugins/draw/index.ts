@@ -211,7 +211,9 @@ class DrawPlugin implements IPlugin {
     // ctx.lineCap = "round"; // 设置线条端点样式
     // ctx.lineJoin = "round"; // 设置线条连接处样式
     ctx.strokeStyle = "white"; // 设置线条颜色
-    ctx.lineWidth = 4; // 设置线条宽度
+    // 根据缩放比例调整线条宽度，保持视觉一致性
+    const view = this.transformService.getView();
+    ctx.lineWidth = 4 * view.zoom;
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
     // ctx.globalCompositeOperation = "source-over";
