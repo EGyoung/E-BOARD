@@ -71,17 +71,6 @@ class RoamPlugin implements IPlugin {
     });
   };
 
-  public screenToWorld(x: number, y: number) {
-    /**
-     * 根据 TransformService 的坐标系统：
-     * 从画布坐标转换到世界坐标：worldX = screenX / zoom + offsetX
-     */
-    return {
-      x: x / this.view.zoom + this.view.x,
-      y: y / this.view.zoom + this.view.y
-    };
-  }
-
   public dispose() {
     this.disposeList.forEach(dispose => dispose());
   }
