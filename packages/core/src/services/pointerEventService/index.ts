@@ -35,7 +35,7 @@ class PointerEventService implements IPointerEventService {
 
   public init({ board }: IServiceInitParams) {
     this.board = board;
-    const canvas = this.board.getCanvas();
+    const canvas = this.board.getInteractionCanvas();
     if (!canvas) {
       throw new Error("canvas is not found");
     }
@@ -43,7 +43,7 @@ class PointerEventService implements IPointerEventService {
   }
 
   private initPointerEvent = () => {
-    const canvas = this.board.getCanvas();
+    const canvas = this.board.getInteractionCanvas();
     if (!canvas) {
       throw new Error("canvas is not found");
     }
@@ -57,7 +57,7 @@ class PointerEventService implements IPointerEventService {
   };
 
   public dispose(): void {
-    const canvas = this.board.getCanvas();
+    const canvas = this.board.getInteractionCanvas();
     if (!canvas) return;
 
     canvas.removeEventListener("pointerdown", this.handlePointerDown);

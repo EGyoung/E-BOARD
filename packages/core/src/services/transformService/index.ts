@@ -8,7 +8,7 @@ class TransformService implements ITransformService {
   private board!: IBoard;
   private renderService = eBoardContainer.get<IRenderService>(IRenderService);
 
-  private x: number = 0;
+  private x: number = 0; // 画布坐标
 
   private y: number = 0;
 
@@ -69,5 +69,11 @@ class TransformService implements ITransformService {
 
   public dispose(): void {}
 }
+
+/**
+ *
+ *  公式：
+ *
+ */
 
 export default TransformService;

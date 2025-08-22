@@ -20,9 +20,9 @@ class RoamPlugin implements IPlugin {
   }
 
   public initRoam = () => {
-    const canvas = this.board.getCanvas();
+    const canvas = this.board.getInteractionCanvas();
     if (!canvas) return;
-    const ctx = this.board.getCtx();
+    const ctx = this.board.getInteractionCtx();
     if (!ctx) return;
     const transformService = eBoardContainer.get<ITransformService>(ITransformService);
 

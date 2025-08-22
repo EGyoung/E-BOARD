@@ -7,6 +7,9 @@ export interface IBoard {
   getCtx(): CanvasRenderingContext2D | null;
   getContainer(): HTMLDivElement | null;
 
+  getInteractionCanvas(): HTMLCanvasElement | null;
+  getInteractionCtx(): CanvasRenderingContext2D | null;
+
   // 生命周期方法
   // init(): void;
   dispose(): void;
