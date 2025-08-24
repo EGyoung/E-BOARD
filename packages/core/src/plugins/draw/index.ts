@@ -31,7 +31,7 @@ class DrawPlugin implements IPlugin {
   }
 
   public setCurrentLineWithDraw(point: { x: number; y: number }, isEnd = false) {
-    const ctx = this.board.getCtx();
+    const ctx = this.board.getInteractionCtx();
     if (!ctx) return;
     const transformedPoint = this.transformPoint(point, true);
     if (!this.currentLine) {
@@ -71,9 +71,13 @@ class DrawPlugin implements IPlugin {
     });
 
     if (isEnd) {
-      ctx.closePath();
+      // 清除交互画布
+      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
       this.modelService.createModel("line", { points: this.currentLine.points });
       this.currentLine = null;
+
+      // 内容渲染到绘制层
+      this.renderService.reRender();
     }
   }
   public init({ board }: IPluginInitParams) {
@@ -176,7 +180,7 @@ class DrawPlugin implements IPlugin {
   }
 
   private drawLineModelHandler = (model: IModel, ctx?: CanvasRenderingContext2D) => {
-    const context = ctx || this.board.getCtx();
+    const context = this.board.getCtx();
     if (!context) return;
 
     model.points?.forEach((point, index) => {
@@ -221,15 +225,14 @@ class DrawPlugin implements IPlugin {
   }
 
   private initDraw = () => {
-    const ctx = this.board.getCtx();
-    if (!ctx) return;
-
     const pointerEventService = eBoardContainer.get<IPointerEventService>(IPointerEventService);
 
     let isDrawing = false;
     let lastPoint = { x: 0, y: 0 };
 
     const { dispose: disposePointerDown } = pointerEventService.onPointerDown(event => {
+      const ctx = this.board.getInteractionCtx();
+      if (!ctx) return;
       isDrawing = true;
       lastPoint = this.getCanvasPoint(event.clientX, event.clientY);
       this.initContextAttrs(ctx);
@@ -239,15 +242,14 @@ class DrawPlugin implements IPlugin {
     const { dispose: disposePointerMove } = pointerEventService.onPointerMove(event => {
       if (!isDrawing) return;
       const currentPoint = this.getCanvasPoint(event.clientX, event.clientY);
-      const ctx = this.board.getCtx();
+      const ctx = this.board.getInteractionCtx();
       if (!ctx) return;
       this.setCurrentLineWithDraw(currentPoint);
     });
 
     const { dispose: disposePointerUp } = pointerEventService.onPointerUp(event => {
       if (!isDrawing) return;
-
-      const ctx = this.board.getCtx();
+      const ctx = this.board.getInteractionCtx();
       if (!ctx) return;
       const lastPoint = this.getCanvasPoint(event.clientX, event.clientY);
       this.setCurrentLineWithDraw(lastPoint, true);

@@ -31,26 +31,17 @@ export class EBoard implements IBoard {
     this.initServices();
   }
 
-  private updateCanvasSize(width: number, height: number) {
-    if (!this.canvas) return;
-    this.canvas.style.zIndex = "1"; // 确保在交互层之下
+  private updateCanvasSize(canvas: HTMLCanvasElement, width: number, height: number) {
+    if (!canvas) return;
 
     // 设置画布的实际像素大小
-    this.canvas.width = width * this.dpr;
-    this.canvas.height = height * this.dpr;
+    canvas.width = width * this.dpr;
+    canvas.width = width * this.dpr;
+    canvas.height = height * this.dpr;
 
     // 设置画布的显示大小
-    this.canvas.style.width = `${width}px`;
-    this.canvas.style.height = `${height}px`;
-
-    const ctx = this.canvas.getContext("2d", {
-      alpha: false
-    });
-
-    if (ctx) {
-      this.ctx = ctx;
-      this.ctx.scale(this.dpr, this.dpr);
-    }
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
   }
   public getCtx() {
     return this.ctx;
@@ -79,41 +70,48 @@ export class EBoard implements IBoard {
   private initCanvas() {
     const canvasElement = document?.querySelector(`#${this.id}`);
     this.canvas = canvasElement ? (canvasElement as HTMLCanvasElement) : this.createCanvas();
-    this.updateCanvasSize(this.container.clientWidth || 800, this.container.clientHeight || 600);
+    this.updateCanvasSize(
+      this.canvas,
+      this.container.clientWidth || 800,
+      this.container.clientHeight || 600
+    );
+    const ctx = this.canvas.getContext("2d", {
+      alpha: true
+    });
+    if (ctx) {
+      this.ctx = ctx;
+      this.ctx.scale(this.dpr, this.dpr);
+    }
   }
 
   private initInteractionCanvas() {
     if (this.interactionCanvas) return;
-    const existingCanvas = document.querySelector(`#${INTERACTION_CANVAS_ID}`);
-    if (existingCanvas) {
-      this.interactionCanvas = existingCanvas as HTMLCanvasElement;
-      this.interactionCtx = this.interactionCanvas.getContext("2d", {
-        alpha: false
-      });
-      if (this.interactionCtx) {
-        this.interactionCtx.scale(this.dpr, this.dpr);
-      }
-      return;
-    }
+    const existingCanvas = document.querySelector(
+      `#${INTERACTION_CANVAS_ID}`
+    ) as HTMLCanvasElement | null;
 
-    this.interactionCanvas = document.createElement("canvas");
+    this.interactionCanvas = existingCanvas || document.createElement("canvas");
     this.interactionCanvas.id = `${INTERACTION_CANVAS_ID}`;
     this.interactionCanvas.style.position = "absolute";
     this.interactionCanvas.style.top = "0";
     this.interactionCanvas.style.left = "0";
-    this.interactionCanvas.style.width = "100%";
-    this.interactionCanvas.style.height = "100%";
     this.interactionCanvas.style.zIndex = "2"; // 确保在主画布之上
 
+    this.updateCanvasSize(
+      this.interactionCanvas,
+      this.container.clientWidth || 800,
+      this.container.clientHeight || 600
+    );
+
     // 背景透明
-    this.interactionCanvas.style.opacity = "0";
+    this.interactionCanvas.style.opacity = "1";
 
     // 画布透明
 
     this.container.appendChild(this.interactionCanvas);
 
     const ctx = this.interactionCanvas.getContext("2d", {
-      alpha: false
+      alpha: true
     });
     if (ctx) {
       this.interactionCtx = ctx;
@@ -155,16 +153,6 @@ export class EBoard implements IBoard {
       this.container.style.width = "100%";
       this.container.style.height = "100%";
       this.container.style.minHeight = "400px";
-      // 重置背景色
-      if (this.ctx) {
-        this.ctx.fillStyle = "black";
-        this.ctx.fillRect(
-          0,
-          0,
-          this.container.clientWidth || 800,
-          this.container.clientHeight || 600
-        );
-      }
     }
     this.container?.appendChild(canvas);
     return canvas;
