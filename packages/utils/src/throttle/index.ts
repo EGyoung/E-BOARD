@@ -31,4 +31,25 @@ function throttle<T extends (...args: any[]) => any>(
   };
 }
 
-export { throttle };
+// 渲染帧截流
+const throttleByRaf = <T extends (...args: any[]) => any>(
+  func: T
+): ((...args: Parameters<T>) => void) => {
+  let ticking = false;
+  return function (this: ThisParameterType<T>, ...args: Parameters<T>) {
+    const context = this;
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(() => {
+        func.apply(context, args);
+        ticking = false;
+      });
+    }
+  };
+};
+
+// 用法
+// const throttledFunction = throttle(originalFunction, 200); // 200ms间隔
+// const throttledByRafFunction = throttleByRaf(originalFunction);
+
+export { throttle, throttleByRaf };

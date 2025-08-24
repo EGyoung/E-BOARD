@@ -1,3 +1,4 @@
+import { throttleByRaf } from "@e-board/utils";
 import { eBoardContainer } from "../../common/IocContainer";
 import { IModelService, IModeService, IPointerEventService } from "../../services";
 import type { IModel } from "../../services";
@@ -71,15 +72,18 @@ class DrawPlugin implements IPlugin {
     });
 
     if (isEnd) {
+      this.renderService.reRender();
+
       // 清除交互画布
-      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      requestAnimationFrame(() => {
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      });
       this.modelService.createModel("line", { points: this.currentLine.points });
       this.currentLine = null;
-
-      // 内容渲染到绘制层
-      this.renderService.reRender();
     }
   }
+
+  public throttleSetCurrentLineWithDraw = throttleByRaf(this.setCurrentLineWithDraw.bind(this));
   public init({ board }: IPluginInitParams) {
     this.board = board;
     this.initDrawMode();
@@ -210,18 +214,22 @@ class DrawPlugin implements IPlugin {
     };
   }
 
+  // todo 抽离成公共方法
   private initContextAttrs(ctx: CanvasRenderingContext2D) {
-    // 设置绘制样式
-    // ctx.lineCap = "round"; // 设置线条端点样式
-    // ctx.lineJoin = "round"; // 设置线条连接处样式
-    ctx.strokeStyle = "white"; // 设置线条颜色
-    // 根据缩放比例调整线条宽度，保持视觉一致性
+    const context = ctx;
+
     const view = this.transformService.getView();
-    ctx.lineWidth = 4 * view.zoom;
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = "high";
-    // ctx.globalCompositeOperation = "source-over";
-    // ctx.globalAlpha = 1.0;
+
+    // 设置绘制样式
+    context.lineCap = "round"; // 设置线条端点样式
+    context.lineJoin = "round"; // 设置线条连接处样式
+    context.strokeStyle = "white"; // 设置线条颜色
+    // 根据缩放比例调整线条宽度，保持视觉一致性
+    context.lineWidth = 4 * view.zoom;
+    context.globalCompositeOperation = "source-over";
+    context.globalAlpha = 1.0;
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = "high";
   }
 
   private initDraw = () => {
@@ -236,15 +244,17 @@ class DrawPlugin implements IPlugin {
       isDrawing = true;
       lastPoint = this.getCanvasPoint(event.clientX, event.clientY);
       this.initContextAttrs(ctx);
-      this.setCurrentLineWithDraw(lastPoint);
+      this.throttleSetCurrentLineWithDraw(lastPoint);
     });
 
     const { dispose: disposePointerMove } = pointerEventService.onPointerMove(event => {
       if (!isDrawing) return;
       const currentPoint = this.getCanvasPoint(event.clientX, event.clientY);
       const ctx = this.board.getInteractionCtx();
+      this.initContextAttrs(ctx!);
+
       if (!ctx) return;
-      this.setCurrentLineWithDraw(currentPoint);
+      this.throttleSetCurrentLineWithDraw(currentPoint);
     });
 
     const { dispose: disposePointerUp } = pointerEventService.onPointerUp(event => {
@@ -252,7 +262,7 @@ class DrawPlugin implements IPlugin {
       const ctx = this.board.getInteractionCtx();
       if (!ctx) return;
       const lastPoint = this.getCanvasPoint(event.clientX, event.clientY);
-      this.setCurrentLineWithDraw(lastPoint, true);
+      this.throttleSetCurrentLineWithDraw(lastPoint, true);
       // 结束当前路径
       isDrawing = false;
     });
