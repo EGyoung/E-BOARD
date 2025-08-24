@@ -1,4 +1,4 @@
-import { throttleByRaf } from "@e-board/utils";
+import { throttleByRaf, initContextAttrs } from "@e-board/utils";
 import { eBoardContainer } from "../../common/IocContainer";
 import { IModelService, IModeService, IPointerEventService } from "../../services";
 import type { IModel } from "../../services";
@@ -214,24 +214,6 @@ class DrawPlugin implements IPlugin {
     };
   }
 
-  // todo 抽离成公共方法
-  private initContextAttrs(ctx: CanvasRenderingContext2D) {
-    const context = ctx;
-
-    const view = this.transformService.getView();
-
-    // 设置绘制样式
-    context.lineCap = "round"; // 设置线条端点样式
-    context.lineJoin = "round"; // 设置线条连接处样式
-    context.strokeStyle = "white"; // 设置线条颜色
-    // 根据缩放比例调整线条宽度，保持视觉一致性
-    context.lineWidth = 4 * view.zoom;
-    context.globalCompositeOperation = "source-over";
-    context.globalAlpha = 1.0;
-    context.imageSmoothingEnabled = true;
-    context.imageSmoothingQuality = "high";
-  }
-
   private initDraw = () => {
     const pointerEventService = eBoardContainer.get<IPointerEventService>(IPointerEventService);
 
@@ -243,7 +225,7 @@ class DrawPlugin implements IPlugin {
       if (!ctx) return;
       isDrawing = true;
       lastPoint = this.getCanvasPoint(event.clientX, event.clientY);
-      this.initContextAttrs(ctx);
+      initContextAttrs(ctx, { zoom: this.transformService.getView().zoom });
       this.throttleSetCurrentLineWithDraw(lastPoint);
     });
 
