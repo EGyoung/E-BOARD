@@ -251,7 +251,6 @@ class DrawPlugin implements IPlugin {
       if (!isDrawing) return;
       const currentPoint = this.getCanvasPoint(event.clientX, event.clientY);
       const ctx = this.board.getInteractionCtx();
-      this.initContextAttrs(ctx!);
 
       if (!ctx) return;
       this.throttleSetCurrentLineWithDraw(currentPoint);
