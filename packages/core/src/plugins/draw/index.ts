@@ -78,7 +78,7 @@ class DrawPlugin implements IPlugin {
     }
   }
 
-  public throttleSetCurrentLineWithDraw = throttleByRaf(this.setCurrentLineWithDraw.bind(this));
+  // public throttleSetCurrentLineWithDraw = throttleByRaf(this.setCurrentLineWithDraw.bind(this));
   public init({ board }: IPluginInitParams) {
     this.board = board;
     this.initDrawMode();
@@ -221,7 +221,7 @@ class DrawPlugin implements IPlugin {
       isDrawing = true;
       lastPoint = this.getCanvasPoint(event.clientX, event.clientY);
       initContextAttrs(ctx, { zoom: this.transformService.getView().zoom });
-      this.throttleSetCurrentLineWithDraw(lastPoint);
+      this.setCurrentLineWithDraw(lastPoint);
     });
 
     const { dispose: disposePointerMove } = pointerEventService.onPointerMove(event => {
@@ -230,7 +230,7 @@ class DrawPlugin implements IPlugin {
       const ctx = this.board.getInteractionCtx();
 
       if (!ctx) return;
-      this.throttleSetCurrentLineWithDraw(currentPoint);
+      this.setCurrentLineWithDraw(currentPoint);
     });
 
     const { dispose: disposePointerUp } = pointerEventService.onPointerUp(event => {
@@ -238,7 +238,7 @@ class DrawPlugin implements IPlugin {
       const ctx = this.board.getInteractionCtx();
       if (!ctx) return;
       const lastPoint = this.getCanvasPoint(event.clientX, event.clientY);
-      this.throttleSetCurrentLineWithDraw(lastPoint, true);
+      this.setCurrentLineWithDraw(lastPoint, true);
       // 结束当前路径
       isDrawing = false;
     });
