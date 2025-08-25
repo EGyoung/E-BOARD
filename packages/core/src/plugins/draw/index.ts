@@ -1,7 +1,7 @@
 import { throttleByRaf, initContextAttrs } from "@e-board/utils";
 import { eBoardContainer } from "../../common/IocContainer";
 import { IModelService, IModeService, IPointerEventService } from "../../services";
-import type { IModel } from "../../services";
+import { IConfigService, IModel } from "../../services";
 import { IRenderService } from "../../services/renderService/type";
 import { ITransformService } from "../../services/transformService/type";
 import { IBoard, IPluginInitParams } from "../../types";
@@ -17,6 +17,7 @@ interface Point {
 class DrawPlugin implements IPlugin {
   private board!: IBoard;
   private disposeList: (() => void)[] = [];
+  private configService = eBoardContainer.get<IConfigService>(IConfigService)
   private modelService = eBoardContainer.get<IModelService>(IModelService);
   private renderService = eBoardContainer.get<IRenderService>(IRenderService);
   private transformService = eBoardContainer.get<ITransformService>(ITransformService);
@@ -38,7 +39,7 @@ class DrawPlugin implements IPlugin {
     if (!this.currentLine) {
       ctx.beginPath();
       ctx.moveTo(point.x, point.y);
-      this.currentLine = this.modelService.createModel("line", { points: [transformedPoint] });
+      this.currentLine = this.modelService.createModel("line", { points: [transformedPoint], options: this.configService.getCtxConfig() });
       this.currentLine.points?.push(transformedPoint);
       return;
     }
@@ -72,7 +73,9 @@ class DrawPlugin implements IPlugin {
     });
 
     if (isEnd) {
-      this.modelService.createModel("line", { points: this.currentLine.points });
+      this.modelService.updateModel(this.currentLine.id, {
+        points: this.currentLine.points
+      })
       this.currentLine = null;
       this.renderService.reRender();
     }
