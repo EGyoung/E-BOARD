@@ -3,6 +3,7 @@ import { eBoardContainer } from "../../common/IocContainer";
 import { IModelService } from "../../services/modelService/type";
 import { IPlugin } from "../type";
 import { IModeService } from "../../services";
+import { ITransformService } from "../../services/transformService/type";
 
 const CURRENT_MODE = "selection";
 
@@ -54,7 +55,7 @@ class SelectionPlugin implements IPlugin {
       ctx.strokeStyle = "pink";
       // 虚线
       ctx.setLineDash([5, 5]);
-      ctx.lineWidth = 1;
+      ctx.lineWidth = 2;
       ctx.strokeRect(this.pointerDownPoint.x, this.pointerDownPoint.y, width, height);
     };
 
@@ -68,6 +69,27 @@ class SelectionPlugin implements IPlugin {
       this.pointerDownPoint = null;
       container.removeEventListener("pointermove", handlePointerMove);
       container.removeEventListener("pointerup", handlePointerUp);
+
+      // 计算所有的包围盒
+      const modelService = eBoardContainer.get<IModelService>(IModelService);
+      const transformService = eBoardContainer.get<ITransformService>(ITransformService);
+      const models = modelService.getAllModels();
+      models.forEach(model => {
+        const box = this.calculateBBox(
+          model.points?.map(p => transformService.transformPoint(p)) || []
+        );
+        if (!box) return;
+        const width = box.maxX - box.minX;
+        const height = box.maxY - box.minY;
+
+        const ctx = this.board.getInteractionCtx();
+        if (!ctx) return;
+        ctx.strokeStyle = "blue";
+        ctx.setLineDash([5, 5]);
+        ctx.lineWidth = 2;
+
+        ctx.strokeRect(box.minX, box.minY, width, height);
+      });
     };
 
     container.addEventListener("pointerdown", handlePointerDown);
@@ -79,6 +101,26 @@ class SelectionPlugin implements IPlugin {
   public dispose() {
     this.disposeList.forEach(dispose => dispose());
     this.disposeList = [];
+  }
+
+  private calculateBBox(points: { x: number; y: number }[], padding = 0) {
+    let minX = Infinity,
+      minY = Infinity,
+      maxX = -Infinity,
+      maxY = -Infinity;
+    if (points.length === 0) return null;
+    points.forEach(p => {
+      minX = Math.min(minX, p.x);
+      minY = Math.min(minY, p.y);
+      maxX = Math.max(maxX, p.x);
+      maxY = Math.max(maxY, p.y);
+    });
+    return {
+      minX: minX - padding,
+      minY: minY - padding,
+      maxX: maxX + padding,
+      maxY: maxY + padding
+    };
   }
 }
 
