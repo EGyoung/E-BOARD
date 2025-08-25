@@ -72,14 +72,9 @@ class DrawPlugin implements IPlugin {
     });
 
     if (isEnd) {
-      this.renderService.reRender();
-
-      // 清除交互画布
-      requestAnimationFrame(() => {
-        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-      });
       this.modelService.createModel("line", { points: this.currentLine.points });
       this.currentLine = null;
+      this.renderService.reRender();
     }
   }
 

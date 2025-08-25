@@ -65,14 +65,21 @@ class RenderService implements IRenderService {
   private _render = () => {
     console.time("render");
     const context = this.board.getCtx();
+    const interactionCtx = this.board.getInteractionCtx();
     const models = this.modelService.getAllModels();
     if (!context) return;
     const canvas = this.board.getCanvas();
     if (!canvas) return;
-    // 清空画布
+    
+    // 清空主画布
     context.save();
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.restore();
+    
+    // 同时清空交互画布，避免重叠
+    if (interactionCtx) {
+      interactionCtx.clearRect(0, 0, interactionCtx.canvas.width, interactionCtx.canvas.height);
+    }
 
     // 设置绘制属性（包括根据缩放调整的线条宽度）
     const transformService = eBoardContainer.get<ITransformService>(ITransformService);
