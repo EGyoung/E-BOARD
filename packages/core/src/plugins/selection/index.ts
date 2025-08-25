@@ -2,26 +2,38 @@ import { IBoard, IPluginInitParams } from "../../types";
 import { eBoardContainer } from "../../common/IocContainer";
 import { IModelService } from "../../services/modelService/type";
 import { IPlugin } from "../type";
+import { IModeService } from "../../services";
 
-export class SelectionPlugin implements IPlugin {
+const CURRENT_MODE = "selection";
+
+class SelectionPlugin implements IPlugin {
   private board!: IBoard;
   private disposeList: (() => void)[] = [];
   private pointerDownPoint: { x: number; y: number } | null = null;
-  private modelService = eBoardContainer.get<IModelService>(IModelService);
 
   public pluginName = "SelectionPlugin";
-  // public dependencies = ["DrawPlugin"];
 
   public init({ board }: IPluginInitParams) {
     this.board = board;
-    const canvas = this.board.getCanvas();
+    const modeService = eBoardContainer.get<IModeService>(IModeService);
+    modeService.registerMode(CURRENT_MODE, {
+      beforeSwitchMode: ({ currentMode }) => {
+        if (currentMode === CURRENT_MODE) {
+          this.disposeList.forEach(dispose => dispose());
+        }
+      },
+      afterSwitchMode: ({ currentMode }) => {
+        if (currentMode === CURRENT_MODE) {
+          this.initSelect();
+        }
+      }
+    });
+  }
+
+  private initSelect() {
     const container = this.board.getContainer();
-
-    if (!canvas || !container) {
-      console.error("Canvas or container is not available");
-      return;
-    }
-
+    const canvas = this.board.getInteractionCanvas();
+    if (!canvas || !container) return;
     const handlePointerDown = (e: PointerEvent) => {
       if (e.button !== 0) return;
       this.pointerDownPoint = { x: e.clientX, y: e.clientY };
@@ -39,9 +51,11 @@ export class SelectionPlugin implements IPlugin {
       const height = e.clientY - this.pointerDownPoint.y;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.strokeStyle = "#000";
+      ctx.strokeStyle = "pink";
+      // 虚线
+      ctx.setLineDash([5, 5]);
       ctx.lineWidth = 1;
-      // ctx.strokeRect(this.pointerDownPoint.x, this.pointerDownPoint.y, width, height);
+      ctx.strokeRect(this.pointerDownPoint.x, this.pointerDownPoint.y, width, height);
     };
 
     const handlePointerUp = (e: PointerEvent) => {
@@ -67,3 +81,5 @@ export class SelectionPlugin implements IPlugin {
     this.disposeList = [];
   }
 }
+
+export default SelectionPlugin;

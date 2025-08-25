@@ -22,15 +22,17 @@ class ModeService implements IModeService {
   }
 
   switchMode(mode: Mode): void {
-    const handler = this.modeHandler.get(mode);
-    if (handler) {
+    // 触发所有模式的 beforeSwitchMode
+    this.modeHandler.forEach(handler => {
       handler.beforeSwitchMode?.({ currentMode: this.currentMode, nextMode: mode });
-    }
+    });
     let prevMode = this.currentMode;
     this.currentMode = mode;
-    if (handler) {
+
+    // 触发所有模式的 afterSwitchMode
+    this.modeHandler.forEach(handler => {
       handler.afterSwitchMode?.({ prevMode, currentMode: mode });
-    }
+    });
   }
 
   getModeList(): string[] {

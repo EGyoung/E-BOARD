@@ -1,15 +1,17 @@
 import React, { useEffect } from "react";
 import { EBoard, IModeService } from "@e-board/core";
 import "./styles.css";
-import { RoamPlugin } from "@e-board/core";
+import { RoamPlugin, SelectionPlugin } from "@e-board/core";
 const App: React.FC = () => {
+  const eboard = React.useRef<EBoard | null>(null);
   useEffect(() => {
     const board = new EBoard({
       container: document.getElementById("board") as HTMLDivElement,
       id: "app-board",
-      plugins: [RoamPlugin]
+      plugins: [RoamPlugin, SelectionPlugin]
     });
     (window as any).board = board;
+    eboard.current = board;
     const modeService = board.getService(IModeService) as IModeService;
     modeService.switchMode("draw");
     return () => {
@@ -17,8 +19,30 @@ const App: React.FC = () => {
     };
   }, []);
 
+  const changeSelection = () => {
+    if (!eboard.current) return;
+    const board = eboard.current;
+
+    const modeService = board.getService(IModeService) as IModeService;
+
+    modeService.switchMode("selection");
+  };
+
+  const changePen = () => {
+    if (!eboard.current) return;
+    const board = eboard.current;
+
+    const modeService = board.getService(IModeService) as IModeService;
+
+    modeService.switchMode("draw");
+  };
+
   return (
     <div className="app-container">
+      <div style={{ position: "absolute", zIndex: 10, top: 10, left: 10 }}>
+        <button onClick={changeSelection}>选择</button>
+        <button onClick={changePen}>pen</button>
+      </div>
       <div id="board" className="board-container" />
     </div>
   );
