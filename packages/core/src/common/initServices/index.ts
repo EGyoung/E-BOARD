@@ -9,7 +9,9 @@ import {
   RenderService,
   IModeService,
   TransformService,
-  ShapeService
+  ShapeService,
+  IConfigService,
+  ConfigService
 } from "../../services";
 import PluginService from "../../services/pluginService";
 import { IPluginService } from "../../services/pluginService/type";
@@ -19,6 +21,10 @@ import { ITransformService } from "../../services/transformService/type";
 import { eBoardContainer } from "../IocContainer";
 
 const commonServicesMap = [
+  {
+    name: IConfigService,
+    service: ConfigService
+  },
   {
     name: IModelService,
     service: ModelService

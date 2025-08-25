@@ -8,10 +8,21 @@ export interface IModelService extends IService {
   deleteModel(id: string): boolean;
 }
 
+interface ModelOptions {
+  strokeStyle?: string;
+  lineWidth?: number;
+  lineCap?: CanvasLineCap;
+  lineJoin?: CanvasLineJoin;
+  fillStyle?: string;
+  globalAlpha?: number;
+  [key: string]: any;
+}
+
 export interface IModel {
   id: string;
   type: "line" | string;
   points?: { x: number; y: number }[];
+  options?: ModelOptions;
 }
 
 export const IModelService = Symbol("IModelService");
