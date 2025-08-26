@@ -124,7 +124,7 @@ export class EBoard implements IBoard {
       this.services.push(eBoardContainer.get(name));
       this.servicesMap.set(name, eBoardContainer.get(name));
     });
-    this.services.forEach(service => service.init({ board: this }));
+    this.services.forEach(service => service.init?.({ board: this }));
   }
 
   public getService(name: Symbol) {

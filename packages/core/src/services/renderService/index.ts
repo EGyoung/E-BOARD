@@ -5,6 +5,7 @@ import { ITransformService } from "../transformService/type";
 import { initContextAttrs } from "@e-board/utils";
 
 import { IRenderService } from "./type";
+import { IConfigService } from "../configService/type";
 
 interface IDrawModelHandler {
   (model: any, ctx?: CanvasRenderingContext2D): void;
@@ -35,7 +36,12 @@ class RenderService implements IRenderService {
     });
 
     const transformService = eBoardContainer.get<ITransformService>(ITransformService);
-    initContextAttrs(this.offscreenCtx!, { zoom: transformService.getView().zoom });
+    const configService = eBoardContainer.get<IConfigService>(IConfigService);
+    initContextAttrs(
+      this.offscreenCtx!,
+      { zoom: transformService.getView().zoom },
+      configService.getCtxConfig()
+    );
   }
 
   public registerDrawModelHandler(key: string, handler: IDrawModelHandler) {
@@ -70,12 +76,12 @@ class RenderService implements IRenderService {
     if (!context) return;
     const canvas = this.board.getCanvas();
     if (!canvas) return;
-    
+
     // 清空主画布
     context.save();
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.restore();
-    
+
     // 同时清空交互画布，避免重叠
     if (interactionCtx) {
       interactionCtx.clearRect(0, 0, interactionCtx.canvas.width, interactionCtx.canvas.height);
@@ -83,7 +89,12 @@ class RenderService implements IRenderService {
 
     // 设置绘制属性（包括根据缩放调整的线条宽度）
     const transformService = eBoardContainer.get<ITransformService>(ITransformService);
-    initContextAttrs(context, { zoom: transformService.getView().zoom });
+    const configService = eBoardContainer.get<IConfigService>(IConfigService);
+    initContextAttrs(
+      context,
+      { zoom: transformService.getView().zoom },
+      configService.getCtxConfig()
+    );
 
     // 绘制笔记
     context.beginPath();

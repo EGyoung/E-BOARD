@@ -22,7 +22,9 @@ export interface CtxConfig {
   imageSmoothingQuality?: ImageSmoothingQuality;
 }
 export type IConfigService = {
-  ctxConfig?: CtxConfig;
+  // ctxConfig?: CtxConfig;
+  getCtxConfig: () => CtxConfig;
+  setCtxConfig: (config: Partial<CtxConfig>) => IConfigService;
 };
 
 export const IConfigService = Symbol("IConfigService");

@@ -1,4 +1,5 @@
 import { merge } from "@e-board/utils";
+import { IConfigService } from "./type";
 
 /**
  *   context.lineCap = "round"; // 设置线条端点样式
@@ -18,10 +19,11 @@ const defaultCtxConfig = {
   lineWidth: 4,
   globalCompositeOperation: "source-over" as GlobalCompositeOperation,
   globalAlpha: 1.0,
-  imageSmoothingEnabled: true
+  imageSmoothingEnabled: true,
+  imageSmoothingQuality: "high" as ImageSmoothingQuality
 };
 
-class ConfigService {
+class ConfigService implements IConfigService {
   private ctxConfig = defaultCtxConfig;
   getCtxConfig() {
     return defaultCtxConfig;
