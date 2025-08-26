@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Canvas Whiteboard - Selection Fix</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+            overflow: hidden;
+            /* 防止滚动条出现 */
+        }
+
+        #toolbar {
+            padding: 10px;
+            background-color: #fff;
+            border-bottom: 1px solid #ccc;
+            width: 100%;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        #toolbar button,
+        #toolbar label {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            background-color: #f8f8f8;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+
+        #toolbar button:hover {
+            background-color: #e8e8e8;
+            border-color: #999;
+        }
+
+        #toolbar button.active {
+            background-color: #cce5ff;
+            border-color: #007bff;
+            color: #007bff;
+            font-weight: bold;
+        }
+
+        #toolbar input[type="color"] {
+            border: none;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            background-color: transparent;
+            vertical-align: middle;
+        }
+
+        #canvas-container {
+            position: relative;
+            margin-top: 10px;
+            border: 1px solid #999;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            touch-action: none;
+            /* 禁用触摸默认行为如滚动 */
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="toolbar">
+        <button id="tool-select" class="active" title="Select Tool">✓ Select</button>
+        <button id="tool-pen" title="Pen Tool">✎ Pen</button>
+        <button id="tool-eraser" title="Eraser Tool">⌫ Eraser</button>
+        <label>
+            Color:
+            <input type="color" id="color-picker" value="#000000">
+        </label>
+        <label>
+            Line Width:
+            <input type="range" id="line-width" min="1" max="50" value="5">
+            <span id="line-width-label">5</span>
+        </label>
+        <label>
+            Eraser Size:
+            <input type="range" id="eraser-size" min="5" max="100" value="20">
+            <span id="eraser-size-label">20</span>
+        </label>
+    </div>
+
+    <div id="canvas-container">
+        <canvas id="renderCanvas"></canvas>
+        <canvas id="interactionCanvas"></canvas>
+    </div>
+
+    <script>
+        class Whiteboard {
+            constructor(containerId) {
+                this.container = document.getElementById(containerId);
+
+                this.renderCanvas = document.getElementById('renderCanvas');
+                this.interactionCanvas = document.getElementById('interactionCanvas');
+                this.renderCtx = this.renderCanvas.getContext('2d');
+                this.interactionCtx = this.interactionCanvas.getContext('2d');
+
+                this.strokes = [];
+                this.currentTool = 'select';
+                this.isDrawing = false;
+                this.isDragging = false;
+                this.isTransforming = false;
+
+                this.state = {
+                    color: '#000000',
+                    lineWidth: 5,
+                    eraserSize: 20,
+                    lastMousePos: { x: 0, y: 0 },
+                    currentStroke: null,
+                    selectionRect: null,
+                    selectedStrokes: [],
+                    dragStartPos: null,
+                    erasingState: null,
+                };
+
+                this.resizeCanvas();
+                this.initEventListeners();
+                this.updateToolButtons();
+            }
+
+            resizeCanvas() {
+                const width = window.innerWidth * 0.95;
+                const height = window.innerHeight - document.getElementById('toolbar').offsetHeight - 40;
+                this.container.style.width = `${width}px`;
+                this.container.style.height = `${height}px`;
+                [this.renderCanvas, this.interactionCanvas].forEach(c => { c.width = width; c.height = height; });
+                this.redrawAll();
+            }
+
+            initEventListeners() {
+                window.addEventListener('resize', () => this.resizeCanvas());
+                this.interactionCanvas.addEventListener('mousedown', this.handleMouseDown.bind(this));
+                this.interactionCanvas.addEventListener('mousemove', this.handleMouseMove.bind(this));
+                this.interactionCanvas.addEventListener('mouseup', this.handleMouseUp.bind(this));
+                this.interactionCanvas.addEventListener('mouseleave', this.handleMouseLeave.bind(this));
+
+                document.getElementById('tool-select').addEventListener('click', () => this.setTool('select'));
+                document.getElementById('tool-pen').addEventListener('click', () => this.setTool('pen'));
+                document.getElementById('tool-eraser').addEventListener('click', () => this.setTool('eraser'));
+                document.getElementById('color-picker').addEventListener('input', (e) => this.state.color = e.target.value);
+
+                const lwInput = document.getElementById('line-width');
+                lwInput.addEventListener('input', (e) => {
+                    this.state.lineWidth = parseInt(e.target.value, 10);
+                    document.getElementById('line-width-label').textContent = this.state.lineWidth;
+                });
+
+                const esInput = document.getElementById('eraser-size');
+                esInput.addEventListener('input', (e) => {
+                    this.state.eraserSize = parseInt(e.target.value, 10);
+                    document.getElementById('eraser-size-label').textContent = this.state.eraserSize;
+                    if (this.currentTool === 'eraser') this.setTool('eraser');
+                });
+            }
+
+            setTool(tool) {
+                this.currentTool = tool;
+                this.unselectAllStrokes();
+                this.redrawAll();
+                this.updateToolButtons();
+
+                const toolCursors = { select: 'default', pen: 'crosshair' };
+                if (tool === 'eraser') {
+                    const size = this.state.eraserSize;
+                    const c = document.createElement('canvas'); c.width = c.height = size;
+                    const ctx = c.getContext('2d');
+                    ctx.strokeStyle = 'rgba(0,0,0,0.8)'; ctx.lineWidth = 1;
+                    ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2 - 1, 0, 2 * Math.PI); ctx.stroke();
+                    this.interactionCanvas.style.cursor = `url(${c.toDataURL()}) ${size / 2} ${size / 2}, auto`;
+                } else {
+                    this.interactionCanvas.style.cursor = toolCursors[tool] || 'default';
+                }
+            }
+
+            updateToolButtons() {
+                document.querySelectorAll('#toolbar button').forEach(b => b.classList.remove('active'));
+                document.getElementById(`tool-${this.currentTool}`).classList.add('active');
+            }
+
+            getMousePos(evt) {
+                const rect = this.interactionCanvas.getBoundingClientRect();
+                return { x: evt.clientX - rect.left, y: evt.clientY - rect.top };
+            }
+
+            handleMouseDown(e) {
+                const pos = this.getMousePos(e);
+                this.state.lastMousePos = pos;
+
+                switch (this.currentTool) {
+                    case 'pen':
+                        this.isDrawing = true;
+                        this.state.currentStroke = { type: 'pen', points: [pos], color: this.state.color, lineWidth: this.state.lineWidth };
+                        break;
+                    case 'eraser':
+                        this.isDrawing = true;
+                        this.state.currentStroke = { type: 'eraser', points: [pos], lineWidth: this.state.eraserSize };
+                        this.state.erasingState = { affectedStrokes: new Map(), tempFragments: new Map() };
+                        this.handleEraserMove(pos);
+                        break;
+                    case 'select':
+                        if (this.state.selectedStrokes.length > 0 && this.isPointInSelectionBounds(pos)) {
+                            this.isTransforming = true;
+                            this.state.dragStartPos = pos;
+                            this.state.selectedStrokes.forEach(s => s._initialPoints = JSON.parse(JSON.stringify(s.points)));
+                            this.interactionCanvas.style.cursor = 'move';
+                        } else {
+                            this.isDragging = true;
+                            this.state.selectionRect = { x: pos.x, y: pos.y, w: 0, h: 0 };
+                            this.unselectAllStrokes();
+                            this.redrawAll();
+                        }
+                        break;
+                }
+            }
+
+            handleMouseMove(e) {
+                const pos = this.getMousePos(e);
+
+                if (this.isDrawing) {
+                    this.state.currentStroke.points.push(pos);
+                    if (this.currentTool === 'eraser') {
+                        this.handleEraserMove(pos);
+                    } else {
+                        this.drawOnInteractionCanvas();
+                    }
+                } else if (this.isDragging) {
+                    this.state.selectionRect.w = pos.x - this.state.selectionRect.x;
+                    this.state.selectionRect.h = pos.y - this.state.selectionRect.y;
+                    this.drawOnInteractionCanvas();
+                } else if (this.isTransforming) {
+                    const dx = pos.x - this.state.dragStartPos.x;
+                    const dy = pos.y - this.state.dragStartPos.y;
+                    this.state.selectedStrokes.forEach(s => {
+                        s.points = s._initialPoints.map(p => ({ x: p.x + dx, y: p.y + dy }));
+                    });
+                    this.drawOnInteractionCanvas();
+                }
+
+                this.state.lastMousePos = pos;
+            }
+
+            handleMouseUp(e) {
+                if (this.isDrawing) {
+                    this.isDrawing = false;
+                    if (this.currentTool === 'pen' && this.state.currentStroke.points.length > 1) {
+                        this.commitPenStroke();
+                    } else if (this.currentTool === 'eraser') {
+                        this.commitRealtimeErase();
+                    }
+                    this.state.currentStroke = null;
+                } else if (this.isDragging) {
+                    this.isDragging = false;
+                    this.selectStrokesInRect();
+                    this.state.selectionRect = null;
+                } else if (this.isTransforming) {
+                    this.isTransforming = false;
+                    this.state.selectedStrokes.forEach(s => {
+                        delete s._initialPoints;
+                        s.bbox = this.calculateBBox(s.points);
+                    });
+                    this.setTool('select');
+                }
+
+                this.redrawAll();
+            }
+
+            handleMouseLeave(e) {
+                if (this.isDrawing || this.isDragging || this.isTransforming) {
+                    this.handleMouseUp(e);
+                }
+            }
+
+            commitPenStroke() {
+                const stroke = this.state.currentStroke;
+                stroke.id = Date.now();
+                stroke.points = this.densifyStrokePoints(stroke.points, 2.0);
+                stroke.bbox = this.calculateBBox(stroke.points);
+                this.strokes.push(stroke);
+            }
+
+            handleEraserMove(pos) {
+                if (!this.state.erasingState) return;
+                const eraserPath = this.state.currentStroke.points;
+                const lastEraserSegment = {
+                    p1: eraserPath.length > 1 ? eraserPath[eraserPath.length - 2] : pos,
+                    p2: pos,
+                };
+                const eraserRadius = this.state.eraserSize / 2;
+                for (const stroke of this.strokes) {
+                    if (stroke.type !== 'pen' || this.state.erasingState.affectedStrokes.has(stroke.id)) continue;
+                    const eraserSegBBox = this.calculateBBox([lastEraserSegment.p1, lastEraserSegment.p2], eraserRadius + stroke.lineWidth / 2);
+                    if (!this.isBBoxIntersect(stroke.bbox, eraserSegBBox)) continue;
+                    for (let i = 0; i < stroke.points.length - 1; i++) {
+                        const sp1 = stroke.points[i], sp2 = stroke.points[i + 1];
+                        const { distance } = this.minDistanceBetweenSegments(sp1, sp2, lastEraserSegment.p1, lastEraserSegment.p2);
+                        if (distance < eraserRadius + stroke.lineWidth / 2) {
+                            this.state.erasingState.affectedStrokes.set(stroke.id, stroke);
+                            this.state.erasingState.tempFragments.set(stroke.id, [stroke.points]);
+                            break;
+                        }
+                    }
+                }
+                this.state.erasingState.affectedStrokes.forEach(stroke => {
+                    const newFragments = this.calculateStrokeFragments(stroke, eraserPath, eraserRadius);
+                    this.state.erasingState.tempFragments.set(stroke.id, newFragments);
+                });
+                this.redrawAll();
+            }
+
+            calculateStrokeFragments(stroke, eraserPath, eraserRadius) {
+                let currentPoints = stroke.points.map(p => ({ ...p, erase: false }));
+                const combinedRadius = eraserRadius + (stroke.lineWidth / 2);
+                for (let i = currentPoints.length - 2; i >= 0; i--) {
+                    for (let j = 0; j < eraserPath.length - 1; j++) {
+                        const { distance, t } = this.minDistanceBetweenSegments(currentPoints[i], currentPoints[i + 1], eraserPath[j], eraserPath[j + 1]);
+                        if (distance < combinedRadius && t > 1e-3 && t < 1 - 1e-3) {
+                            const sp = currentPoints[i], ep = currentPoints[i + 1];
+                            const splitPoint = { x: sp.x + t * (ep.x - sp.x), y: sp.y + t * (ep.y - sp.y), erase: true };
+                            currentPoints.splice(i + 1, 0, splitPoint);
+                        }
+                    }
+                }
+                for (const point of currentPoints) {
+                    for (let i = 0; i < eraserPath.length - 1; i++) {
+                        if (this.pointLineSegmentDistance(point, eraserPath[i], eraserPath[i + 1]) < eraserRadius) {
+                            point.erase = true; break;
+                        }
+                    }
+                }
+                const fragments = []; let currentFragment = [];
+                for (const point of currentPoints) {
+                    if (point.erase) {
+                        if (currentFragment.length > 1) fragments.push(currentFragment);
+                        currentFragment = [];
+                    } else {
+                        currentFragment.push({ x: point.x, y: point.y });
+                    }
+                }
+                if (currentFragment.length > 1) fragments.push(currentFragment);
+                return fragments;
+            }
+
+            commitRealtimeErase() {
+                if (!this.state.erasingState) return;
+                const strokesToRemove = new Set(this.state.erasingState.affectedStrokes.keys());
+                const newStrokes = [];
+                this.state.erasingState.tempFragments.forEach((fragments, strokeId) => {
+                    const originalStroke = this.state.erasingState.affectedStrokes.get(strokeId);
+                    fragments.forEach(points => {
+                        if (points.length > 1) newStrokes.push(this.createNewStroke(originalStroke, points));
+                    });
+                });
+                if (strokesToRemove.size > 0) {
+                    this.strokes = this.strokes.filter(s => !strokesToRemove.has(s.id));
+                    this.strokes.push(...newStrokes);
+                }
+                this.state.erasingState = null;
+            }
+
+            createNewStroke(originalStroke, newPoints) {
+                return { ...originalStroke, id: Date.now() + Math.random(), points: newPoints, bbox: this.calculateBBox(newPoints) };
+            }
+
+            selectStrokesInRect() {
+                if (!this.state.selectionRect) return;
+                const r = this.state.selectionRect;
+                const rectBbox = { minX: r.w < 0 ? r.x + r.w : r.x, minY: r.h < 0 ? r.y + r.h : r.y, maxX: (r.w < 0 ? r.x + r.w : r.x) + Math.abs(r.w), maxY: (r.h < 0 ? r.y + r.h : r.y) + Math.abs(r.h) };
+                this.state.selectedStrokes = [];
+                this.strokes.forEach(stroke => {
+                    if (stroke.bbox && this.isBBoxIntersect(stroke.bbox, rectBbox)) {
+                        stroke.selected = true;
+                        this.state.selectedStrokes.push(stroke);
+                    }
+                });
+            }
+
+            unselectAllStrokes() {
+                this.strokes.forEach(s => s.selected = false);
+                this.state.selectedStrokes = [];
+            }
+
+            isPointInSelectionBounds(pos) {
+                const b = this.getSelectionBounds();
+                if (!b) return false;
+                return pos.x >= b.minX - 5 && pos.x <= b.maxX + 5 && pos.y >= b.minY - 5 && pos.y <= b.maxY + 5;
+            }
+
+            redrawAll() {
+                this.clearCanvas(this.renderCtx);
+                this.clearCanvas(this.interactionCtx);
+                this.strokes.forEach(stroke => {
+                    const isBeingErased = this.state.erasingState?.affectedStrokes.has(stroke.id);
+                    if (stroke.type === 'pen' && !stroke.selected && !isBeingErased) {
+                        this.drawStroke(this.renderCtx, stroke);
+                    }
+                });
+                this.drawOnInteractionCanvas();
+            }
+
+            drawOnInteractionCanvas() {
+                this.clearCanvas(this.interactionCtx);
+
+                if (this.isDrawing && this.state.currentStroke?.type === 'pen') {
+                    this.drawBezierStroke(this.interactionCtx, this.state.currentStroke);
+                }
+                if (this.state.erasingState) {
+                    this.state.erasingState.tempFragments.forEach((fragments, strokeId) => {
+                        const originalStroke = this.state.erasingState.affectedStrokes.get(strokeId);
+                        fragments.forEach(points => this.drawStroke(this.interactionCtx, { ...originalStroke, points }));
+                    });
+                }
+
+                // --- FIX STARTS HERE ---
+                // Restore logic for drawing selection rectangle
+                if (this.isDragging && this.state.selectionRect) {
+                    this.interactionCtx.strokeStyle = 'rgba(0, 123, 255, 0.8)';
+                    this.interactionCtx.lineWidth = 1;
+                    this.interactionCtx.setLineDash([4, 2]);
+                    const { x, y, w, h } = this.state.selectionRect;
+                    this.interactionCtx.strokeRect(x, y, w, h);
+                    this.interactionCtx.setLineDash([]);
+                }
+
+                // Restore logic for drawing selected items and their bounding box
+                if (this.state.selectedStrokes.length > 0) {
+                    this.state.selectedStrokes.forEach(stroke => {
+                        this.drawStroke(this.interactionCtx, stroke);
+                    });
+                    const bounds = this.getSelectionBounds();
+                    if (bounds) {
+                        this.interactionCtx.strokeStyle = 'rgba(0, 123, 255, 0.8)';
+                        this.interactionCtx.lineWidth = 2;
+                        this.interactionCtx.setLineDash([6, 3]);
+                        const padding = 5;
+                        this.interactionCtx.strokeRect(
+                            bounds.minX - padding,
+                            bounds.minY - padding,
+                            bounds.maxX - bounds.minX + padding * 2,
+                            bounds.maxY - bounds.minY + padding * 2
+                        );
+                        this.interactionCtx.setLineDash([]);
+                    }
+                }
+                // --- FIX ENDS HERE ---
+            }
+
+            drawStroke(ctx, stroke) {
+                if (!stroke || stroke.points.length < 2) return;
+                ctx.beginPath();
+                ctx.strokeStyle = stroke.color; ctx.lineWidth = stroke.lineWidth;
+                ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+                ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
+                for (let i = 1; i < stroke.points.length; i++) {
+                    ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
+                }
+                ctx.stroke();
+            }
+
+            drawBezierStroke(ctx, stroke) {
+                if (!stroke || stroke.points.length < 2) return;
+                ctx.beginPath();
+                ctx.strokeStyle = stroke.color; ctx.lineWidth = stroke.lineWidth;
+                ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+                const p = stroke.points;
+                ctx.moveTo(p[0].x, p[0].y);
+                for (let i = 1; i < p.length - 1; i++) {
+                    const mid = { x: (p[i].x + p[i + 1].x) / 2, y: (p[i].y + p[i + 1].y) / 2 };
+                    ctx.quadraticCurveTo(p[i].x, p[i].y, mid.x, mid.y);
+                }
+                ctx.lineTo(p[p.length - 1].x, p[p.length - 1].y);
+                ctx.stroke();
+            }
+
+            clearCanvas(ctx) { ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height); }
+
+            densifyStrokePoints(points, step) {
+                if (points.length < 2) return points;
+                const densified = [points[0]]; let lastPoint = points[0];
+                for (let i = 1; i < points.length - 1; i++) {
+                    const p1 = points[i - 1], p2 = points[i], p3 = points[i + 1];
+                    let start = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 }; if (i === 1) start = p1;
+                    const control = p2; const end = { x: (p2.x + p3.x) / 2, y: (p2.y + p3.y) / 2 };
+                    const len = this.getCurveLength(start, control, end);
+                    const num = Math.max(1, Math.ceil(len / step));
+                    for (let j = 1; j <= num; j++) {
+                        const t = j / num;
+                        const newPoint = this.getQuadraticBezierPoint(t, start, control, end);
+                        if (this.distance(lastPoint, newPoint) >= step / 2) { densified.push(newPoint); lastPoint = newPoint; }
+                    }
+                }
+                const last = points[points.length - 1];
+                if (this.distance(lastPoint, last) > 0) densified.push(last);
+                return densified;
+            }
+
+            getQuadraticBezierPoint(t, p0, p1, p2) { const u = 1 - t, tt = t * t, uu = u * u; return { x: uu * p0.x + 2 * u * t * p1.x + tt * p2.x, y: uu * p0.y + 2 * u * t * p1.y + tt * p2.y }; }
+            getCurveLength(p0, p1, p2) { return this.distance(p0, p1) + this.distance(p1, p2); }
+            distance(p1, p2) { return Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2); }
+            calculateBBox(points, padding = 0) {
+                let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+                if (points.length === 0) return null;
+                points.forEach(p => { minX = Math.min(minX, p.x); minY = Math.min(minY, p.y); maxX = Math.max(maxX, p.x); maxY = Math.max(maxY, p.y); });
+                return { minX: minX - padding, minY: minY - padding, maxX: maxX + padding, maxY: maxY + padding };
+            }
+            getSelectionBounds() {
+                if (this.state.selectedStrokes.length === 0) return null;
+                let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+                this.state.selectedStrokes.forEach(s => { const b = s.bbox || this.calculateBBox(s.points); if (b) { minX = Math.min(minX, b.minX); minY = Math.min(minY, b.minY); maxX = Math.max(maxX, b.maxX); maxY = Math.max(maxY, b.maxY); } });
+                return { minX, minY, maxX, maxY };
+            }
+            isBBoxIntersect(b1, b2) { if (!b1 || !b2) return false; return !(b2.minX > b1.maxX || b2.maxX < b1.minX || b2.minY > b1.maxY || b2.maxY < b1.minY); }
+            pointLineSegmentDistance(p, a, b) { const l2 = (b.x - a.x) ** 2 + (b.y - a.y) ** 2; if (l2 === 0) return this.distance(p, a); let t = ((p.x - a.x) * (b.x - a.x) + (p.y - a.y) * (b.y - a.y)) / l2; t = Math.max(0, Math.min(1, t)); return this.distance(p, { x: a.x + t * (b.x - a.x), y: a.y + t * (b.y - a.y) }); }
+            minDistanceBetweenSegments(p1, p2, q1, q2) { const u = { x: p2.x - p1.x, y: p2.y - p1.y }, v = { x: q2.x - q1.x, y: q2.y - q1.y }, w = { x: p1.x - q1.x, y: p1.y - q1.y }; const a = u.x * u.x + u.y * u.y, b = u.x * v.x + u.y * v.y, c = v.x * v.x + v.y * v.y, d = u.x * w.x + u.y * w.y, e = v.x * w.x + v.y * w.y, D = a * c - b * b; let sc, sN, sD = D, tc, tN, tD = D; if (D < 1e-7) { sN = 0; sD = 1; tN = e; tD = c; } else { sN = b * e - c * d; tN = a * e - b * d; if (sN < 0) { sN = 0; tN = e; tD = c; } else if (sN > sD) { sN = sD; tN = e + b; tD = c; } } if (tN < 0) { tN = 0; if (-d < 0) sN = 0; else if (-d > a) sN = sD; else { sN = -d; sD = a; } } else if (tN > tD) { tN = tD; if (-d + b < 0) sN = 0; else if (-d + b > a) sN = sD; else { sN = -d + b; sD = a; } } sc = (Math.abs(sN) < 1e-7 ? 0 : sN / sD); tc = (Math.abs(tN) < 1.e-7 ? 0 : tN / tD); const dP = { x: w.x + sc * u.x - tc * v.x, y: w.y + sc * u.y - tc * v.y }; return { distance: Math.sqrt(dP.x * dP.x + dP.y * dP.y), t: sc }; }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            new Whiteboard('canvas-container');
+        });
+    </script>
+</body>
+
+</html>
