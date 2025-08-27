@@ -52,11 +52,13 @@ class SelectionPlugin implements IPlugin {
       const height = e.clientY - this.pointerDownPoint.y;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.save();
       ctx.strokeStyle = "pink";
       // 虚线
       ctx.setLineDash([5, 5]);
       ctx.lineWidth = 2;
       ctx.strokeRect(this.pointerDownPoint.x, this.pointerDownPoint.y, width, height);
+      ctx.restore();
     };
 
     const handlePointerUp = (e: PointerEvent) => {
@@ -74,9 +76,11 @@ class SelectionPlugin implements IPlugin {
       const modelService = eBoardContainer.get<IModelService>(IModelService);
       const transformService = eBoardContainer.get<ITransformService>(ITransformService);
       const models = modelService.getAllModels();
+      const zoom = transformService.getView().zoom || 1;
       models.forEach(model => {
         const box = this.calculateBBox(
-          model.points?.map(p => transformService.transformPoint(p)) || []
+          model.points?.map(p => transformService.transformPoint(p)) || [],
+          zoom * (model.options?.lineWidth || 0)
         );
         if (!box) return;
         const width = box.maxX - box.minX;
@@ -84,11 +88,14 @@ class SelectionPlugin implements IPlugin {
 
         const ctx = this.board.getInteractionCtx();
         if (!ctx) return;
+        ctx.save();
+
         ctx.strokeStyle = "blue";
         ctx.setLineDash([5, 5]);
         ctx.lineWidth = 2;
 
         ctx.strokeRect(box.minX, box.minY, width, height);
+        ctx.restore();
       });
     };
 
