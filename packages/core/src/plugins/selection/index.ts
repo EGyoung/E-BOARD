@@ -13,6 +13,10 @@ class SelectionPlugin implements IPlugin {
   private pointerDownPoint: { x: number; y: number } | null = null;
   private selectModels = new Set<string>();
   private initialModelPositions = new Map<string, { x: number; y: number }[]>();
+  private currentSelectRange: { x: number; y: number; width: number; height: number } | null = null;
+  private modelService = eBoardContainer.get<IModelService>(IModelService);
+  private renderService = eBoardContainer.get<IRenderService>(IRenderService);
+  private transformService = eBoardContainer.get<ITransformService>(ITransformService);
 
   public pluginName = "SelectionPlugin";
 
@@ -33,29 +37,34 @@ class SelectionPlugin implements IPlugin {
     });
   }
 
+  private resetAllState() {
+    const canvas = this.board.getInteractionCanvas();
+    const ctx = this.board.getInteractionCtx();
+    if (!canvas || !ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    this.selectModels.clear();
+    this.initialModelPositions.clear();
+    this.currentSelectRange = null;
+  }
+
   private initSelect() {
     const container = this.board.getContainer();
     const canvas = this.board.getInteractionCanvas();
     const ctx = this.board.getInteractionCtx();
-    const modelService = eBoardContainer.get<IModelService>(IModelService);
 
     if (!canvas || !container) return;
     if (!ctx) return;
-    let currentSelectRange: any = null;
     const handlePointerDown = (e: PointerEvent) => {
       if (e.button !== 0) return;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      this.selectModels.clear();
-      this.initialModelPositions.clear();
-      currentSelectRange = null;
-      this.pointerDownPoint = { x: e.clientX, y: e.clientY };
-      const transformService = eBoardContainer.get<ITransformService>(ITransformService);
-      const zoom = transformService.getView().zoom || 1;
+      this.resetAllState();
 
-      modelService.getAllModels().forEach(model => {
+      this.pointerDownPoint = { x: e.clientX, y: e.clientY };
+      const zoom = this.transformService.getView().zoom || 1;
+
+      this.modelService.getAllModels().forEach(model => {
         if (!model) return;
         const box = this.calculateBBox(
-          model.points?.map(p => transformService.transformPoint(p)) || [],
+          model.points?.map(p => this.transformService.transformPoint(p)) || [],
           zoom * (model.options?.lineWidth || 0)
         );
         if (!box) return;
@@ -75,11 +84,8 @@ class SelectionPlugin implements IPlugin {
           box.maxY > selectRect.y;
 
         if (isIntersecting) {
-          // intersecting = true;
           const ctx = this.board.getInteractionCtx();
-          console.log("选中了", model.id);
           this.selectModels.add(model.id);
-          // const model = modelService.getModelById(id);
           if (model?.points) {
             this.initialModelPositions.set(model.id, [...model.points]);
           }
@@ -99,7 +105,7 @@ class SelectionPlugin implements IPlugin {
         // 保存所有选中模型的初始位置
         this.initialModelPositions.clear();
         this.selectModels.forEach(id => {
-          const model = modelService.getModelById(id);
+          const model = this.modelService.getModelById(id);
           if (model?.points) {
             this.initialModelPositions.set(id, [...model.points]);
           }
@@ -119,25 +125,22 @@ class SelectionPlugin implements IPlugin {
       if (this.selectModels.size > 0) {
         const deltaX = e.clientX - this.pointerDownPoint.x;
         const deltaY = e.clientY - this.pointerDownPoint.y;
-        const modelService = eBoardContainer.get<IModelService>(IModelService);
-        const renderService = eBoardContainer.get<IRenderService>(IRenderService);
-        const transformService = eBoardContainer.get<ITransformService>(ITransformService);
-        const x = deltaX / (transformService.getView().zoom || 1);
-        const y = deltaY / (transformService.getView().zoom || 1);
+        const x = deltaX / (this.transformService.getView().zoom || 1);
+        const y = deltaY / (this.transformService.getView().zoom || 1);
         // 基于初始位置和总偏移量更新模型位置
         this.selectModels.forEach(id => {
           const initialPoints = this.initialModelPositions.get(id);
           if (!initialPoints) return;
 
-          const tempModel = modelService.getModelById(id);
+          const tempModel = this.modelService.getModelById(id);
           if (!tempModel) return;
 
-          modelService.updateModel(id, {
+          this.modelService.updateModel(id, {
             ...tempModel,
             points: initialPoints.map(p => ({ x: p.x + x, y: p.y + y }))
           });
         });
-        renderService.reRender();
+        this.renderService.reRender();
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         return;
       }
@@ -152,7 +155,7 @@ class SelectionPlugin implements IPlugin {
       ctx.setLineDash([5, 5]);
       ctx.lineWidth = 2;
       ctx.strokeRect(this.pointerDownPoint.x, this.pointerDownPoint.y, width, height);
-      currentSelectRange = {
+      this.currentSelectRange = {
         x: this.pointerDownPoint.x,
         y: this.pointerDownPoint.y,
         width: width || 1,
@@ -167,15 +170,13 @@ class SelectionPlugin implements IPlugin {
       if (this.selectModels.size > 0) {
         container.removeEventListener("pointermove", handlePointerMove);
         container.removeEventListener("pointerup", handlePointerUp);
-        const modelService = eBoardContainer.get<IModelService>(IModelService);
         this.selectModels.forEach(id => {
           // 重新渲染外包围
-          const model = modelService.getModelById(id);
+          const model = this.modelService.getModelById(id);
           if (!model) return;
-          const transformService = eBoardContainer.get<ITransformService>(ITransformService);
-          const zoom = transformService.getView().zoom || 1;
+          const zoom = this.transformService.getView().zoom || 1;
           const box = this.calculateBBox(
-            model.points?.map(p => transformService.transformPoint(p)) || [],
+            model.points?.map(p => this.transformService.transformPoint(p)) || [],
             zoom * (model.options?.lineWidth || 0)
           );
           if (!box) return;
@@ -202,25 +203,29 @@ class SelectionPlugin implements IPlugin {
       container.removeEventListener("pointerup", handlePointerUp);
 
       // 计算所有的包围盒
-      const modelService = eBoardContainer.get<IModelService>(IModelService);
-      const transformService = eBoardContainer.get<ITransformService>(ITransformService);
-      const models = modelService.getAllModels();
-      const zoom = transformService.getView().zoom || 1;
+      const models = this.modelService.getAllModels();
+      const zoom = this.transformService.getView().zoom || 1;
       models.forEach(model => {
         const box = this.calculateBBox(
-          model.points?.map(p => transformService.transformPoint(p)) || [],
+          model.points?.map(p => this.transformService.transformPoint(p)) || [],
           zoom * (model.options?.lineWidth || 0)
         );
         if (!box) return;
         const width = box.maxX - box.minX;
         const height = box.maxY - box.minY;
 
-        if (!currentSelectRange) return;
+        if (!this.currentSelectRange) return;
         const selectRect = {
-          x: Math.min(currentSelectRange.x, currentSelectRange.x + currentSelectRange.width),
-          y: Math.min(currentSelectRange.y, currentSelectRange.y + currentSelectRange.height),
-          width: Math.abs(currentSelectRange.width),
-          height: Math.abs(currentSelectRange.height)
+          x: Math.min(
+            this.currentSelectRange.x,
+            this.currentSelectRange.x + this.currentSelectRange.width
+          ),
+          y: Math.min(
+            this.currentSelectRange.y,
+            this.currentSelectRange.y + this.currentSelectRange.height
+          ),
+          width: Math.abs(this.currentSelectRange.width),
+          height: Math.abs(this.currentSelectRange.height)
         };
         const isIntersecting =
           box.minX < selectRect.x + selectRect.width &&
@@ -243,9 +248,6 @@ class SelectionPlugin implements IPlugin {
           ctx.restore();
         }
       });
-      // if (!this.selectModels.size) {
-      //   ctx.clearRect(0, 0, canvas.width, canvas.height);
-      // }
     };
 
     container.addEventListener("pointerdown", handlePointerDown);
