@@ -94,11 +94,17 @@ class SelectionPlugin implements IPlugin {
         const height = box.maxY - box.minY;
 
         if (!currentSelectRange) return;
+        const selectRect = {
+          x: Math.min(currentSelectRange.x, currentSelectRange.x + currentSelectRange.width),
+          y: Math.min(currentSelectRange.y, currentSelectRange.y + currentSelectRange.height),
+          width: Math.abs(currentSelectRange.width),
+          height: Math.abs(currentSelectRange.height)
+        };
         const isIntersecting =
-          box.minX < currentSelectRange.x + currentSelectRange.width &&
-          box.minX + width > currentSelectRange.x &&
-          box.minY < currentSelectRange.y + currentSelectRange.height &&
-          box.minY + height > currentSelectRange.y;
+          box.minX < selectRect.x + selectRect.width &&
+          box.maxX > selectRect.x &&
+          box.minY < selectRect.y + selectRect.height &&
+          box.maxY > selectRect.y;
         // 判断是否相交
         if (isIntersecting) {
           const ctx = this.board.getInteractionCtx();
