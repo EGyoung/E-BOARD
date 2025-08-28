@@ -35,6 +35,7 @@ class SelectionPlugin implements IPlugin {
     const container = this.board.getContainer();
     const canvas = this.board.getInteractionCanvas();
     if (!canvas || !container) return;
+    let currentSelectRange: any = null;
     const handlePointerDown = (e: PointerEvent) => {
       if (e.button !== 0) return;
       this.pointerDownPoint = { x: e.clientX, y: e.clientY };
@@ -58,6 +59,12 @@ class SelectionPlugin implements IPlugin {
       ctx.setLineDash([5, 5]);
       ctx.lineWidth = 2;
       ctx.strokeRect(this.pointerDownPoint.x, this.pointerDownPoint.y, width, height);
+      currentSelectRange = {
+        x: this.pointerDownPoint.x,
+        y: this.pointerDownPoint.y,
+        width,
+        height
+      };
       ctx.restore();
     };
 
@@ -86,16 +93,25 @@ class SelectionPlugin implements IPlugin {
         const width = box.maxX - box.minX;
         const height = box.maxY - box.minY;
 
-        const ctx = this.board.getInteractionCtx();
-        if (!ctx) return;
-        ctx.save();
+        if (!currentSelectRange) return;
+        const isIntersecting =
+          box.minX < currentSelectRange.x + currentSelectRange.width &&
+          box.minX + width > currentSelectRange.x &&
+          box.minY < currentSelectRange.y + currentSelectRange.height &&
+          box.minY + height > currentSelectRange.y;
+        // 判断是否相交
+        if (isIntersecting) {
+          const ctx = this.board.getInteractionCtx();
+          if (!ctx) return;
+          ctx.save();
 
-        ctx.strokeStyle = "blue";
-        ctx.setLineDash([5, 5]);
-        ctx.lineWidth = 2;
+          ctx.strokeStyle = "blue";
+          ctx.setLineDash([5, 5]);
+          ctx.lineWidth = 2;
 
-        ctx.strokeRect(box.minX, box.minY, width, height);
-        ctx.restore();
+          ctx.strokeRect(box.minX, box.minY, width, height);
+          ctx.restore();
+        }
       });
     };
 
