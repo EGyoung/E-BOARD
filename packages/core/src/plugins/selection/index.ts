@@ -39,6 +39,12 @@ class SelectionPlugin implements IPlugin {
     const handlePointerDown = (e: PointerEvent) => {
       if (e.button !== 0) return;
       this.pointerDownPoint = { x: e.clientX, y: e.clientY };
+      currentSelectRange = {
+        x: this.pointerDownPoint.x,
+        y: this.pointerDownPoint.y,
+        width: 1,
+        height: 1
+      };
       container.addEventListener("pointermove", handlePointerMove);
       container.addEventListener("pointerup", handlePointerUp);
     };
@@ -62,8 +68,8 @@ class SelectionPlugin implements IPlugin {
       currentSelectRange = {
         x: this.pointerDownPoint.x,
         y: this.pointerDownPoint.y,
-        width,
-        height
+        width: width || 1,
+        height: height || 1
       };
       ctx.restore();
     };
