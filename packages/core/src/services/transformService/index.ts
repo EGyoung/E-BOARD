@@ -54,6 +54,10 @@ class TransformService implements ITransformService {
     const view = this.getView();
     // console.log(view.zoom, "view.zoom");
     if (inverse) {
+      /**
+       * 画布坐标: 不考虑缩放和平移的坐标
+       * 世界坐标: 考虑缩放和平移的坐标
+       */
       // 从画布坐标转换到世界坐标
       return {
         x: point.x / view.zoom + view.x,

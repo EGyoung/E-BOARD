@@ -1,8 +1,8 @@
-import { IBoard, IPluginInitParams } from "../../types";
+import { CorePlugins, IBoard, IPluginInitParams } from "../../types";
 import { eBoardContainer } from "../../common/IocContainer";
 import { IModelService } from "../../services/modelService/type";
 import { IPlugin } from "../type";
-import { IModeService } from "../../services";
+import { IModeService, IRenderService } from "../../services";
 import { ITransformService } from "../../services/transformService/type";
 
 const CURRENT_MODE = "selection";
@@ -11,6 +11,8 @@ class SelectionPlugin implements IPlugin {
   private board!: IBoard;
   private disposeList: (() => void)[] = [];
   private pointerDownPoint: { x: number; y: number } | null = null;
+  private selectModels = new Set<string>();
+  private initialModelPositions = new Map<string, { x: number; y: number }[]>();
 
   public pluginName = "SelectionPlugin";
 
@@ -31,6 +33,10 @@ class SelectionPlugin implements IPlugin {
     });
   }
 
+  private handleElementMove(e: any) {
+    this.pointerDownPoint = { x: e.clientX, y: e.clientY };
+  }
+
   private initSelect() {
     const container = this.board.getContainer();
     const canvas = this.board.getInteractionCanvas();
@@ -39,12 +45,28 @@ class SelectionPlugin implements IPlugin {
     const handlePointerDown = (e: PointerEvent) => {
       if (e.button !== 0) return;
       this.pointerDownPoint = { x: e.clientX, y: e.clientY };
-      currentSelectRange = {
-        x: this.pointerDownPoint.x,
-        y: this.pointerDownPoint.y,
-        width: 1,
-        height: 1
-      };
+
+      if (this.selectModels.size > 0) {
+        console.log(this.selectModels);
+        this.handleElementMove(e);
+        // 保存所有选中模型的初始位置
+        const modelService = eBoardContainer.get<IModelService>(IModelService);
+        this.initialModelPositions.clear();
+        this.selectModels.forEach(id => {
+          const model = modelService.getModelById(id);
+          if (model?.points) {
+            this.initialModelPositions.set(id, [...model.points]);
+          }
+        });
+      } else {
+        currentSelectRange = {
+          x: this.pointerDownPoint.x,
+          y: this.pointerDownPoint.y,
+          width: 1,
+          height: 1
+        };
+      }
+
       container.addEventListener("pointermove", handlePointerMove);
       container.addEventListener("pointerup", handlePointerUp);
     };
@@ -54,6 +76,32 @@ class SelectionPlugin implements IPlugin {
 
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
+
+      if (this.selectModels.size > 0) {
+        const deltaX = e.clientX - this.pointerDownPoint.x;
+        const deltaY = e.clientY - this.pointerDownPoint.y;
+        const modelService = eBoardContainer.get<IModelService>(IModelService);
+        const renderService = eBoardContainer.get<IRenderService>(IRenderService);
+        const transformService = eBoardContainer.get<ITransformService>(ITransformService);
+        const x = deltaX / (transformService.getView().zoom || 1);
+        const y = deltaY / (transformService.getView().zoom || 1);
+        // 基于初始位置和总偏移量更新模型位置
+        this.selectModels.forEach(id => {
+          const initialPoints = this.initialModelPositions.get(id);
+          if (!initialPoints) return;
+
+          const tempModel = modelService.getModelById(id);
+          if (!tempModel) return;
+
+          modelService.updateModel(id, {
+            ...tempModel,
+            points: initialPoints.map(p => ({ x: p.x + x, y: p.y + y }))
+          });
+        });
+        renderService.reRender();
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        return;
+      }
 
       const width = e.clientX - this.pointerDownPoint.x;
       const height = e.clientY - this.pointerDownPoint.y;
@@ -76,6 +124,15 @@ class SelectionPlugin implements IPlugin {
 
     const handlePointerUp = (e: PointerEvent) => {
       if (!this.pointerDownPoint) return;
+
+      if (this.selectModels.size > 0) {
+        this.pointerDownPoint = null;
+        this.selectModels.clear();
+        this.initialModelPositions.clear(); // 清空初始位置缓存
+        container.removeEventListener("pointermove", handlePointerMove);
+        container.removeEventListener("pointerup", handlePointerUp);
+        return;
+      }
 
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
@@ -114,6 +171,8 @@ class SelectionPlugin implements IPlugin {
         // 判断是否相交
         if (isIntersecting) {
           const ctx = this.board.getInteractionCtx();
+          console.log("选中了", model.id);
+          this.selectModels.add(model.id);
           if (!ctx) return;
           ctx.save();
 
