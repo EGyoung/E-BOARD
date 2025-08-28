@@ -40,17 +40,54 @@ class SelectionPlugin implements IPlugin {
   private initSelect() {
     const container = this.board.getContainer();
     const canvas = this.board.getInteractionCanvas();
+    const ctx = this.board.getInteractionCtx();
+    const modelService = eBoardContainer.get<IModelService>(IModelService);
+
     if (!canvas || !container) return;
+    if (!ctx) return;
     let currentSelectRange: any = null;
     const handlePointerDown = (e: PointerEvent) => {
       if (e.button !== 0) return;
       this.pointerDownPoint = { x: e.clientX, y: e.clientY };
 
       if (this.selectModels.size > 0) {
-        console.log(this.selectModels);
+        const transformService = eBoardContainer.get<ITransformService>(ITransformService);
+        const zoom = transformService.getView().zoom || 1;
+        let intersecting = false;
+        this.selectModels.forEach(id => {
+          const model = modelService.getModelById(id);
+          if (!model) return;
+          const box = this.calculateBBox(
+            model.points?.map(p => transformService.transformPoint(p)) || [],
+            zoom * (model.options?.lineWidth || 0)
+          );
+          if (!box) return;
+          const selectRect = {
+            x: Math.min(this.pointerDownPoint!.x, this.pointerDownPoint!.x + 1),
+            y: Math.min(this.pointerDownPoint!.y, this.pointerDownPoint!.y + 1),
+            width: 1,
+            height: 1
+          };
+          const isIntersecting =
+            box.minX < selectRect.x + selectRect.width &&
+            box.maxX > selectRect.x &&
+            box.minY < selectRect.y + selectRect.height &&
+            box.maxY > selectRect.y;
+
+          if (isIntersecting) {
+            intersecting = true;
+          }
+        });
+        if (!intersecting) {
+          this.selectModels.clear();
+          this.initialModelPositions.clear(); // 清空初始位置缓存
+          currentSelectRange = null;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          return;
+        }
+
         this.handleElementMove(e);
         // 保存所有选中模型的初始位置
-        const modelService = eBoardContainer.get<IModelService>(IModelService);
         this.initialModelPositions.clear();
         this.selectModels.forEach(id => {
           const model = modelService.getModelById(id);
@@ -184,6 +221,9 @@ class SelectionPlugin implements IPlugin {
           ctx.restore();
         }
       });
+      if (!this.selectModels.size) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
     };
 
     container.addEventListener("pointerdown", handlePointerDown);
