@@ -33,10 +33,6 @@ class SelectionPlugin implements IPlugin {
     });
   }
 
-  private handleElementMove(e: any) {
-    this.pointerDownPoint = { x: e.clientX, y: e.clientY };
-  }
-
   private initSelect() {
     const container = this.board.getContainer();
     const canvas = this.board.getInteractionCanvas();
@@ -48,45 +44,58 @@ class SelectionPlugin implements IPlugin {
     let currentSelectRange: any = null;
     const handlePointerDown = (e: PointerEvent) => {
       if (e.button !== 0) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      this.selectModels.clear();
+      this.initialModelPositions.clear();
+      currentSelectRange = null;
       this.pointerDownPoint = { x: e.clientX, y: e.clientY };
+      const transformService = eBoardContainer.get<ITransformService>(ITransformService);
+      const zoom = transformService.getView().zoom || 1;
+
+      modelService.getAllModels().forEach(model => {
+        if (!model) return;
+        const box = this.calculateBBox(
+          model.points?.map(p => transformService.transformPoint(p)) || [],
+          zoom * (model.options?.lineWidth || 0)
+        );
+        if (!box) return;
+        const width = box.maxX - box.minX;
+        const height = box.maxY - box.minY;
+
+        const selectRect = {
+          x: Math.min(this.pointerDownPoint!.x, this.pointerDownPoint!.x + 1),
+          y: Math.min(this.pointerDownPoint!.y, this.pointerDownPoint!.y + 1),
+          width: 1,
+          height: 1
+        };
+        const isIntersecting =
+          box.minX < selectRect.x + selectRect.width &&
+          box.maxX > selectRect.x &&
+          box.minY < selectRect.y + selectRect.height &&
+          box.maxY > selectRect.y;
+
+        if (isIntersecting) {
+          // intersecting = true;
+          const ctx = this.board.getInteractionCtx();
+          console.log("选中了", model.id);
+          this.selectModels.add(model.id);
+          // const model = modelService.getModelById(id);
+          if (model?.points) {
+            this.initialModelPositions.set(model.id, [...model.points]);
+          }
+          if (!ctx) return;
+          ctx.save();
+
+          ctx.strokeStyle = "blue";
+          ctx.setLineDash([5, 5]);
+          ctx.lineWidth = 2;
+
+          ctx.strokeRect(box.minX, box.minY, width, height);
+          ctx.restore();
+        }
+      });
 
       if (this.selectModels.size > 0) {
-        const transformService = eBoardContainer.get<ITransformService>(ITransformService);
-        const zoom = transformService.getView().zoom || 1;
-        let intersecting = false;
-        this.selectModels.forEach(id => {
-          const model = modelService.getModelById(id);
-          if (!model) return;
-          const box = this.calculateBBox(
-            model.points?.map(p => transformService.transformPoint(p)) || [],
-            zoom * (model.options?.lineWidth || 0)
-          );
-          if (!box) return;
-          const selectRect = {
-            x: Math.min(this.pointerDownPoint!.x, this.pointerDownPoint!.x + 1),
-            y: Math.min(this.pointerDownPoint!.y, this.pointerDownPoint!.y + 1),
-            width: 1,
-            height: 1
-          };
-          const isIntersecting =
-            box.minX < selectRect.x + selectRect.width &&
-            box.maxX > selectRect.x &&
-            box.minY < selectRect.y + selectRect.height &&
-            box.maxY > selectRect.y;
-
-          if (isIntersecting) {
-            intersecting = true;
-          }
-        });
-        if (!intersecting) {
-          this.selectModels.clear();
-          this.initialModelPositions.clear(); // 清空初始位置缓存
-          currentSelectRange = null;
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          return;
-        }
-
-        this.handleElementMove(e);
         // 保存所有选中模型的初始位置
         this.initialModelPositions.clear();
         this.selectModels.forEach(id => {
@@ -95,13 +104,6 @@ class SelectionPlugin implements IPlugin {
             this.initialModelPositions.set(id, [...model.points]);
           }
         });
-      } else {
-        currentSelectRange = {
-          x: this.pointerDownPoint.x,
-          y: this.pointerDownPoint.y,
-          width: 1,
-          height: 1
-        };
       }
 
       container.addEventListener("pointermove", handlePointerMove);
@@ -163,11 +165,31 @@ class SelectionPlugin implements IPlugin {
       if (!this.pointerDownPoint) return;
 
       if (this.selectModels.size > 0) {
-        this.pointerDownPoint = null;
-        this.selectModels.clear();
-        this.initialModelPositions.clear(); // 清空初始位置缓存
         container.removeEventListener("pointermove", handlePointerMove);
         container.removeEventListener("pointerup", handlePointerUp);
+        const modelService = eBoardContainer.get<IModelService>(IModelService);
+        this.selectModels.forEach(id => {
+          // 重新渲染外包围
+          const model = modelService.getModelById(id);
+          if (!model) return;
+          const transformService = eBoardContainer.get<ITransformService>(ITransformService);
+          const zoom = transformService.getView().zoom || 1;
+          const box = this.calculateBBox(
+            model.points?.map(p => transformService.transformPoint(p)) || [],
+            zoom * (model.options?.lineWidth || 0)
+          );
+          if (!box) return;
+          const width = box.maxX - box.minX;
+          const height = box.maxY - box.minY;
+          const ctx = this.board.getInteractionCtx();
+          if (!ctx) return;
+          ctx.save();
+          ctx.strokeStyle = "blue";
+          ctx.setLineDash([5, 5]);
+          ctx.lineWidth = 2;
+          ctx.strokeRect(box.minX, box.minY, width, height);
+          ctx.restore();
+        });
         return;
       }
 
@@ -221,9 +243,9 @@ class SelectionPlugin implements IPlugin {
           ctx.restore();
         }
       });
-      if (!this.selectModels.size) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-      }
+      // if (!this.selectModels.size) {
+      //   ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // }
     };
 
     container.addEventListener("pointerdown", handlePointerDown);
