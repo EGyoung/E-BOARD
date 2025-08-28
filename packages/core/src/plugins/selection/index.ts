@@ -1,9 +1,10 @@
-import { CorePlugins, IBoard, IPluginInitParams } from "../../types";
+import { IBoard, IPluginInitParams } from "../../types";
 import { eBoardContainer } from "../../common/IocContainer";
-import { IModelService } from "../../services/modelService/type";
+import { IModel, IModelService } from "../../services/modelService/type";
 import { IPlugin } from "../type";
 import { IModeService, IRenderService } from "../../services";
 import { ITransformService } from "../../services/transformService/type";
+import { Emitter } from "@e-board/utils";
 
 const CURRENT_MODE = "selection";
 
@@ -17,8 +18,24 @@ class SelectionPlugin implements IPlugin {
   private modelService = eBoardContainer.get<IModelService>(IModelService);
   private renderService = eBoardContainer.get<IRenderService>(IRenderService);
   private transformService = eBoardContainer.get<ITransformService>(ITransformService);
-
+  private readonly _onSelectedElements = new Emitter<IModel>()
+  private emitSelectedElement = this._onSelectedElements.fire.bind(this._onSelectedElements)
+  public onSelectedElements = this._onSelectedElements.event
   public pluginName = "SelectionPlugin";
+
+  public exports = {
+    getSelectedModelsId: this.getSelectedModelsId.bind(this),
+    getSelectedModels: this.getSelectedModels.bind(this),
+    onSelectedElements: this.onSelectedElements.bind(this),
+  }
+
+  public getSelectedModelsId() {
+    return Array.from(this.selectModels);
+  }
+
+  public getSelectedModels() {
+    return this.getSelectedModelsId().map(id => this.modelService.getModelById(id)).filter(Boolean);
+  }
 
   public init({ board }: IPluginInitParams) {
     this.board = board;
@@ -60,7 +77,6 @@ class SelectionPlugin implements IPlugin {
 
       this.pointerDownPoint = { x: e.clientX, y: e.clientY };
       const zoom = this.transformService.getView().zoom || 1;
-
       this.modelService.getAllModels().forEach(model => {
         if (!model) return;
         const box = this.calculateBBox(
@@ -85,10 +101,7 @@ class SelectionPlugin implements IPlugin {
 
         if (isIntersecting) {
           const ctx = this.board.getInteractionCtx();
-          this.selectModels.add(model.id);
-          if (model?.points) {
-            this.initialModelPositions.set(model.id, [...model.points]);
-          }
+          this.addSelectedModels(model.id)
           if (!ctx) return;
           ctx.save();
 
@@ -236,7 +249,7 @@ class SelectionPlugin implements IPlugin {
         if (isIntersecting) {
           const ctx = this.board.getInteractionCtx();
           console.log("选中了", model.id);
-          this.selectModels.add(model.id);
+          this.addSelectedModels(model.id)
           if (!ctx) return;
           ctx.save();
 
@@ -254,6 +267,17 @@ class SelectionPlugin implements IPlugin {
     this.disposeList.push(() => {
       container.removeEventListener("pointerdown", handlePointerDown);
     });
+  }
+
+
+  public addSelectedModels(id: string) {
+    if (!this.selectModels.has(id)) {
+      this.selectModels.add(id)
+      const model = this.modelService.getModelById(id)
+      if (model) {
+        this.emitSelectedElement(model)
+      }
+    }
   }
 
   public dispose() {

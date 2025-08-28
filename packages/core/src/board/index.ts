@@ -2,7 +2,7 @@ import { commonServicesMap } from "../common/initServices";
 import { IService, IBoard, IBoardInitParams } from "../types";
 import { bindServices } from "./bindServices";
 import { eBoardContainer, resetContainer } from "../common/IocContainer";
-import { IPlugin } from "../plugins/type";
+import { IPluginService } from "../services/pluginService/type";
 const INTERACTION_CANVAS_ID = "interaction-canvas";
 export class EBoard implements IBoard {
   private id!: string;
@@ -16,7 +16,6 @@ export class EBoard implements IBoard {
   private resizeObserver: ResizeObserver | null = null;
   private services: IService[] = [];
   private servicesMap: Map<Symbol, IService> = new Map();
-  private plugins: Map<string, IPlugin> = new Map();
   public config: Partial<IBoardInitParams> = {};
 
   constructor(params: IBoardInitParams) {
@@ -170,13 +169,16 @@ export class EBoard implements IBoard {
     return this.services;
   }
 
+  public getPlugin(name: string) {
+    const pluginService = eBoardContainer.get<IPluginService>(IPluginService);
+    return pluginService.getPlugin(name);
+  }
+
   public dispose() {
     this.resizeObserver?.disconnect();
     this.resizeObserver = null;
     this.services.forEach(service => service.dispose?.());
-    this.plugins.forEach(plugin => plugin.dispose());
     this.services = [];
-    this.plugins.clear();
     this.canvas = null;
     this.ctx = null;
     this.interactionCanvas = null;

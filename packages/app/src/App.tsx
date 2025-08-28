@@ -14,8 +14,13 @@ const App: React.FC = () => {
     eboard.current = board;
     const modeService = board.getService(IModeService) as IModeService;
     modeService.switchMode("draw");
+
+    const {dispose} = eboard.current.getPlugin('SelectionPlugin')?.exports.onSelectedElements((model: any) => {
+      console.log('选中元素', model);
+    }) ?? {}
     return () => {
       board.dispose();
+      dispose?.()
     };
   }, []);
 
