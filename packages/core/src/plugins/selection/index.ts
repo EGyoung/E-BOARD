@@ -11,6 +11,7 @@ const CURRENT_MODE = "selection";
 class SelectionPlugin implements IPlugin {
   private board!: IBoard;
   private disposeList: (() => void)[] = [];
+  private AABbBox: { x: number; y: number; width: number; height: number } | null = null; // 所有的笔画的aabb盒子
   private pointerDownPoint: { x: number; y: number } | null = null;
   private selectModels = new Set<string>();
   private initialModelPositions = new Map<string, { x: number; y: number }[]>();
@@ -18,23 +19,25 @@ class SelectionPlugin implements IPlugin {
   private modelService = eBoardContainer.get<IModelService>(IModelService);
   private renderService = eBoardContainer.get<IRenderService>(IRenderService);
   private transformService = eBoardContainer.get<ITransformService>(ITransformService);
-  private readonly _onSelectedElements = new Emitter<IModel>()
-  private emitSelectedElement = this._onSelectedElements.fire.bind(this._onSelectedElements)
-  public onSelectedElements = this._onSelectedElements.event
+  private readonly _onSelectedElements = new Emitter<IModel>();
+  private emitSelectedElement = this._onSelectedElements.fire.bind(this._onSelectedElements);
+  public onSelectedElements = this._onSelectedElements.event;
   public pluginName = "SelectionPlugin";
 
   public exports = {
     getSelectedModelsId: this.getSelectedModelsId.bind(this),
     getSelectedModels: this.getSelectedModels.bind(this),
-    onSelectedElements: this.onSelectedElements.bind(this),
-  }
+    onSelectedElements: this.onSelectedElements.bind(this)
+  };
 
   public getSelectedModelsId() {
     return Array.from(this.selectModels);
   }
 
   public getSelectedModels() {
-    return this.getSelectedModelsId().map(id => this.modelService.getModelById(id)).filter(Boolean);
+    return this.getSelectedModelsId()
+      .map(id => this.modelService.getModelById(id))
+      .filter(Boolean);
   }
 
   public init({ board }: IPluginInitParams) {
@@ -101,7 +104,7 @@ class SelectionPlugin implements IPlugin {
 
         if (isIntersecting) {
           const ctx = this.board.getInteractionCtx();
-          this.addSelectedModels(model.id)
+          this.addSelectedModels(model.id);
           if (!ctx) return;
           ctx.save();
 
@@ -249,7 +252,7 @@ class SelectionPlugin implements IPlugin {
         if (isIntersecting) {
           const ctx = this.board.getInteractionCtx();
           console.log("选中了", model.id);
-          this.addSelectedModels(model.id)
+          this.addSelectedModels(model.id);
           if (!ctx) return;
           ctx.save();
 
@@ -269,15 +272,59 @@ class SelectionPlugin implements IPlugin {
     });
   }
 
-
   public addSelectedModels(id: string) {
     if (!this.selectModels.has(id)) {
-      this.selectModels.add(id)
-      const model = this.modelService.getModelById(id)
+      this.selectModels.add(id);
+      const model = this.modelService.getModelById(id);
       if (model) {
-        this.emitSelectedElement(model)
+        this.emitSelectedElement(model);
       }
     }
+    if (this.selectModels.size > 0) {
+      this.updateAABbBox();
+    }
+  }
+
+  private updateAABbBox() {
+    const zoom = this.transformService.getView().zoom || 1;
+    const boxes = Array.from(this.selectModels)
+      .map(id => {
+        const model = this.modelService.getModelById(id);
+        if (!model) return null;
+        const box = this.calculateBBox(
+          model.points?.map(p => this.transformService.transformPoint(p)) || [],
+          zoom * (model.options?.lineWidth || 0)
+        );
+        return box;
+      })
+      .filter(Boolean);
+
+    if (boxes.length === 0) {
+      this.AABbBox = null;
+      return;
+    }
+
+    let minX = Math.min(...boxes.map(box => box!.minX));
+    let minY = Math.min(...boxes.map(box => box!.minY));
+    let maxX = Math.max(...boxes.map(box => box!.maxX));
+    let maxY = Math.max(...boxes.map(box => box!.maxY));
+    this.AABbBox = {
+      x: minX,
+      y: minY,
+      width: maxX - minX,
+      height: maxY - minY
+    };
+    // 绘制AABB盒子
+    const ctx = this.board.getInteractionCtx();
+    const canvas = this.board.getInteractionCanvas();
+    if (!ctx || !canvas) return;
+    // ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
+    ctx.strokeStyle = "red";
+    ctx.setLineDash([10, 5]);
+    ctx.lineWidth = 2;
+    ctx.strokeRect(this.AABbBox.x, this.AABbBox.y, this.AABbBox.width, this.AABbBox.height);
+    ctx.restore();
   }
 
   public dispose() {
