@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { EBoard, IModeService } from "@e-board/core";
+import { DrawShapePlugin, EBoard, IModeService } from "@e-board/core";
 import "./styles.css";
 import { RoamPlugin, SelectionPlugin } from "@e-board/core";
 const App: React.FC = () => {
@@ -8,19 +8,20 @@ const App: React.FC = () => {
     const board = new EBoard({
       container: document.getElementById("board") as HTMLDivElement,
       id: "app-board",
-      plugins: [RoamPlugin, SelectionPlugin]
+      plugins: [RoamPlugin, SelectionPlugin, DrawShapePlugin]
     });
     (window as any).board = board;
     eboard.current = board;
     const modeService = board.getService(IModeService) as IModeService;
     modeService.switchMode("draw");
 
-    const {dispose} = eboard.current.getPlugin('SelectionPlugin')?.exports.onSelectedElements((model: any) => {
-      console.log('选中元素', model);
-    }) ?? {}
+    const { dispose } =
+      eboard.current.getPlugin("SelectionPlugin")?.exports.onSelectedElements((model: any) => {
+        console.log("选中元素", model);
+      }) ?? {};
     return () => {
       board.dispose();
-      dispose?.()
+      dispose?.();
     };
   }, []);
 
@@ -42,11 +43,21 @@ const App: React.FC = () => {
     modeService.switchMode("draw");
   };
 
+  const changeShape = () => {
+    if (!eboard.current) return;
+    const board = eboard.current;
+
+    const modeService = board.getService(IModeService) as IModeService;
+
+    modeService.switchMode("drawShape");
+  };
+
   return (
     <div className="app-container">
       <div style={{ position: "absolute", zIndex: 10, top: 10, left: 10 }}>
         <button onClick={changeSelection}>选择</button>
         <button onClick={changePen}>pen</button>
+        <button onClick={changeShape}>shape</button>
       </div>
       <div id="board" className="board-container" />
     </div>

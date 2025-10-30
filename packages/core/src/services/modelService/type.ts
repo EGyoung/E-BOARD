@@ -18,11 +18,11 @@ interface ModelOptions {
   [key: string]: any;
 }
 
-export interface IModel {
+export type IModel<T extends Record<string, any> = Record<string, any>> = {
   id: string;
   type: "line" | string;
   points?: { x: number; y: number }[];
   options?: ModelOptions;
-}
+} & T;
 
 export const IModelService = Symbol("IModelService");
