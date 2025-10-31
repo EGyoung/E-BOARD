@@ -80,6 +80,13 @@ export class ModelService implements IModelService {
   deleteModel(id: string): boolean {
     return this.models.delete(id);
   }
+
+  /**
+   * 清除所有模型
+   */
+  clearModels(): void {
+    this.models.clear();
+  }
 }
 
 export default ModelService;
