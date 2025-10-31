@@ -71,7 +71,6 @@ class DrawShapePlugin implements IPlugin {
         height
       });
       this.currentModel = null;
-      this.renderService.reRender();
     }
   }
 

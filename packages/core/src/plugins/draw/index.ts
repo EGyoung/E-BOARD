@@ -80,7 +80,6 @@ class DrawPlugin implements IPlugin {
         points: this.currentLine.points
       });
       this.currentLine = null;
-      this.renderService.reRender();
     }
   }
 
