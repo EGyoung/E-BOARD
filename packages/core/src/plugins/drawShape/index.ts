@@ -110,7 +110,6 @@ class DrawShapePlugin implements IPlugin {
     if (!context) return;
     const [point] = model.points!;
     const transformedPoint = this.transformPoint({ x: point.x, y: point.y });
-    context.beginPath();
     context.rect(
       transformedPoint.x,
       transformedPoint.y,
