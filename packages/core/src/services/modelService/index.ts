@@ -1,4 +1,4 @@
-import { uuid } from "@e-board/utils";
+import { Emitter, uuid } from "@e-board/utils";
 import { IModelService, IModel } from "./type";
 import { IServiceInitParams } from "../../types";
 
@@ -6,6 +6,9 @@ type Model = IModel;
 
 export class ModelService implements IModelService {
   private models: Map<string, Model>;
+  private _modelChange = new Emitter<void>();
+
+  public onModelChange = this._modelChange.event;
 
   constructor() {
     this.models = new Map<string, Model>();
@@ -32,6 +35,7 @@ export class ModelService implements IModelService {
       ...(options ?? {})
     };
     this.models.set(model.id, model);
+    this._modelChange.fire();
     return model;
   }
 
@@ -69,6 +73,7 @@ export class ModelService implements IModelService {
       ...updates
     };
     this.models.set(id, updatedModel);
+    this._modelChange.fire();
     return updatedModel;
   }
 
@@ -78,7 +83,9 @@ export class ModelService implements IModelService {
    * @returns 是否删除成功
    */
   deleteModel(id: string): boolean {
-    return this.models.delete(id);
+    const result = this.models.delete(id);
+    this._modelChange.fire();
+    return result;
   }
 
   /**
@@ -86,6 +93,7 @@ export class ModelService implements IModelService {
    */
   clearModels(): void {
     this.models.clear();
+    this._modelChange.fire();
   }
 }
 

@@ -15,6 +15,7 @@ class RenderService implements IRenderService {
   private board!: IBoard;
   private modelService = eBoardContainer.get<IModelService>(IModelService);
   private modelHandler = new Map<string, IDrawModelHandler>();
+  private disposeList: (() => void)[] = [];
 
   private offscreenCanvas: HTMLCanvasElement | null = null;
   private offscreenCtx: CanvasRenderingContext2D | null = null;
@@ -23,7 +24,15 @@ class RenderService implements IRenderService {
   init = ({ board }: IServiceInitParams) => {
     this.board = board;
     this.initOffscreenCanvas();
+    this.initModelChange();
   };
+
+  private initModelChange() {
+    const { dispose } = this.modelService.onModelChange(() => {
+      this.reRender();
+    });
+    this.disposeList.push(dispose);
+  }
 
   private initOffscreenCanvas() {
     const mainCanvas = this.board.getCanvas()!;
@@ -55,6 +64,7 @@ class RenderService implements IRenderService {
   public dispose(): void {
     this.modelHandler = new Map();
     this.offscreenCtx = null;
+    this.disposeList.forEach(dispose => dispose());
     this.offscreenCanvas = document.createElement("canvas");
   }
 

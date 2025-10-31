@@ -7,6 +7,7 @@ export interface IModelService extends IService {
   updateModel(id: string, updates: Partial<Omit<IModel, "id">>): IModel | undefined;
   deleteModel(id: string): boolean;
   clearModels(): void;
+  onModelChange: (listener: () => void) => { dispose: () => void };
 }
 
 interface ModelOptions {

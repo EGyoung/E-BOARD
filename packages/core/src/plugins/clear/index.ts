@@ -1,5 +1,5 @@
 import { eBoardContainer } from "../../common/IocContainer";
-import { IModelService, IRenderService } from "../../services";
+import { IModelService } from "../../services";
 import { IBoard, IPluginInitParams } from "../../types";
 import { IPlugin } from "../type";
 
@@ -20,9 +20,7 @@ class ClearPlugin implements IPlugin {
     const ctx = this.board.getInteractionCtx();
     if (!ctx) return;
     const modelService = eBoardContainer.get<IModelService>(IModelService);
-    const renderService = eBoardContainer.get<IRenderService>(IRenderService);
     modelService.clearModels();
-    renderService.reRender();
   };
 
   public dispose() {
