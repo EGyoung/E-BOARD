@@ -21,6 +21,7 @@ class DrawShapePlugin implements IPlugin {
   private modelService = eBoardContainer.get<IModelService>(IModelService);
   private renderService = eBoardContainer.get<IRenderService>(IRenderService);
   private transformService = eBoardContainer.get<ITransformService>(ITransformService);
+  private lastPoint = { x: 0, y: 0 };
 
   private currentModel: IModel | null = null;
 
@@ -37,7 +38,15 @@ class DrawShapePlugin implements IPlugin {
     if (!ctx) return;
     console.log("setCurrentRectangleWithDraw", point, isEnd);
     const transformedPoint = this.transformPoint(point, true);
-    if (!this.currentModel) return;
+    if (!this.lastPoint) return
+    if (!this.currentModel) {
+      this.currentModel = this.modelService.createModel("rectangle", {
+        points: [{ x: transformedPoint.x, y: transformedPoint.y }],
+        width: 0,
+        height: 0,
+        options: this.configService.getCtxConfig()
+      });
+    };
     const [_point] = this.currentModel.points!;
     const x = Math.min(_point.x, transformedPoint.x);
     const y = Math.min(_point.y, transformedPoint.y);
@@ -103,7 +112,6 @@ class DrawShapePlugin implements IPlugin {
 
   private drawRectangleModelHandler = (
     model: IModel<IShapeRectangle>,
-    ctx?: CanvasRenderingContext2D
   ) => {
     const context = this.board.getCtx();
     if (!context) return;
@@ -133,19 +141,13 @@ class DrawShapePlugin implements IPlugin {
     const pointerEventService = eBoardContainer.get<IPointerEventService>(IPointerEventService);
 
     let isDrawing = false;
-    let lastPoint = { x: 0, y: 0 };
 
     const { dispose: disposePointerDown } = pointerEventService.onPointerDown(event => {
       const ctx = this.board.getInteractionCtx();
       if (!ctx) return;
       isDrawing = true;
-      lastPoint = this.getCanvasPoint(event.clientX, event.clientY);
-      this.currentModel = this.modelService.createModel("rectangle", {
-        points: [{ x: lastPoint.x, y: lastPoint.y }],
-        width: 0,
-        height: 0,
-        options: this.configService.getCtxConfig()
-      });
+      this.lastPoint = this.getCanvasPoint(event.clientX, event.clientY);
+
       const configService = eBoardContainer.get<IConfigService>(IConfigService);
 
       initContextAttrs(
@@ -153,7 +155,7 @@ class DrawShapePlugin implements IPlugin {
         { zoom: this.transformService.getView().zoom },
         configService.getCtxConfig()
       );
-      this.setCurrentRectangleWithDraw(lastPoint);
+      this.setCurrentRectangleWithDraw(this.lastPoint);
     });
 
     const { dispose: disposePointerMove } = pointerEventService.onPointerMove(event => {
