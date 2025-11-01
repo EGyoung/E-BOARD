@@ -8,6 +8,8 @@ import { IBoard, IPluginInitParams } from "../../types";
 import { IPlugin } from "../type";
 
 const CURRENT_MODE = "drawShape";
+const defaultFillStyle = 'pink'
+
 
 interface IShapeRectangle {
   width: number;
@@ -36,7 +38,6 @@ class DrawShapePlugin implements IPlugin {
   public setCurrentRectangleWithDraw(point: { x: number; y: number }, isEnd = false) {
     const ctx = this.board.getInteractionCtx();
     if (!ctx) return;
-    console.log("setCurrentRectangleWithDraw", point, isEnd);
     const transformedPoint = this.transformPoint(point, true);
     if (!this.lastPoint) return
     if (!this.currentModel) {
@@ -44,7 +45,10 @@ class DrawShapePlugin implements IPlugin {
         points: [{ x: transformedPoint.x, y: transformedPoint.y }],
         width: 0,
         height: 0,
-        options: this.configService.getCtxConfig()
+        options: {
+          ...this.configService.getCtxConfig(),
+          fillStyle: defaultFillStyle
+        }
       });
     };
     const [_point] = this.currentModel.points!;
@@ -54,16 +58,10 @@ class DrawShapePlugin implements IPlugin {
     const height = Math.abs(transformedPoint.y - _point.y);
 
     // 清除交互层
-    ctx.clearRect(
-      0,
-      0,
-      this.board.getInteractionCanvas()!.width,
-      this.board.getInteractionCanvas()!.height
-    );
 
     // 绘制矩形
     ctx.beginPath();
-
+    ctx.save();
     ctx.rect(
       this.transformPoint({ x, y }).x,
       this.transformPoint({ x, y }).y,
@@ -71,16 +69,24 @@ class DrawShapePlugin implements IPlugin {
       height * this.transformService.getView().zoom
     );
 
+    if (this.currentModel.options?.fillStyle) {
+      ctx.fillStyle = this.currentModel.options?.fillStyle
+      ctx.fill();
+    }
+
     ctx.stroke();
 
     if (isEnd) {
       this.modelService.updateModel(this.currentModel.id, {
         points: [{ x, y }],
         width,
-        height
+        height,
+        fillStyle: this.currentModel.options?.fillStyle
       });
       this.currentModel = null;
     }
+    ctx.restore()
+
   }
 
   public init({ board }: IPluginInitParams) {
@@ -116,6 +122,7 @@ class DrawShapePlugin implements IPlugin {
     const context = this.board.getCtx();
     if (!context) return;
     const [point] = model.points!;
+    context.save()
     const transformedPoint = this.transformPoint({ x: point.x, y: point.y });
     context.rect(
       transformedPoint.x,
@@ -123,7 +130,11 @@ class DrawShapePlugin implements IPlugin {
       model.width * this.transformService.getView().zoom,
       model.height * this.transformService.getView().zoom
     );
-    context.stroke();
+    if (model.options?.fillStyle) {
+      context.fillStyle = model.options.fillStyle;
+      context.fill();
+    }
+    context.restore();
   };
 
   private getCanvasPoint(clientX: number, clientY: number) {

@@ -20,7 +20,7 @@ const defaultCtxConfig = {
   globalCompositeOperation: "source-over" as GlobalCompositeOperation,
   globalAlpha: 1.0,
   imageSmoothingEnabled: true,
-  imageSmoothingQuality: "high" as ImageSmoothingQuality
+  imageSmoothingQuality: "high" as ImageSmoothingQuality,
 };
 
 class ConfigService implements IConfigService {

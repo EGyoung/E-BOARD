@@ -107,14 +107,14 @@ class RenderService implements IRenderService {
     );
 
     // 绘制笔记
-    context.beginPath();
     models.forEach(model => {
       const handler = this.modelHandler.get(model.type);
       if (handler) {
+        context.beginPath();
         handler(model, context as any);
+        context.stroke();
       }
     });
-    context.stroke();
     console.timeEnd("render");
   };
 }
