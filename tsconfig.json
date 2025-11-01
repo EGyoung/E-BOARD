@@ -22,7 +22,8 @@
     { "path": "./packages/core" },
     { "path": "./packages/ui" },
     { "path": "./packages/utils" },
-    { "path": "./packages/app" }
+    { "path": "./packages/app" },
+    { "path": "./packages/workbrench" } 
   ],
   "exclude": ["node_modules"]
 }

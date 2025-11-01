@@ -13,7 +13,8 @@ module.exports = {
     alias: {
       "@e-board/ui": path.resolve(__dirname, "../ui/src"),
       "@e-board/utils": path.resolve(__dirname, "../utils/src"),
-      "@e-board/core": path.resolve(__dirname, "../core/src")
+      "@e-board/core": path.resolve(__dirname, "../core/src"),
+      "@e-board/workbrench": path.resolve(__dirname, "../workbrench/src")
     }
   },
   module: {
