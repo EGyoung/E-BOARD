@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { ToolHeader, ColorSection, ThicknessSection } from './components';
 import './styles.css';
 
-interface StageToolWithBoardProps {
+interface PanelWithBoardProps {
     board?: any; // EBoard instance
     onColorChange?: (color: string) => void;
     onThicknessChange?: (thickness: number) => void;
@@ -28,7 +28,7 @@ const presetColors = [
 // 预设粗细
 const presetThickness = [1, 2, 4, 6, 8, 12, 16, 20];
 
-const StageToolWithBoard: React.FC<StageToolWithBoardProps> = ({
+const Panel: React.FC<PanelWithBoardProps> = ({
     board,
     onColorChange,
     onThicknessChange,
@@ -110,4 +110,4 @@ const StageToolWithBoard: React.FC<StageToolWithBoardProps> = ({
     );
 };
 
-export default StageToolWithBoard;
+export default Panel;

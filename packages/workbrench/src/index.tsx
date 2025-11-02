@@ -1,4 +1,3 @@
-// Entry for workbrench package
-import StageToolWithBoard from './stageTool/StageToolWithBoard';
+import Panel from './panel/Panel';
 
-export {  StageToolWithBoard };
+export { Panel };

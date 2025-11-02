@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { DrawShapePlugin, EBoard, IConfigService, IModeService } from "@e-board/core";
 import "./styles.css";
 import { RoamPlugin, SelectionPlugin, ClearPlugin } from "@e-board/core";
-import { StageToolWithBoard } from '@e-board/workbrench'
+import { Panel } from '@e-board/workbrench'
 const App: React.FC = () => {
   const eboard = React.useRef<EBoard | null>(null);
   useEffect(() => {
@@ -85,7 +85,7 @@ const App: React.FC = () => {
           <button onClick={changeShape}>shape</button>
           <button onClick={clear}>清除画布</button>
         </div>
-        <StageToolWithBoard onThicknessChange={handleThicknessChange} onColorChange={handleColorChange} board={eboard.current} />
+        <Panel onThicknessChange={handleThicknessChange} onColorChange={handleColorChange} board={eboard.current} />
       </div>
       <div id="board" className="board-container" />
     </div>
