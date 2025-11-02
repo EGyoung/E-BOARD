@@ -1,14 +1,18 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
-module.exports = {
-  entry: "./src/index.tsx",
-  output: {
-    path: path.resolve(__dirname, "..", ".."),
-    filename: "bundle.js"
-  },
-  devtool: "source-map",
-  resolve: {
+module.exports = (env, argv) => {
+  const isProduction = argv.mode === 'production';
+  
+  return {
+    entry: "./src/index.tsx",
+    output: {
+      path: path.resolve(__dirname, "..", ".."),
+      filename: "bundle.js",
+      publicPath: isProduction ? '/E-BOARD/' : '/'
+    },
+    devtool: "source-map",
+    resolve: {
     extensions: [".tsx", ".ts", ".js", ".less"],
     alias: {
       "@e-board/ui": path.resolve(__dirname, "../ui/src"),
@@ -92,4 +96,5 @@ module.exports = {
     port: 3001,
     hot: true
   }
+  };
 };
