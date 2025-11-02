@@ -16,9 +16,9 @@ const ThicknessSection: React.FC<ThicknessSectionProps> = ({
   onThicknessSelect,
 }) => {
   return (
-    <div className="stage-tool-section">
-      <div className="stage-tool-label">粗细</div>
-      <div className="stage-tool-content">
+    <div className="panel-section">
+      <div className="panel-label">粗细</div>
+      <div className="panel-content">
         <ThicknessOptions
           presetThickness={presetThickness}
           selectedThickness={selectedThickness}

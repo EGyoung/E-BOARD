@@ -16,9 +16,9 @@ const ColorSection: React.FC<ColorSectionProps> = ({
   onCustomColorChange,
 }) => {
   return (
-    <div className="stage-tool-section">
-      <div className="stage-tool-label">颜色</div>
-      <div className="stage-tool-content">
+    <div className="panel-section">
+      <div className="panel-label">颜色</div>
+      <div className="panel-content">
         <ColorDisplay color={selectedColor} />
         <ColorPicker
           presetColors={presetColors}

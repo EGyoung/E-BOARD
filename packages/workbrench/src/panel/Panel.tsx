@@ -83,14 +83,14 @@ const Panel: React.FC<PanelWithBoardProps> = ({
     };
 
     return (
-        <div className={`stage-tool ${isCollapsed ? 'collapsed' : ''}`} ref={colorPickerRef}>
+        <div className={`panel ${isCollapsed ? 'collapsed' : ''}`} ref={colorPickerRef}>
             <ToolHeader
                 isCollapsed={isCollapsed}
                 onToggle={() => setIsCollapsed(!isCollapsed)}
             />
 
             {!isCollapsed && (
-                <div className="stage-tool-body">
+                <div className="panel-body">
                     <ColorSection
                         presetColors={presetColors}
                         selectedColor={selectedColor}
