@@ -141,7 +141,8 @@ export class EBoard implements IBoard {
     canvas.style.top = "0";
     canvas.style.left = "0";
     canvas.style.zIndex = "1";
-    canvas.style.backgroundColor = "black";
+    // 绿色
+    canvas.style.backgroundColor = "rgba(10, 34, 30, 1)";
     canvas.style.userSelect = "none";
     canvas.style.touchAction = "none";
     canvas.style.display = "block";
