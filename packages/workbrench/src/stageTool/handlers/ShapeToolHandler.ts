@@ -1,3 +1,4 @@
+import { IConfigService, IModeService } from '@e-board/core';
 import { IToolHandler, ShapeType } from '../types';
 
 export class ShapeToolHandler implements IToolHandler {
@@ -9,8 +10,7 @@ export class ShapeToolHandler implements IToolHandler {
 
     activate(board: any): void {
         try {
-            const IModeService = Symbol.for('IModeService');
-            const IConfigService = Symbol.for('IConfigService');
+
 
             const modeService = board.getService(IModeService);
             const configService = board.getService(IConfigService);

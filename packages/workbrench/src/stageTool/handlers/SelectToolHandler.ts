@@ -1,9 +1,10 @@
+import { IModeService } from '@e-board/core';
 import { IToolHandler } from '../types';
 
 export class SelectToolHandler implements IToolHandler {
     activate(board: any): void {
         try {
-            const IModeService = Symbol.for('IModeService');
+
             const modeService = board.getService(IModeService);
             if (modeService) {
                 modeService.switchMode('selection');

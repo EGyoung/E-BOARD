@@ -1,21 +1,17 @@
+import { IModelService } from '@e-board/core';
 import { IToolHandler } from '../types';
 
 export class ClearToolHandler implements IToolHandler {
     activate(board: any): void {
         try {
-            const IModelService = Symbol.for('IModelService');
-            const IRenderService = Symbol.for('IRenderService');
+
 
             const modelService = board.getService(IModelService);
-            const renderService = board.getService(IRenderService);
 
             if (modelService && modelService.clear) {
                 modelService.clear();
             }
 
-            if (renderService && renderService.render) {
-                renderService.render();
-            }
         } catch (error) {
             console.warn('Failed to clear canvas:', error);
         }

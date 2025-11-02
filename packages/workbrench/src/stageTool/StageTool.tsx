@@ -9,11 +9,11 @@ interface StageToolProps {
     board?: any;
 }
 
-const StageTool: React.FC<StageToolProps> = ({ board }) => {
+const StageTool: React.FC<StageToolProps> = (props: any) => {
+    const board = props.board.current;
     const [activeTool, setActiveTool] = useState<string | null>(null);
     const [allTools, setAllTools] = useState(toolRegistry.getAllTools());
     const [isCollapsed, setIsCollapsed] = useState(false);
-
     useEffect(() => {
         // Register default tools on mount
         registerDefaultTools();

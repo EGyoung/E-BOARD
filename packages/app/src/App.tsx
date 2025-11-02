@@ -1,11 +1,11 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useLayoutEffect } from "react";
 import { DrawShapePlugin, EBoard, IConfigService, IModeService } from "@e-board/core";
 import "./styles.css";
 import { RoamPlugin, SelectionPlugin, ClearPlugin } from "@e-board/core";
 import { Panel, StageTool } from '@e-board/workbrench'
 const App: React.FC = () => {
   const eboard = React.useRef<EBoard | null>(null);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const board = new EBoard({
       container: document.getElementById("board") as HTMLDivElement,
       id: "app-board",
@@ -75,7 +75,7 @@ const App: React.FC = () => {
     const configService = board.getService(IConfigService) as unknown as IConfigService;
     configService.setCtxConfig({ lineWidth: thickness });
   }
-
+  console.log(eboard.current, 'eboard.current')
   return (
     <div className="app-container">
       <div style={{ position: "absolute", zIndex: 10, top: 10, left: 10, display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -86,7 +86,7 @@ const App: React.FC = () => {
           <button onClick={clear}>清除画布</button>
         </div>
         <Panel onThicknessChange={handleThicknessChange} onColorChange={handleColorChange} board={eboard.current} />
-        <StageTool board={eboard.current} />
+        <StageTool board={eboard} />
       </div>
       <div id="board" className="board-container" />
     </div>

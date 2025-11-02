@@ -45,18 +45,18 @@ const Panel: React.FC<PanelWithBoardProps> = ({
         setSelectedColor(color);
         onColorChange?.(color);
 
-        // 如果传入了 board 实例，更新配置服务
-        if (board && board.getService) {
-            try {
-                const IConfigService = Symbol.for('IConfigService');
-                const configService = board.getService(IConfigService);
-                if (configService && configService.setCtxConfig) {
-                    configService.setCtxConfig({ strokeStyle: color });
-                }
-            } catch (error) {
-                console.warn('无法更新配置服务:', error);
-            }
-        }
+        // // 如果传入了 board 实例，更新配置服务
+        // if (board && board.getService) {
+        //     try {
+        //         const IConfigService = Symbol.for('IConfigService');
+        //         const configService = board.getService(IConfigService);
+        //         if (configService && configService.setCtxConfig) {
+        //             configService.setCtxConfig({ strokeStyle: color });
+        //         }
+        //     } catch (error) {
+        //         console.warn('无法更新配置服务:', error);
+        //     }
+        // }
     };
 
     const handleCustomColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
