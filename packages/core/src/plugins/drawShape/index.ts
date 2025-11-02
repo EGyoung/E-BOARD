@@ -58,6 +58,7 @@ class DrawShapePlugin implements IPlugin {
     const height = Math.abs(transformedPoint.y - _point.y);
 
     // 清除交互层
+    ctx.clearRect(0, 0, this.board.getCanvas()!.width, this.board.getCanvas()!.height);
 
     // 绘制矩形
     ctx.beginPath();
@@ -164,7 +165,7 @@ class DrawShapePlugin implements IPlugin {
       initContextAttrs(
         ctx,
         { zoom: this.transformService.getView().zoom },
-        configService.getCtxConfig()
+        { ...configService.getCtxConfig() }
       );
       this.setCurrentRectangleWithDraw(this.lastPoint);
     });

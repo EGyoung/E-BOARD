@@ -41,7 +41,7 @@ class DrawPlugin implements IPlugin {
       ctx.moveTo(point.x, point.y);
       this.currentLine = this.modelService.createModel("line", {
         points: [transformedPoint],
-        options: this.configService.getCtxConfig()
+        options: { ...this.configService.getCtxConfig() }
       });
       this.currentLine.points?.push(transformedPoint);
       return;
@@ -186,7 +186,7 @@ class DrawPlugin implements IPlugin {
   private drawLineModelHandler = (model: IModel, ctx?: CanvasRenderingContext2D) => {
     const context = this.board.getCtx();
     if (!context) return;
-
+    context.save()
     model.points?.forEach((point, index) => {
       const transformedPoint = this.transformPoint(point);
       if (index === 0) {
@@ -201,6 +201,7 @@ class DrawPlugin implements IPlugin {
         context.quadraticCurveTo(p1.x, p1.y, midPointX, midPointY);
       }
     });
+    context.restore()
   };
 
   private getCanvasPoint(clientX: number, clientY: number) {
@@ -226,7 +227,7 @@ class DrawPlugin implements IPlugin {
       isDrawing = true;
       lastPoint = this.getCanvasPoint(event.clientX, event.clientY);
       const configService = eBoardContainer.get<IConfigService>(IConfigService);
-
+      ctx.save()
       initContextAttrs(
         ctx,
         { zoom: this.transformService.getView().zoom },
@@ -250,6 +251,7 @@ class DrawPlugin implements IPlugin {
       if (!ctx) return;
       const lastPoint = this.getCanvasPoint(event.clientX, event.clientY);
       this.setCurrentLineWithDraw(lastPoint, true);
+      ctx.restore()
       // 结束当前路径
       isDrawing = false;
     });

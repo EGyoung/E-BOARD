@@ -26,7 +26,7 @@ const defaultCtxConfig = {
 class ConfigService implements IConfigService {
   private ctxConfig = defaultCtxConfig;
   getCtxConfig() {
-    return defaultCtxConfig;
+    return this.ctxConfig;
   }
 
   setCtxConfig(config: Partial<typeof defaultCtxConfig>) {

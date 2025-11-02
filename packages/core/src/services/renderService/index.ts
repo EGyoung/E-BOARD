@@ -100,17 +100,19 @@ class RenderService implements IRenderService {
     // 设置绘制属性（包括根据缩放调整的线条宽度）
     const transformService = eBoardContainer.get<ITransformService>(ITransformService);
     const configService = eBoardContainer.get<IConfigService>(IConfigService);
-    initContextAttrs(
-      context,
-      { zoom: transformService.getView().zoom },
-      configService.getCtxConfig()
-    );
+
 
     // 绘制笔记
     models.forEach(model => {
       const handler = this.modelHandler.get(model.type);
       if (handler) {
         context.beginPath();
+        initContextAttrs(
+          context,
+          { zoom: transformService.getView().zoom },
+          // configService.getCtxConfig()
+          model.options
+        );
         handler(model, context as any);
         context.stroke();
       }

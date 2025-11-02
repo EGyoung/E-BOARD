@@ -1,8 +1,8 @@
 import React, { useEffect } from "react";
-import { DrawShapePlugin, EBoard, IModeService } from "@e-board/core";
+import { DrawShapePlugin, EBoard, IConfigService, IModeService } from "@e-board/core";
 import "./styles.css";
 import { RoamPlugin, SelectionPlugin, ClearPlugin } from "@e-board/core";
-import Temp from '@e-board/workbrench'
+import { StageToolWithBoard } from '@e-board/workbrench'
 const App: React.FC = () => {
   const eboard = React.useRef<EBoard | null>(null);
   useEffect(() => {
@@ -59,14 +59,33 @@ const App: React.FC = () => {
     board.getPlugin("ClearPlugin")?.exports.clear();
   };
 
+  const handleColorChange = (color: string) => {
+    if (!eboard.current) return;
+    const board = eboard.current;
+
+    const configService = board.getService(IConfigService) as unknown as IConfigService;
+    configService.setCtxConfig({ strokeStyle: color });
+
+  };
+
+  const handleThicknessChange = (thickness: number) => {
+    if (!eboard.current) return;
+    const board = eboard.current;
+
+    const configService = board.getService(IConfigService) as unknown as IConfigService;
+    configService.setCtxConfig({ lineWidth: thickness });
+  }
+
   return (
     <div className="app-container">
-      <div style={{ position: "absolute", zIndex: 10, top: 10, left: 10 }}>
-        <button onClick={changeSelection}>选择</button>
-        <button onClick={changePen}>pen</button>
-        <button onClick={changeShape}>shape</button>
-        <button onClick={clear}>清除画布</button>
-        <Temp />
+      <div style={{ position: "absolute", zIndex: 10, top: 10, left: 10, display: "flex", flexDirection: "column", gap: "10px" }}>
+        <div style={{ display: "flex", gap: "5px" }}>
+          <button onClick={changeSelection}>选择</button>
+          <button onClick={changePen}>pen</button>
+          <button onClick={changeShape}>shape</button>
+          <button onClick={clear}>清除画布</button>
+        </div>
+        <StageToolWithBoard onThicknessChange={handleThicknessChange} onColorChange={handleColorChange} board={eboard.current} />
       </div>
       <div id="board" className="board-container" />
     </div>

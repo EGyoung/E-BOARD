@@ -1,0 +1,263 @@
+.stage-tool {
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  padding: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  min-width: 300px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  transition: all 0.3s ease;
+}
+
+.stage-tool.collapsed {
+  min-width: 200px;
+}
+
+.stage-tool-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background-color: #e8e8e8;
+  border-radius: 8px 8px 0 0;
+  border-bottom: 1px solid #ddd;
+  cursor: pointer;
+}
+
+.stage-tool.collapsed .stage-tool-header {
+  border-radius: 8px;
+}
+
+.stage-tool-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+}
+
+.stage-tool-toggle {
+  background: none;
+  border: none;
+  font-size: 14px;
+  color: #666;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.stage-tool-toggle:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #1890ff;
+}
+
+.stage-tool-body {
+  padding: 16px;
+}
+
+.stage-tool-section {
+  margin-bottom: 20px;
+}
+
+.stage-tool-section:last-child {
+  margin-bottom: 0;
+}
+
+.stage-tool-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 12px;
+}
+
+.stage-tool-content {
+  position: relative;
+}
+
+/* 颜色选择器样式 */
+.color-display-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.color-display {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  border: 2px solid #ddd;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  pointer-events: none;
+}
+
+.color-value {
+  font-size: 13px;
+  color: #666;
+  font-family: 'Courier New', monospace;
+}
+
+.color-picker-panel {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  margin-top: 12px;
+  min-width: 280px;
+}
+
+.preset-colors {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.color-option {
+  width: 36px;
+  height: 36px;
+  border-radius: 4px;
+  border: 2px solid #ddd;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.color-option:hover {
+  transform: scale(1.1);
+  border-color: #1890ff;
+}
+
+.color-option.selected {
+  border-color: #1890ff;
+  border-width: 3px;
+}
+
+.color-option.selected::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+}
+
+.custom-color {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #eee;
+}
+
+.custom-color label {
+  font-size: 13px;
+  color: #666;
+}
+
+.custom-color input[type="color"] {
+  width: 60px;
+  height: 32px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* 粗细选择器样式 */
+.thickness-options {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.thickness-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background-color: white;
+}
+
+.thickness-option:hover {
+  border-color: #1890ff;
+  background-color: #f0f8ff;
+}
+
+.thickness-option.selected {
+  border-color: #1890ff;
+  background-color: #e6f7ff;
+}
+
+.thickness-preview {
+  border-radius: 50%;
+  margin: 4px 0;
+}
+
+.thickness-label {
+  font-size: 12px;
+  color: #666;
+}
+
+.thickness-slider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background-color: white;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+.slider {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  outline: none;
+  -webkit-appearance: none;
+  background: #ddd;
+}
+
+.slider::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #1890ff;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.slider::-webkit-slider-thumb:hover {
+  background: #40a9ff;
+  transform: scale(1.2);
+}
+
+.slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #1890ff;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.slider::-moz-range-thumb:hover {
+  background: #40a9ff;
+  transform: scale(1.2);
+}
+
+.slider-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  min-width: 40px;
+  text-align: right;
+}

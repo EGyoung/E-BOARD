@@ -1,11 +1,4 @@
 // Entry for workbrench package
-const Temp  = () => {
-    return (
-        <div style={{color: 'white'}}>
-            123
-        </div>
-    )
-}
+import StageToolWithBoard from './stageTool/StageToolWithBoard';
 
-
-export default Temp;
+export {  StageToolWithBoard };
