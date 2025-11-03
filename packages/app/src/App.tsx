@@ -26,39 +26,6 @@ const App: React.FC = () => {
     };
   }, []);
 
-  const changeSelection = () => {
-    if (!eboard.current) return;
-    const board = eboard.current;
-
-    const modeService = board.getService(IModeService) as IModeService;
-
-    modeService.switchMode("selection");
-  };
-
-  const changePen = () => {
-    if (!eboard.current) return;
-    const board = eboard.current;
-
-    const modeService = board.getService(IModeService) as IModeService;
-
-    modeService.switchMode("draw");
-  };
-
-  const changeShape = () => {
-    if (!eboard.current) return;
-    const board = eboard.current;
-
-    const modeService = board.getService(IModeService) as IModeService;
-
-    modeService.switchMode("drawShape");
-  };
-
-  const clear = () => {
-    if (!eboard.current) return;
-    const board = eboard.current;
-    board.getPlugin("ClearPlugin")?.exports.clear();
-  };
-
   const handleColorChange = (color: string) => {
     if (!eboard.current) return;
     const board = eboard.current;
@@ -75,16 +42,9 @@ const App: React.FC = () => {
     const configService = board.getService(IConfigService) as unknown as IConfigService;
     configService.setCtxConfig({ lineWidth: thickness });
   }
-  console.log(eboard.current, 'eboard.current')
   return (
     <div className="app-container">
       <div style={{ position: "absolute", zIndex: 10, top: 10, left: 10, display: "flex", flexDirection: "column", gap: "10px" }}>
-        <div style={{ display: "flex", gap: "5px" }}>
-          <button onClick={changeSelection}>选择</button>
-          <button onClick={changePen}>pen</button>
-          <button onClick={changeShape}>shape</button>
-          <button onClick={clear}>清除画布</button>
-        </div>
         <Panel onThicknessChange={handleThicknessChange} onColorChange={handleColorChange} board={eboard.current} />
         <StageTool board={eboard} />
       </div>
