@@ -30,7 +30,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 8
+          version: 7
 
       - name: Get pnpm store directory
         shell: bash
@@ -46,15 +46,22 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install
 
       - name: Build
         run: pnpm build
 
+      - name: Prepare deployment files
+        run: |
+          mkdir -p dist
+          cp index.html dist/
+          cp bundle.js dist/
+          cp bundle.js.LICENSE.txt dist/
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: "."
+          path: ./dist
 
   deploy:
     environment:
