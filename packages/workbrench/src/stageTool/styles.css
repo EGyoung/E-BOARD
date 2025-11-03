@@ -55,7 +55,7 @@
 }
 
 .stage-tool-container.collapsed::after {
-  content: "工具栏已收起";
+  content: "❤️🌟❤️";
   position: absolute;
   left: 20px;
   top: 50%;

@@ -14,7 +14,6 @@ export function registerDefaultTools() {
         {
             id: 'draw',
             name: '画笔',
-            icon: '✏️',
             mode: ToolMode.DRAW,
         },
         new DrawToolHandler()
@@ -25,7 +24,6 @@ export function registerDefaultTools() {
         {
             id: 'select',
             name: '选择',
-            icon: '👆',
             mode: ToolMode.SELECT,
         },
         new SelectToolHandler()
@@ -36,7 +34,6 @@ export function registerDefaultTools() {
         {
             id: 'shape-rectangle',
             name: '矩形',
-            icon: '□',
             mode: ToolMode.SHAPE,
             shapeType: ShapeType.RECTANGLE,
         },
@@ -47,7 +44,6 @@ export function registerDefaultTools() {
         {
             id: 'shape-circle',
             name: '圆形',
-            icon: '○',
             mode: ToolMode.SHAPE,
             shapeType: ShapeType.CIRCLE,
         },
@@ -58,7 +54,6 @@ export function registerDefaultTools() {
         {
             id: 'shape-line',
             name: '直线',
-            icon: '/',
             mode: ToolMode.SHAPE,
             shapeType: ShapeType.LINE,
         },
@@ -69,7 +64,6 @@ export function registerDefaultTools() {
         {
             id: 'shape-triangle',
             name: '三角形',
-            icon: '△',
             mode: ToolMode.SHAPE,
             shapeType: ShapeType.TRIANGLE,
         },
@@ -81,7 +75,6 @@ export function registerDefaultTools() {
         {
             id: 'clear',
             name: '清空',
-            icon: '🗑',
         },
         new ClearToolHandler()
     );
@@ -90,7 +83,6 @@ export function registerDefaultTools() {
         {
             id: 'save',
             name: '保存',
-            icon: '💾',
         },
         new SaveToolHandler()
     );
