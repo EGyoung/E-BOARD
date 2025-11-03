@@ -52,28 +52,32 @@ const StageTool: React.FC<StageToolProps> = (props: any) => {
                 {isCollapsed ? '▲' : '▼'}
             </button>
 
-            {!isCollapsed && (
-                <div className="stage-tool-content">
+            <div className="stage-tool-content">
+                {(drawTools.length > 0 || selectTools.length > 0) && (
                     <ToolGroup
-                        title="基础工具"
+                        title="工具"
                         tools={[...drawTools, ...selectTools]}
                         activeTool={activeTool}
                         onToolClick={handleToolClick}
                     />
+                )}
+                {shapeTools.length > 0 && (
                     <ToolGroup
-                        title="形状工具"
+                        title="形状"
                         tools={shapeTools}
                         activeTool={activeTool}
                         onToolClick={handleToolClick}
                     />
+                )}
+                {actionTools.length > 0 && (
                     <ToolGroup
                         title="操作"
                         tools={actionTools}
                         activeTool={activeTool}
                         onToolClick={handleToolClick}
                     />
-                </div>
-            )}
+                )}
+            </div>
         </div>
     );
 };

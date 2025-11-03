@@ -36,7 +36,7 @@ export function registerDefaultTools() {
         {
             id: 'shape-rectangle',
             name: '矩形',
-            icon: '▭',
+            icon: '□',
             mode: ToolMode.SHAPE,
             shapeType: ShapeType.RECTANGLE,
         },
@@ -47,7 +47,7 @@ export function registerDefaultTools() {
         {
             id: 'shape-circle',
             name: '圆形',
-            icon: '⭕',
+            icon: '○',
             mode: ToolMode.SHAPE,
             shapeType: ShapeType.CIRCLE,
         },
@@ -58,7 +58,7 @@ export function registerDefaultTools() {
         {
             id: 'shape-line',
             name: '直线',
-            icon: '―',
+            icon: '/',
             mode: ToolMode.SHAPE,
             shapeType: ShapeType.LINE,
         },
@@ -81,7 +81,7 @@ export function registerDefaultTools() {
         {
             id: 'clear',
             name: '清空',
-            icon: '🗑️',
+            icon: '🗑',
         },
         new ClearToolHandler()
     );
