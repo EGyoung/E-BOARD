@@ -20,6 +20,7 @@ export interface CtxConfig {
   globalAlpha?: number;
   imageSmoothingEnabled?: boolean;
   imageSmoothingQuality?: ImageSmoothingQuality;
+  fillStyle?: string;
 }
 export type IConfigService = {
   // ctxConfig?: CtxConfig;

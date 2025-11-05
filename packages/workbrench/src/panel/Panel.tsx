@@ -1,12 +1,14 @@
 import React, { useState, useRef } from 'react';
-import { ToolHeader, ColorSection, ThicknessSection } from './components';
+import { ToolHeader, ColorSection, FillColorSection, ThicknessSection } from './components';
 import './styles.css';
 
 interface PanelWithBoardProps {
     board?: any; // EBoard instance
     onColorChange?: (color: string) => void;
+    onFillColorChange?: (color: string) => void;
     onThicknessChange?: (thickness: number) => void;
     defaultColor?: string;
+    defaultFillColor?: string;
     defaultThickness?: number;
 }
 
@@ -16,26 +18,25 @@ const presetColors = [
     '#ffffff', // 白色
     '#000000', // 黑色
     '#ff0000', // 红色
-    '#00ff00', // 绿色
     '#0000ff', // 蓝色
     '#ffff00', // 黄色
-    '#ff00ff', // 品红
-    '#00ffff', // 青色
-    '#ff8800', // 橙色
-    '#8800ff', // 紫色
+    '#00ff00', // 绿色
 ];
 
 // 预设粗细
-const presetThickness = [1, 2, 4, 6, 8, 12, 16, 20];
+const presetThickness = [1, 2, 4, 8, 12, 16];
 
 const Panel: React.FC<PanelWithBoardProps> = ({
     board,
     onColorChange,
+    onFillColorChange,
     onThicknessChange,
     defaultColor = '#ffffff',
+    defaultFillColor = '#ffffff',
     defaultThickness = 4,
 }) => {
     const [selectedColor, setSelectedColor] = useState(defaultColor);
+    const [selectedFillColor, setSelectedFillColor] = useState(defaultFillColor);
     const [selectedThickness, setSelectedThickness] = useState(defaultThickness);
     const [isCollapsed, setIsCollapsed] = useState(true);
     const colorPickerRef = useRef<HTMLDivElement>(null);
@@ -49,6 +50,16 @@ const Panel: React.FC<PanelWithBoardProps> = ({
     const handleCustomColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const color = e.target.value;
         handleColorSelect(color);
+    };
+
+    const handleFillColorSelect = (color: string) => {
+        setSelectedFillColor(color);
+        onFillColorChange?.(color);
+    };
+
+    const handleCustomFillColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const color = e.target.value;
+        handleFillColorSelect(color);
     };
 
     const handleThicknessSelect = (thickness: number) => {
@@ -83,6 +94,13 @@ const Panel: React.FC<PanelWithBoardProps> = ({
                         selectedColor={selectedColor}
                         onColorSelect={handleColorSelect}
                         onCustomColorChange={handleCustomColorChange}
+                    />
+
+                    <FillColorSection
+                        presetColors={presetColors}
+                        selectedColor={selectedFillColor}
+                        onColorSelect={handleFillColorSelect}
+                        onCustomColorChange={handleCustomFillColorChange}
                     />
 
                     <ThicknessSection

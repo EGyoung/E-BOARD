@@ -46,8 +46,7 @@ class DrawShapePlugin implements IPlugin {
         width: 0,
         height: 0,
         options: {
-          ...this.configService.getCtxConfig(),
-          fillStyle: defaultFillStyle
+          ...this.configService.getCtxConfig()
         }
       });
     };

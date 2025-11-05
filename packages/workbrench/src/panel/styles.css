@@ -2,13 +2,14 @@
 .panel {
   background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
   backdrop-filter: blur(20px);
-  border-radius: 16px;
+  border-radius: 12px;
   padding: 0;
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.4),
     0 0 0 1px rgba(59, 130, 246, 0.3),
     inset 0 0 30px rgba(59, 130, 246, 0.05);
-  min-width: 320px;
+  width: 280px;
+  max-height: 90vh;
   font-family:
     "JetBrains Mono",
     "Consolas",
@@ -21,6 +22,8 @@
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .panel::before {
@@ -44,20 +47,21 @@
 }
 
 .panel.collapsed {
-  min-width: 220px;
+  width: 200px;
 }
 
 .panel-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
+  padding: 12px 16px;
   background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.8) 100%);
-  border-radius: 16px 16px 0 0;
+  border-radius: 12px 12px 0 0;
   border-bottom: 1px solid rgba(59, 130, 246, 0.3);
   cursor: pointer;
   position: relative;
   transition: all 0.3s ease;
+  flex-shrink: 0;
 }
 
 .panel-header::after {
@@ -75,15 +79,15 @@
 }
 
 .panel.collapsed .panel-header {
-  border-radius: 16px;
+  border-radius: 12px;
 }
 
 .panel-title {
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 700;
   color: #60a5fa;
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
   text-shadow: 0 0 10px rgba(96, 165, 250, 0.5);
   position: relative;
 }
@@ -125,8 +129,31 @@
 }
 
 .panel-body {
-  padding: 20px;
+  padding: 12px 14px;
   position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  min-height: 0;
+}
+
+.panel-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.panel-body::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 3px;
+}
+
+.panel-body::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.4);
+  border-radius: 3px;
+  transition: background 0.3s ease;
+}
+
+.panel-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.6);
 }
 
 .panel-body::before {
@@ -147,7 +174,7 @@
 }
 
 .panel-section {
-  margin-bottom: 24px;
+  margin-bottom: 16px;
   position: relative;
   z-index: 1;
 }
@@ -157,14 +184,14 @@
 }
 
 .panel-label {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 700;
   color: #93c5fd;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
   text-transform: uppercase;
-  letter-spacing: 1.5px;
+  letter-spacing: 1px;
   position: relative;
-  padding-left: 12px;
+  padding-left: 10px;
 }
 
 .panel-label::before {
@@ -173,8 +200,8 @@
   left: 0;
   top: 50%;
   transform: translateY(-50%);
-  width: 3px;
-  height: 14px;
+  width: 2px;
+  height: 12px;
   background: linear-gradient(180deg, #3b82f6 0%, #60a5fa 100%);
   box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
 }
@@ -187,10 +214,10 @@
 .color-display-wrapper {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 12px;
+  gap: 10px;
+  padding: 8px 10px;
   background: rgba(30, 41, 59, 0.5);
-  border-radius: 10px;
+  border-radius: 8px;
   border: 1px solid rgba(59, 130, 246, 0.2);
   transition: all 0.3s ease;
 }
@@ -202,9 +229,9 @@
 }
 
 .color-display {
-  width: 44px;
-  height: 44px;
-  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
   border: 2px solid rgba(59, 130, 246, 0.4);
   box-shadow:
     0 0 15px rgba(59, 130, 246, 0.3),
@@ -229,7 +256,7 @@
 }
 
 .color-value {
-  font-size: 13px;
+  font-size: 11px;
   color: #93c5fd;
   font-family: "Courier New", "SF Mono", monospace;
   letter-spacing: 0.5px;
@@ -239,27 +266,26 @@
 .color-picker-panel {
   background: linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.98) 100%);
   backdrop-filter: blur(20px);
-  border-radius: 12px;
-  padding: 18px;
+  border-radius: 10px;
+  padding: 12px;
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.5),
     0 0 0 1px rgba(59, 130, 246, 0.3);
-  margin-top: 12px;
-  min-width: 300px;
+  margin-top: 10px;
   border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
 .preset-colors {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
-  margin-bottom: 18px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
 .color-option {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
   border: 2px solid rgba(59, 130, 246, 0.3);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -336,28 +362,28 @@
 .custom-color {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 14px;
-  padding-top: 16px;
+  gap: 8px;
+  padding: 10px;
+  padding-top: 12px;
   border-top: 1px solid rgba(59, 130, 246, 0.2);
   background: rgba(30, 41, 59, 0.3);
-  border-radius: 8px;
+  border-radius: 6px;
   margin-top: 4px;
 }
 
 .custom-color label {
-  font-size: 12px;
+  font-size: 10px;
   color: #93c5fd;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   font-weight: 600;
 }
 
 .custom-color input[type="color"] {
-  width: 70px;
-  height: 36px;
+  width: 60px;
+  height: 30px;
   border: 2px solid rgba(59, 130, 246, 0.4);
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
   background: rgba(15, 23, 42, 0.5);
   transition: all 0.3s ease;
@@ -371,19 +397,19 @@
 /* 粗细选择器样式 - 科技风 */
 .thickness-options {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-  margin-bottom: 18px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
 .thickness-option {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 10px 8px;
+  gap: 4px;
+  padding: 8px 6px;
   border: 2px solid rgba(59, 130, 246, 0.3);
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   background: rgba(30, 41, 59, 0.5);
@@ -445,20 +471,20 @@
 }
 
 .thickness-label {
-  font-size: 11px;
+  font-size: 10px;
   color: #93c5fd;
   font-weight: 600;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
   text-shadow: 0 0 5px rgba(147, 197, 253, 0.3);
 }
 
 .thickness-slider {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 14px;
+  gap: 10px;
+  padding: 10px;
   background: rgba(30, 41, 59, 0.5);
-  border-radius: 10px;
+  border-radius: 8px;
   border: 1px solid rgba(59, 130, 246, 0.2);
   transition: all 0.3s ease;
 }
@@ -530,11 +556,11 @@
 }
 
 .slider-value {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
   color: #60a5fa;
-  min-width: 45px;
+  min-width: 35px;
   text-align: right;
   text-shadow: 0 0 8px rgba(96, 165, 250, 0.5);
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
 }

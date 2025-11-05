@@ -4,6 +4,7 @@ export { default as PresetColors } from './PresetColors';
 export { default as CustomColorPicker } from './CustomColorPicker';
 export { default as ColorPicker } from './ColorPicker';
 export { default as ColorSection } from './ColorSection';
+export { default as FillColorSection } from './FillColorSection';
 export { default as ThicknessOption } from './ThicknessOption';
 export { default as ThicknessOptions } from './ThicknessOptions';
 export { default as ThicknessSlider } from './ThicknessSlider';

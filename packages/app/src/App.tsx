@@ -35,6 +35,14 @@ const App: React.FC = () => {
 
   };
 
+  const handleFillColorChange = (color: string) => {
+    if (!eboard.current) return;
+    const board = eboard.current;
+
+    const configService = board.getService(IConfigService) as unknown as IConfigService;
+    configService.setCtxConfig({ fillStyle: color });
+  };
+
   const handleThicknessChange = (thickness: number) => {
     if (!eboard.current) return;
     const board = eboard.current;
@@ -45,7 +53,12 @@ const App: React.FC = () => {
   return (
     <div className="app-container">
       <div style={{ position: "absolute", zIndex: 10, top: 10, left: 10, display: "flex", flexDirection: "column", gap: "10px" }}>
-        <Panel onThicknessChange={handleThicknessChange} onColorChange={handleColorChange} board={eboard.current} />
+        <Panel
+          onThicknessChange={handleThicknessChange}
+          onColorChange={handleColorChange}
+          onFillColorChange={handleFillColorChange}
+          board={eboard.current}
+        />
         <StageTool board={eboard} />
       </div>
       <div id="board" className="board-container" />
