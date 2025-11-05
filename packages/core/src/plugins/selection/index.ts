@@ -17,7 +17,7 @@ class SelectionPlugin implements IPlugin {
   private initialModelPositions = new Map<string, { x: number; y: number }[]>();
   private currentSelectRange: { x: number; y: number; width: number; height: number } | null = null;
   private modelService = eBoardContainer.get<IModelService>(IModelService);
-  private renderService = eBoardContainer.get<IRenderService>(IRenderService);
+  // private renderService = eBoardContainer.get<IRenderService>(IRenderService);
   private transformService = eBoardContainer.get<ITransformService>(ITransformService);
   private readonly _onSelectedElements = new Emitter<IModel>();
   private emitSelectedElement = this._onSelectedElements.fire.bind(this._onSelectedElements);
@@ -62,7 +62,7 @@ class SelectionPlugin implements IPlugin {
     const ctx = this.board.getInteractionCtx();
     if (!canvas || !ctx) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    this.selectModels.clear();
+    // this.selectModels.clear();
     this.initialModelPositions.clear();
     this.currentSelectRange = null;
   }
@@ -74,14 +74,17 @@ class SelectionPlugin implements IPlugin {
 
     if (!canvas || !container) return;
     if (!ctx) return;
-    const handlePointerDown = (e: PointerEvent) => {
+    const handlePointerDown = async (e: PointerEvent) => {
       if (e.button !== 0) return;
       this.resetAllState();
 
       this.pointerDownPoint = { x: e.clientX, y: e.clientY };
       const zoom = this.transformService.getView().zoom || 1;
-      this.modelService.getAllModels().forEach(model => {
+      const models = this.modelService.getAllModels().reverse();
+      let count = 0
+      for await (const model of models) {
         if (!model) return;
+        count++
         const box = this.calculateBBox(
           model.points?.map(p => this.transformService.transformPoint(p)) || [],
           zoom * (model.options?.lineWidth || 0)
@@ -114,8 +117,13 @@ class SelectionPlugin implements IPlugin {
 
           ctx.strokeRect(box.minX, box.minY, width, height);
           ctx.restore();
+          break
         }
-      });
+        // 判断是否最后一个
+        if (count === models.length) {
+          this.selectModels.clear();
+        }
+      }
 
       if (this.selectModels.size > 0) {
         // 保存所有选中模型的初始位置
