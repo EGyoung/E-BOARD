@@ -40,6 +40,11 @@ const StageTool: React.FC<StageToolProps> = (props: any) => {
     const drawTools = allTools.filter(t => t.mode === ToolMode.DRAW);
     const selectTools = allTools.filter(t => t.mode === ToolMode.SELECT);
     const shapeTools = allTools.filter(t => t.mode === ToolMode.SHAPE);
+    const specialTools = allTools.filter(t =>
+        t.mode === ToolMode.LASER_POINTER ||
+        t.mode === ToolMode.MIND_MAP ||
+        t.mode === ToolMode.TABLE
+    );
     const actionTools = allTools.filter(t => !t.mode);
 
     return (
@@ -65,6 +70,14 @@ const StageTool: React.FC<StageToolProps> = (props: any) => {
                     <ToolGroup
                         title="形状"
                         tools={shapeTools}
+                        activeTool={activeTool}
+                        onToolClick={handleToolClick}
+                    />
+                )}
+                {specialTools.length > 0 && (
+                    <ToolGroup
+                        title="特殊工具"
+                        tools={specialTools}
                         activeTool={activeTool}
                         onToolClick={handleToolClick}
                     />

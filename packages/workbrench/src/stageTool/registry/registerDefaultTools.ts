@@ -6,6 +6,11 @@ import {
     ShapeToolHandler,
     ClearToolHandler,
     SaveToolHandler,
+    UndoToolHandler,
+    RedoToolHandler,
+    LaserPointerToolHandler,
+    MindMapToolHandler,
+    TableToolHandler,
 } from '../handlers';
 
 export function registerDefaultTools() {
@@ -73,6 +78,22 @@ export function registerDefaultTools() {
     // Register action tools
     toolRegistry.register(
         {
+            id: 'undo',
+            name: '撤销',
+        },
+        new UndoToolHandler()
+    );
+
+    toolRegistry.register(
+        {
+            id: 'redo',
+            name: '重做',
+        },
+        new RedoToolHandler()
+    );
+
+    toolRegistry.register(
+        {
             id: 'clear',
             name: '清空',
         },
@@ -85,5 +106,33 @@ export function registerDefaultTools() {
             name: '保存',
         },
         new SaveToolHandler()
+    );
+
+    // Register special mode tools
+    toolRegistry.register(
+        {
+            id: 'laser-pointer',
+            name: '激光笔',
+            mode: ToolMode.LASER_POINTER,
+        },
+        new LaserPointerToolHandler()
+    );
+
+    toolRegistry.register(
+        {
+            id: 'mind-map',
+            name: '思维导图',
+            mode: ToolMode.MIND_MAP,
+        },
+        new MindMapToolHandler()
+    );
+
+    toolRegistry.register(
+        {
+            id: 'table',
+            name: '表格',
+            mode: ToolMode.TABLE,
+        },
+        new TableToolHandler()
     );
 }

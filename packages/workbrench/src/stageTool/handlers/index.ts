@@ -3,3 +3,8 @@ export { SelectToolHandler } from './SelectToolHandler';
 export { ShapeToolHandler } from './ShapeToolHandler';
 export { ClearToolHandler } from './ClearToolHandler';
 export { SaveToolHandler } from './SaveToolHandler';
+export { UndoToolHandler } from './UndoToolHandler';
+export { RedoToolHandler } from './RedoToolHandler';
+export { LaserPointerToolHandler } from './LaserPointerToolHandler';
+export { MindMapToolHandler } from './MindMapToolHandler';
+export { TableToolHandler } from './TableToolHandler';

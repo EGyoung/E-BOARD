@@ -2,6 +2,9 @@ export enum ToolMode {
     DRAW = 'draw',
     SELECT = 'selection',
     SHAPE = 'drawShape',
+    LASER_POINTER = 'laserPointer',
+    MIND_MAP = 'mindMap',
+    TABLE = 'table',
 }
 
 export enum ShapeType {
