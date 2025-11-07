@@ -74,15 +74,45 @@ class SelectionPlugin implements IPlugin {
 
     if (!canvas || !container) return;
     if (!ctx) return;
-    const handlePointerDown = async (e: PointerEvent) => {
+    const handlePointerDown = (e: PointerEvent) => {
       if (e.button !== 0) return;
+      // 判断点是否在AABB盒子内
+      if (this.AABbBox) {
+        // AABB盒子的坐标已经是经过transform的屏幕坐标，可以直接与clientX/Y比较
+        if (
+          e.clientX >= this.AABbBox.x &&
+          e.clientX <= this.AABbBox.x + this.AABbBox.width &&
+          e.clientY >= this.AABbBox.y &&
+          e.clientY <= this.AABbBox.y + this.AABbBox.height
+        ) {
+          console.log(this.selectModels, 'this.selectModels')
+          // 在AABB盒子内，开始拖拽已选模型
+          this.pointerDownPoint = { x: e.clientX, y: e.clientY };
+
+          if (this.selectModels.size > 0) {
+            // 保存所有选中模型的初始位置
+            this.initialModelPositions.clear();
+            this.selectModels.forEach(id => {
+              const model = this.modelService.getModelById(id);
+              if (model?.points) {
+                this.initialModelPositions.set(id, [...model.points]);
+              }
+            });
+            container.addEventListener("pointermove", handlePointerMove);
+            container.addEventListener("pointerup", handlePointerUp);
+            return;
+
+          }
+
+        }
+      }
       this.resetAllState();
 
       this.pointerDownPoint = { x: e.clientX, y: e.clientY };
       const zoom = this.transformService.getView().zoom || 1;
       const models = this.modelService.getAllModels().reverse();
       let count = 0
-      for await (const model of models) {
+      for (const model of models) {
         if (!model) return;
         count++
         const box = this.calculateBBox(
@@ -214,6 +244,7 @@ class SelectionPlugin implements IPlugin {
           ctx.strokeRect(box.minX, box.minY, width, height);
           ctx.restore();
         });
+        this.updateAABbBox();
         return;
       }
 
@@ -260,6 +291,9 @@ class SelectionPlugin implements IPlugin {
           const ctx = this.board.getInteractionCtx();
           console.log("选中了", model.id);
           this.addSelectedModels(model.id);
+          if (this.selectModels.size > 0) {
+            this.updateAABbBox();
+          }
           if (!ctx) return;
           ctx.save();
 
@@ -287,9 +321,7 @@ class SelectionPlugin implements IPlugin {
         this.emitSelectedElement(model);
       }
     }
-    if (this.selectModels.size > 0) {
-      this.updateAABbBox();
-    }
+
   }
 
   private updateAABbBox() {
