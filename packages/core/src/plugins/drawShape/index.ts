@@ -8,7 +8,7 @@ import { IBoard, IPluginInitParams } from "../../types";
 import { IPlugin } from "../type";
 
 const CURRENT_MODE = "drawShape";
-const defaultFillStyle = 'pink'
+// const defaultFillStyle = 'pink'
 
 
 interface IShapeRectangle {

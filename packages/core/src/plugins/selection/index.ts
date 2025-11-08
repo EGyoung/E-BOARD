@@ -107,6 +107,7 @@ class SelectionPlugin implements IPlugin {
         }
       }
       this.resetAllState();
+      this.selectModels.clear()
 
       this.pointerDownPoint = { x: e.clientX, y: e.clientY };
       const zoom = this.transformService.getView().zoom || 1;
