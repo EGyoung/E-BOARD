@@ -37,6 +37,13 @@ class ToolRegistry {
             return;
         }
 
+        const newToolData = this.tools.get(id);
+
+        if (newToolData && !newToolData?.config.mode) {
+            newToolData.handler.activate(this.board);
+            return
+        }
+
         if (this.currentTool === id) {
             return;
         }
@@ -50,7 +57,6 @@ class ToolRegistry {
         }
 
         // Activate new tool
-        const newToolData = this.tools.get(id);
         if (newToolData) {
             newToolData.handler.activate(this.board);
             this.currentTool = id;

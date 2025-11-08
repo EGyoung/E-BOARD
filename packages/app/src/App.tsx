@@ -95,13 +95,13 @@ const App: React.FC = () => {
       </div>
 
       {/* 浮动工具栏 - 跟随选中元素 */}
-      <FloatingToolbar
+      {/* <FloatingToolbar
         selectedElement={selectedElement}
         onUpdate={handleFloatingToolbarUpdate}
         onDelete={handleDelete}
         onDuplicate={handleDuplicate}
         board={eboard.current}
-      />
+      /> */}
 
       <div id="board" className="board-container" />
     </div>

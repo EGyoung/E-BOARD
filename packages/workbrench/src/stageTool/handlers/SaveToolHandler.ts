@@ -25,8 +25,4 @@ export class SaveToolHandler implements IToolHandler {
             console.warn('Failed to save canvas:', error);
         }
     }
-
-    deactivate(board: any): void {
-        // No deactivation needed for save action
-    }
 }

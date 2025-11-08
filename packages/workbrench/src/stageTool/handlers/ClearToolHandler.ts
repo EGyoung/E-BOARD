@@ -4,12 +4,9 @@ import { IToolHandler } from '../types';
 export class ClearToolHandler implements IToolHandler {
     activate(board: any): void {
         try {
-
-
             const modelService = board.getService(IModelService);
-
-            if (modelService && modelService.clear) {
-                modelService.clear();
+            if (modelService && modelService.clearModels) {
+                modelService.clearModels();
             }
 
         } catch (error) {
@@ -17,7 +14,4 @@ export class ClearToolHandler implements IToolHandler {
         }
     }
 
-    deactivate(board: any): void {
-        // No deactivation needed for clear action
-    }
 }
