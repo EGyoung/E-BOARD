@@ -48,7 +48,7 @@ class SelectionService implements ISelectionService {
     ctx.fillStyle = "rgba(189, 189, 251, 0.5)"; // Set the fill color with transparency
 
     ctx.fillRect(this.pointerDownPoint.x, this.pointerDownPoint.y, deltaX, deltaY);
-    ctx.strokeStyle = "blue"; // Set the stroke color
+    ctx.strokeStyle = "white"; // Set the stroke color
     ctx.lineWidth = 2; // Set the line width
     ctx.stroke(); // Draw the rectangle
 

@@ -43,6 +43,13 @@ class SelectionPlugin implements IPlugin {
   public init({ board }: IPluginInitParams) {
     this.board = board;
     const modeService = eBoardContainer.get<IModeService>(IModeService);
+    const canvas = this.board.getInteractionCanvas();
+    if (!canvas) return;
+    // todo 通过roam来监听
+    canvas.addEventListener("wheel", e => {
+      this.updateAABbBox()
+    });
+
     modeService.registerMode(CURRENT_MODE, {
       beforeSwitchMode: ({ currentMode }) => {
         if (currentMode === CURRENT_MODE) {
@@ -142,7 +149,7 @@ class SelectionPlugin implements IPlugin {
           if (!ctx) return;
           ctx.save();
 
-          ctx.strokeStyle = "blue";
+          ctx.strokeStyle = "white";
           ctx.setLineDash([5, 5]);
           ctx.lineWidth = 2;
 
@@ -204,7 +211,7 @@ class SelectionPlugin implements IPlugin {
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.save();
-      ctx.strokeStyle = "pink";
+      ctx.strokeStyle = "rgba(14, 87, 75, 1)";
       // 虚线
       ctx.setLineDash([5, 5]);
       ctx.lineWidth = 2;
@@ -239,7 +246,7 @@ class SelectionPlugin implements IPlugin {
           const ctx = this.board.getInteractionCtx();
           if (!ctx) return;
           ctx.save();
-          ctx.strokeStyle = "blue";
+          ctx.strokeStyle = "white";
           ctx.setLineDash([5, 5]);
           ctx.lineWidth = 2;
           ctx.strokeRect(box.minX, box.minY, width, height);
@@ -298,7 +305,7 @@ class SelectionPlugin implements IPlugin {
           if (!ctx) return;
           ctx.save();
 
-          ctx.strokeStyle = "blue";
+          ctx.strokeStyle = "white";
           ctx.setLineDash([5, 5]);
           ctx.lineWidth = 2;
 
@@ -309,9 +316,12 @@ class SelectionPlugin implements IPlugin {
     };
 
     container.addEventListener("pointerdown", handlePointerDown);
+
     this.disposeList.push(() => {
       container.removeEventListener("pointerdown", handlePointerDown);
     });
+
+
   }
 
   public addSelectedModels(id: string) {
@@ -360,7 +370,7 @@ class SelectionPlugin implements IPlugin {
     if (!ctx || !canvas) return;
     // ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.save();
-    ctx.strokeStyle = "red";
+    ctx.strokeStyle = "white";
     ctx.setLineDash([10, 5]);
     ctx.lineWidth = 2;
     ctx.strokeRect(this.AABbBox.x, this.AABbBox.y, this.AABbBox.width, this.AABbBox.height);
