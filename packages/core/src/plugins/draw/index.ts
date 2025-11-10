@@ -1,6 +1,6 @@
 import { initContextAttrs } from "@e-board/utils";
 import { eBoardContainer } from "../../common/IocContainer";
-import { IModelService, IModeService, IPointerEventService } from "../../services";
+import { IHistoryService, IModelService, IModeService, IPointerEventService } from "../../services";
 import { IConfigService, IModel } from "../../services";
 import { IRenderService } from "../../services/renderService/type";
 import { ITransformService } from "../../services/transformService/type";
@@ -217,12 +217,14 @@ class DrawPlugin implements IPlugin {
 
   private initDraw = () => {
     const pointerEventService = eBoardContainer.get<IPointerEventService>(IPointerEventService);
+    const historyService = eBoardContainer.get<IHistoryService>(IHistoryService);
 
     let isDrawing = false;
     let lastPoint = { x: 0, y: 0 };
 
     const { dispose: disposePointerDown } = pointerEventService.onPointerDown(event => {
       const ctx = this.board.getInteractionCtx();
+      historyService.startBatch()
       if (!ctx) return;
       isDrawing = true;
       lastPoint = this.getCanvasPoint(event.clientX, event.clientY);
@@ -254,6 +256,7 @@ class DrawPlugin implements IPlugin {
       ctx.restore()
       // 结束当前路径
       isDrawing = false;
+      historyService.endBatch();
     });
 
     this.disposeList.push(disposePointerDown, disposePointerMove, disposePointerUp);

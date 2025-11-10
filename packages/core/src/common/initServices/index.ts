@@ -11,7 +11,9 @@ import {
   TransformService,
   ShapeService,
   IConfigService,
-  ConfigService
+  ConfigService,
+  HistoryService,
+  IHistoryService
 } from "../../services";
 import PluginService from "../../services/pluginService";
 import { IPluginService } from "../../services/pluginService/type";
@@ -28,6 +30,10 @@ const commonServicesMap = [
   {
     name: IModelService,
     service: ModelService
+  },
+  {
+    name: IHistoryService,
+    service: HistoryService
   },
   {
     name: IPluginService,

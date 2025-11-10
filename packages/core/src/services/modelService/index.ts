@@ -1,5 +1,5 @@
 import { Emitter, uuid } from "@e-board/utils";
-import { IModelService, IModel } from "./type";
+import { IModelService, IModel, ModelChangeType, ModelChangeEvent } from "./type";
 import { IServiceInitParams } from "../../types";
 
 type Model = IModel;
@@ -7,8 +7,10 @@ type Model = IModel;
 export class ModelService implements IModelService {
   private models: Map<string, Model>;
   private _modelChange = new Emitter<void>();
+  private _modelOperation = new Emitter<ModelChangeEvent>();
 
   public onModelChange = this._modelChange.event;
+  public onModelOperation = this._modelOperation.event;
 
   constructor() {
     this.models = new Map<string, Model>();
@@ -20,6 +22,8 @@ export class ModelService implements IModelService {
 
   dispose(): void {
     console.log("ModelService dispose");
+    this._modelChange.dispose();
+    this._modelOperation.dispose();
   }
 
   /**
@@ -30,11 +34,19 @@ export class ModelService implements IModelService {
    */
   createModel(type: string, options?: Partial<IModel>): Model {
     const model: Model = {
-      id: uuid(),
+      id: options?.id || uuid(),
       type,
       ...(options ?? {})
     };
     this.models.set(model.id, model);
+
+    // 发出操作事件
+    this._modelOperation.fire({
+      type: ModelChangeType.CREATE,
+      modelId: model.id,
+      model
+    });
+
     this._modelChange.fire();
     return model;
   }
@@ -68,11 +80,28 @@ export class ModelService implements IModelService {
       return undefined;
     }
 
+    // 保存之前的状态（只保存变化的字段）
+    const previousState: Partial<Omit<Model, "id">> = {};
+    for (const key in updates) {
+      if (key !== "id") {
+        previousState[key as keyof Omit<Model, "id">] = model[key as keyof Model] as any;
+      }
+    }
+
     const updatedModel = {
       ...model,
       ...updates
     };
     this.models.set(id, updatedModel);
+
+    // 发出操作事件
+    this._modelOperation.fire({
+      type: ModelChangeType.UPDATE,
+      modelId: id,
+      updates,
+      previousState
+    });
+
     this._modelChange.fire();
     return updatedModel;
   }
@@ -83,7 +112,22 @@ export class ModelService implements IModelService {
    * @returns 是否删除成功
    */
   deleteModel(id: string): boolean {
+    const model = this.models.get(id);
+    if (!model) {
+      return false;
+    }
+
     const result = this.models.delete(id);
+
+    // 发出操作事件
+    if (result) {
+      this._modelOperation.fire({
+        type: ModelChangeType.DELETE,
+        modelId: id,
+        model
+      });
+    }
+
     this._modelChange.fire();
     return result;
   }
@@ -92,7 +136,19 @@ export class ModelService implements IModelService {
    * 清除所有模型
    */
   clearModels(): void {
+    const deletedModels = new Map(this.models);
+
     this.models.clear();
+
+    // 发出清空事件
+    if (deletedModels.size > 0) {
+      this._modelOperation.fire({
+        type: ModelChangeType.CLEAR,
+        modelId: "",
+        deletedModels
+      });
+    }
+
     this._modelChange.fire();
   }
 }

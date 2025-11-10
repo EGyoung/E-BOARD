@@ -1,5 +1,21 @@
 import { IService } from "../type";
 
+export enum ModelChangeType {
+  CREATE = "create",
+  UPDATE = "update",
+  DELETE = "delete",
+  CLEAR = "clear"
+}
+
+export interface ModelChangeEvent {
+  type: ModelChangeType;
+  modelId: string;
+  model?: IModel;
+  updates?: Partial<Omit<IModel, "id">>;
+  previousState?: Partial<Omit<IModel, "id">>;
+  deletedModels?: Map<string, IModel>;
+}
+
 export interface IModelService extends IService {
   createModel(type: string, options?: Partial<IModel>): IModel;
   getAllModels(): IModel[];
@@ -8,6 +24,7 @@ export interface IModelService extends IService {
   deleteModel(id: string): boolean;
   clearModels(): void;
   onModelChange: (listener: () => void) => { dispose: () => void };
+  onModelOperation: (listener: (event: ModelChangeEvent) => void) => { dispose: () => void };
 }
 
 interface ModelOptions {

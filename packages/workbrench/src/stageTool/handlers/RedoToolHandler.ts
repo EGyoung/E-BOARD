@@ -1,23 +1,21 @@
+import { IHistoryService } from '@e-board/core';
 import { IToolHandler } from '../types';
 
 export class RedoToolHandler implements IToolHandler {
     activate(board: any): void {
         try {
-            // TODO: Implement redo functionality
-            // This would require a history/command pattern implementation in the core
-            console.log('Redo action triggered');
+            const historyService = board.getService(IHistoryService);
 
-            // Example implementation when history service is available:
-            // const historyService = board.getService(IHistoryService);
-            // if (historyService && historyService.redo) {
-            //     historyService.redo();
-            // }
+            if (historyService && historyService.redo) {
+                const success = historyService.redo();
+                if (!success) {
+                    console.log('No more actions to redo');
+                }
+            } else {
+                console.warn('HistoryService not available');
+            }
         } catch (error) {
             console.warn('Failed to redo:', error);
         }
-    }
-
-    deactivate(board: any): void {
-        // No deactivation needed for redo action
     }
 }
