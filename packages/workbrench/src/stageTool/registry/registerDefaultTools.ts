@@ -46,35 +46,35 @@ export function registerDefaultTools() {
         new ShapeToolHandler(ShapeType.RECTANGLE)
     );
 
-    toolRegistry.register(
-        {
-            id: 'shape-circle',
-            name: '圆形',
-            mode: ToolMode.SHAPE,
-            shapeType: ShapeType.CIRCLE,
-        },
-        new ShapeToolHandler(ShapeType.CIRCLE)
-    );
+    // toolRegistry.register(
+    //     {
+    //         id: 'shape-circle',
+    //         name: '圆形',
+    //         mode: ToolMode.SHAPE,
+    //         shapeType: ShapeType.CIRCLE,
+    //     },
+    //     new ShapeToolHandler(ShapeType.CIRCLE)
+    // );
 
-    toolRegistry.register(
-        {
-            id: 'shape-line',
-            name: '直线',
-            mode: ToolMode.SHAPE,
-            shapeType: ShapeType.LINE,
-        },
-        new ShapeToolHandler(ShapeType.LINE)
-    );
+    // toolRegistry.register(
+    //     {
+    //         id: 'shape-line',
+    //         name: '直线',
+    //         mode: ToolMode.SHAPE,
+    //         shapeType: ShapeType.LINE,
+    //     },
+    //     new ShapeToolHandler(ShapeType.LINE)
+    // );
 
-    toolRegistry.register(
-        {
-            id: 'shape-triangle',
-            name: '三角形',
-            mode: ToolMode.SHAPE,
-            shapeType: ShapeType.TRIANGLE,
-        },
-        new ShapeToolHandler(ShapeType.TRIANGLE)
-    );
+    // toolRegistry.register(
+    //     {
+    //         id: 'shape-triangle',
+    //         name: '三角形',
+    //         mode: ToolMode.SHAPE,
+    //         shapeType: ShapeType.TRIANGLE,
+    //     },
+    //     new ShapeToolHandler(ShapeType.TRIANGLE)
+    // );
 
     // Register action tools
     toolRegistry.register(
