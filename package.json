@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "pnpm -r --parallel run dev",
+    "start": "pnpm -r --parallel run dev",
     "build": "pnpm -r run build",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
