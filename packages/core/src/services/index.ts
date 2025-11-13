@@ -9,6 +9,7 @@ export * from "./transformService/type";
 export * from "./shapeService/type";
 export * from "./configService/type";
 export * from "./historyService/type";
+export * from "./canvasService/type";
 
 export { default as PointerEventService } from "./pointerEventService";
 export { default as SelectionService } from "./selectionService";
@@ -19,4 +20,5 @@ export { default as TransformService } from "./transformService";
 export { default as ShapeService } from "./shapeService";
 export { default as ConfigService } from "./configService";
 export { default as HistoryService } from "./historyService";
+export { default as CanvasService } from "./canvasService";
 export type { IService };

@@ -13,7 +13,9 @@ import {
   IConfigService,
   ConfigService,
   HistoryService,
-  IHistoryService
+  IHistoryService,
+  CanvasService,
+  ICanvasService
 } from "../../services";
 import PluginService from "../../services/pluginService";
 import { IPluginService } from "../../services/pluginService/type";
@@ -21,8 +23,14 @@ import { IRenderService } from "../../services/renderService/type";
 import { IShapeService } from "../../services/shapeService/type";
 import { ITransformService } from "../../services/transformService/type";
 import { eBoardContainer } from "../IocContainer";
-
+/**
+ *  绑定列表需要注意相互之间的依赖关系！！！！！！
+ */
 const commonServicesMap = [
+  {
+    name: ICanvasService,
+    service: CanvasService
+  },
   {
     name: IConfigService,
     service: ConfigService
