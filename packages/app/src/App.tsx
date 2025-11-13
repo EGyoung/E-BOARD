@@ -2,7 +2,7 @@ import React, { useEffect, useLayoutEffect, useState } from "react";
 import { DrawShapePlugin, EBoard, IConfigService, IModeService } from "@e-board/core";
 import "./styles.css";
 import { RoamPlugin, SelectionPlugin, ClearPlugin, PicturePlugin } from "@e-board/core";
-import { Panel, StageTool, FloatingToolbar } from '@e-board/workbrench'
+import { Panel, StageTool, FloatingToolbar } from '@e-board/workbench'
 
 const App: React.FC = () => {
   const eboard = React.useRef<EBoard | null>(null);

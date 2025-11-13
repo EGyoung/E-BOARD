@@ -20,5 +20,10 @@
     "rootDir": "src"
   },
   "include": ["src"],
-  "references": [{ "path": "../core" }, { "path": "../ui" }, { "path": "../utils" }, {"path": "../workbrench"}]
+  "references": [
+    { "path": "../core" },
+    { "path": "../ui" },
+    { "path": "../utils" },
+    { "path": "../workbench" }
+  ]
 }

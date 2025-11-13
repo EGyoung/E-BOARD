@@ -1,8 +1,8 @@
 {
-  "name": "@e-board/workbrench",
+  "name": "@e-board/workbench",
   "version": "0.1.0",
   "license": "MIT",
-   "private": true,
+  "private": true,
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
