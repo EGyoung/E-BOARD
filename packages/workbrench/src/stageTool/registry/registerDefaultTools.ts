@@ -11,6 +11,7 @@ import {
     LaserPointerToolHandler,
     MindMapToolHandler,
     TableToolHandler,
+    PictureToolHandler,
 } from '../handlers';
 
 export function registerDefaultTools() {
@@ -109,30 +110,39 @@ export function registerDefaultTools() {
     );
 
     // Register special mode tools
-    toolRegistry.register(
-        {
-            id: 'laser-pointer',
-            name: '激光笔',
-            mode: ToolMode.LASER_POINTER,
-        },
-        new LaserPointerToolHandler()
-    );
+    // toolRegistry.register(
+    //     {
+    //         id: 'laser-pointer',
+    //         name: '激光笔',
+    //         mode: ToolMode.LASER_POINTER,
+    //     },
+    //     new LaserPointerToolHandler()
+    // );
 
-    toolRegistry.register(
-        {
-            id: 'mind-map',
-            name: '思维导图',
-            mode: ToolMode.MIND_MAP,
-        },
-        new MindMapToolHandler()
-    );
+    // toolRegistry.register(
+    //     {
+    //         id: 'mind-map',
+    //         name: '思维导图',
+    //         mode: ToolMode.MIND_MAP,
+    //     },
+    //     new MindMapToolHandler()
+    // );
 
+    // toolRegistry.register(
+    //     {
+    //         id: 'table',
+    //         name: '表格',
+    //         mode: ToolMode.TABLE,
+    //     },
+    //     new TableToolHandler()
+    // );
+
+    // Register picture tool
     toolRegistry.register(
         {
-            id: 'table',
-            name: '表格',
-            mode: ToolMode.TABLE,
+            id: 'picture',
+            name: '插入图片',
         },
-        new TableToolHandler()
+        new PictureToolHandler()
     );
 }
