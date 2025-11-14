@@ -33,7 +33,7 @@ export class ModelService implements IModelService {
    * @returns 创建的模型
    */
   createModel(type: string, options?: Partial<IModel>): Model {
-    const model: Model = {
+    const model: IModel = {
       id: options?.id || uuid(),
       type,
       ...(options ?? {})

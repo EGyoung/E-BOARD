@@ -17,7 +17,6 @@ class SelectionPlugin implements IPlugin {
   private initialModelPositions = new Map<string, { x: number; y: number }[]>();
   private currentSelectRange: { x: number; y: number; width: number; height: number } | null = null;
   private modelService = eBoardContainer.get<IModelService>(IModelService);
-  // private renderService = eBoardContainer.get<IRenderService>(IRenderService);
   private transformService = eBoardContainer.get<ITransformService>(ITransformService);
   private readonly _onSelectedElements = new Emitter<IModel>();
   private emitSelectedElement = this._onSelectedElements.fire.bind(this._onSelectedElements);
@@ -108,40 +107,30 @@ class SelectionPlugin implements IPlugin {
             container.addEventListener("pointermove", handlePointerMove);
             container.addEventListener("pointerup", handlePointerUp);
             return;
-
           }
-
         }
       }
       this.resetAllState();
       this.selectModels.clear()
 
       this.pointerDownPoint = { x: e.clientX, y: e.clientY };
-      const zoom = this.transformService.getView().zoom || 1;
       const models = this.modelService.getAllModels().reverse();
       let count = 0
       for (const model of models) {
         if (!model) return;
         count++
-        const box = this.calculateBBox(
-          model.points?.map(p => this.transformService.transformPoint(p)) || [],
-          zoom * (model.options?.lineWidth || 0)
-        );
-        if (!box) return;
-        const width = box.maxX - box.minX;
-        const height = box.maxY - box.minY;
-
-        const selectRect = {
-          x: Math.min(this.pointerDownPoint!.x, this.pointerDownPoint!.x + 1),
-          y: Math.min(this.pointerDownPoint!.y, this.pointerDownPoint!.y + 1),
-          width: 1,
-          height: 1
-        };
-        const isIntersecting =
-          box.minX < selectRect.x + selectRect.width &&
-          box.maxX > selectRect.x &&
-          box.minY < selectRect.y + selectRect.height &&
-          box.maxY > selectRect.y;
+        const ctrlElement = model.ctrlElement
+        if (!ctrlElement) continue;
+        const isIntersecting = ctrlElement.isHint({
+          point: this.pointerDownPoint,
+          model: model,
+        })
+        const bounding = ctrlElement.getBoundingBox(model)
+        if (!bounding) continue;
+        const width = bounding.width;
+        const height = bounding.height;
+        const x = bounding.x;
+        const y = bounding.y;
 
         if (isIntersecting) {
           const ctx = this.board.getInteractionCtx();
@@ -153,7 +142,7 @@ class SelectionPlugin implements IPlugin {
           ctx.setLineDash([5, 5]);
           ctx.lineWidth = 2;
 
-          ctx.strokeRect(box.minX, box.minY, width, height);
+          ctx.strokeRect(x, y, width, height);
           ctx.restore();
           break
         }
@@ -235,21 +224,20 @@ class SelectionPlugin implements IPlugin {
           // 重新渲染外包围
           const model = this.modelService.getModelById(id);
           if (!model) return;
-          const zoom = this.transformService.getView().zoom || 1;
-          const box = this.calculateBBox(
-            model.points?.map(p => this.transformService.transformPoint(p)) || [],
-            zoom * (model.options?.lineWidth || 0)
-          );
-          if (!box) return;
-          const width = box.maxX - box.minX;
-          const height = box.maxY - box.minY;
+          const bounding = model.ctrlElement?.getBoundingBox(model);
+
+          if (!bounding) return;
+          const width = bounding.width;
+          const height = bounding.height;
+          const x = bounding.x;
+          const y = bounding.y;
           const ctx = this.board.getInteractionCtx();
           if (!ctx) return;
           ctx.save();
           ctx.strokeStyle = "white";
           ctx.setLineDash([5, 5]);
           ctx.lineWidth = 2;
-          ctx.strokeRect(box.minX, box.minY, width, height);
+          ctx.strokeRect(x, y, width, height);
           ctx.restore();
         });
         this.updateAABbBox();
@@ -266,15 +254,9 @@ class SelectionPlugin implements IPlugin {
 
       // 计算所有的包围盒
       const models = this.modelService.getAllModels();
-      const zoom = this.transformService.getView().zoom || 1;
       models.forEach(model => {
-        const box = this.calculateBBox(
-          model.points?.map(p => this.transformService.transformPoint(p)) || [],
-          zoom * (model.options?.lineWidth || 0)
-        );
-        if (!box) return;
-        const width = box.maxX - box.minX;
-        const height = box.maxY - box.minY;
+        const bounding = model.ctrlElement?.getBoundingBox(model);
+
 
         if (!this.currentSelectRange) return;
         const selectRect = {
@@ -290,10 +272,10 @@ class SelectionPlugin implements IPlugin {
           height: Math.abs(this.currentSelectRange.height)
         };
         const isIntersecting =
-          box.minX < selectRect.x + selectRect.width &&
-          box.maxX > selectRect.x &&
-          box.minY < selectRect.y + selectRect.height &&
-          box.maxY > selectRect.y;
+          bounding.minX < selectRect.x + selectRect.width &&
+          bounding.maxX > selectRect.x &&
+          bounding.minY < selectRect.y + selectRect.height &&
+          bounding.maxY > selectRect.y;
         // 判断是否相交
         if (isIntersecting) {
           const ctx = this.board.getInteractionCtx();
@@ -309,7 +291,7 @@ class SelectionPlugin implements IPlugin {
           ctx.setLineDash([5, 5]);
           ctx.lineWidth = 2;
 
-          ctx.strokeRect(box.minX, box.minY, width, height);
+          ctx.strokeRect(bounding.x, bounding.y, bounding.width, bounding.height);
           ctx.restore();
         }
       });
@@ -336,16 +318,13 @@ class SelectionPlugin implements IPlugin {
   }
 
   private updateAABbBox() {
-    const zoom = this.transformService.getView().zoom || 1;
+    // const zoom = this.transformService.getView().zoom || 1;
     const boxes = Array.from(this.selectModels)
       .map(id => {
         const model = this.modelService.getModelById(id);
         if (!model) return null;
-        const box = this.calculateBBox(
-          model.points?.map(p => this.transformService.transformPoint(p)) || [],
-          zoom * (model.options?.lineWidth || 0)
-        );
-        return box;
+        const bounding = model.ctrlElement?.getBoundingBox(model);
+        return bounding;
       })
       .filter(Boolean);
 
@@ -368,9 +347,8 @@ class SelectionPlugin implements IPlugin {
     const ctx = this.board.getInteractionCtx();
     const canvas = this.board.getInteractionCanvas();
     if (!ctx || !canvas) return;
-    // ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.save();
-    ctx.strokeStyle = "white";
+    ctx.strokeStyle = "pink";
     ctx.setLineDash([10, 5]);
     ctx.lineWidth = 2;
     ctx.strokeRect(this.AABbBox.x, this.AABbBox.y, this.AABbBox.width, this.AABbBox.height);
@@ -382,25 +360,6 @@ class SelectionPlugin implements IPlugin {
     this.disposeList = [];
   }
 
-  private calculateBBox(points: { x: number; y: number }[], padding = 0) {
-    let minX = Infinity,
-      minY = Infinity,
-      maxX = -Infinity,
-      maxY = -Infinity;
-    if (points.length === 0) return null;
-    points.forEach(p => {
-      minX = Math.min(minX, p.x);
-      minY = Math.min(minY, p.y);
-      maxX = Math.max(maxX, p.x);
-      maxY = Math.max(maxY, p.y);
-    });
-    return {
-      minX: minX - padding,
-      minY: minY - padding,
-      maxX: maxX + padding,
-      maxY: maxY + padding
-    };
-  }
 }
 
 export default SelectionPlugin;

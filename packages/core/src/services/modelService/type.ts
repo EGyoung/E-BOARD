@@ -42,6 +42,7 @@ export type IModel<T extends Record<string, any> = Record<string, any>> = {
   type: "line" | string;
   points?: { x: number; y: number }[];
   options?: ModelOptions;
+  ctrlElement?: any
 } & T;
 
 export const IModelService = Symbol("IModelService");

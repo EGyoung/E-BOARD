@@ -45,24 +45,76 @@ class PicturePlugin implements IPlugin {
                     const canvas = this.board.getCanvas();
                     if (canvas) {
                         const rect = canvas.getBoundingClientRect();
-                        // 获取视口中心的屏幕坐标
-                        const viewportCenterScreen = {
+                        // 获取画布中心的画布坐标
+                        const canvasCenter = {
                             x: rect.width / 2,
                             y: rect.height / 2
                         };
-                        // 转换为世界坐标（inverse = true）
-                        finalPosition = this.transformPoint(viewportCenterScreen, true);
+                        // 转换为世界坐标
+                        const worldCenter = this.transformPoint(canvasCenter, true);
+
+                        // 让图片中心对齐到画布中心，需要减去图片宽高的一半（世界坐标系）
+                        const imgWidth = width || img.width;
+                        const imgHeight = height || img.height;
+                        finalPosition = {
+                            x: worldCenter.x - imgWidth / 2,
+                            y: worldCenter.y - imgHeight / 2
+                        };
                     } else {
                         finalPosition = { x: 0, y: 0 };
                     }
                 }
 
+
                 const model = this.modelService.createModel("picture", {
                     type: 'picture',
                     imageData,
-                    width: width || img.width,
-                    height: height || img.height,
-                    points: [finalPosition]
+                    width: img.width,
+                    height: img.height,
+                    points: [finalPosition],
+                    ctrlElement: {
+                        isHint: (params: { point: { x: number, y: number }, model: { points: { x: number, y: number }[], options: any } }) => {
+                            const { point, model } = params;
+                            const [_point] = model.points!;
+                            const zoom = this.transformService.getView().zoom;
+
+                            // 将世界坐标转换为屏幕坐标
+                            const rectScreenPos = this.transformPoint(_point);
+                            const rectWidth = ((model as any).width || 0) * zoom;
+                            const rectHeight = ((model as any).height || 0) * zoom;
+
+                            // 检查点是否在矩形范围内（屏幕坐标系）
+                            const isInside = point.x >= rectScreenPos.x &&
+                                point.x <= rectScreenPos.x + rectWidth &&
+                                point.y >= rectScreenPos.y &&
+                                point.y <= rectScreenPos.y + rectHeight;
+
+                            return isInside;
+                        },
+                        getBoundingBox: (model: IModel<any>) => {
+                            const [point] = model.points!;
+                            const width = model.width || 0;
+                            const height = model.height || 0;
+                            const zoom = this.transformService.getView().zoom;
+
+                            // 将世界坐标转换为屏幕坐标
+                            const screenPos = this.transformPoint(point);
+                            const screenWidth = width * zoom;
+                            const screenHeight = height * zoom;
+
+                            // 返回矩形的边界框（屏幕坐标系）
+                            return {
+                                x: screenPos.x,
+                                y: screenPos.y,
+                                width: screenWidth,
+                                height: screenHeight,
+                                minX: screenPos.x,
+                                minY: screenPos.y,
+                                maxX: screenPos.x + screenWidth,
+                                maxY: screenPos.y + screenHeight
+                            };
+                        }
+                    }
                 } as Partial<PictureModel>);
 
                 resolve(model.id);
@@ -108,8 +160,8 @@ class PicturePlugin implements IPlugin {
             const height = (model.height || img.height) * zoom;
 
             // 将图片中心对齐到指定位置，而不是左上角
-            const drawX = transformedPos.x - width / 2;
-            const drawY = transformedPos.y - height / 2;
+            const drawX = transformedPos.x
+            const drawY = transformedPos.y
 
             context.drawImage(img, drawX, drawY, width, height);
         } else {

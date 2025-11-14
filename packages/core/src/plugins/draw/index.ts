@@ -32,6 +32,69 @@ class DrawPlugin implements IPlugin {
     return this.transformService.transformPoint(point, inverse);
   }
 
+  private createCtrlElement() {
+    // 计算包围盒
+    const calculateBBox = (points: { x: number; y: number }[], padding = 0) => {
+      let minX = Infinity,
+        minY = Infinity,
+        maxX = -Infinity,
+        maxY = -Infinity;
+      if (points.length === 0) return null;
+      points.forEach(p => {
+        minX = Math.min(minX, p.x);
+        minY = Math.min(minY, p.y);
+        maxX = Math.max(maxX, p.x);
+        maxY = Math.max(maxY, p.y);
+      });
+      return {
+        minX: minX - padding,
+        minY: minY - padding,
+        maxX: maxX + padding,
+        maxY: maxY + padding
+      };
+    }
+    return {
+      isHint: (params: { point: { x: number, y: number }, model: { points: { x: number, y: number }[], options: any } }) => {
+        const { point, model } = params;
+        const zoom = this.transformService.getView().zoom || 1;
+        const box = calculateBBox(
+          model.points?.map(p => this.transformService.transformPoint(p)) || [],
+          zoom * (model.options?.lineWidth || 0)
+        );
+        if (!box) return false;
+        const selectRect = {
+          x: Math.min(point!.x, point!.x + 1),
+          y: Math.min(point!.y, point!.y + 1),
+          width: 1,
+          height: 1
+        };
+        const isIntersecting =
+          box.minX < selectRect.x + selectRect.width &&
+          box.maxX > selectRect.x &&
+          box.minY < selectRect.y + selectRect.height &&
+          box.maxY > selectRect.y;
+        return isIntersecting;
+
+      },
+      getBoundingBox: (model: { points: { x: number, y: number }[], options: any }) => {
+        const zoom = this.transformService.getView().zoom || 1;
+        const box = calculateBBox(
+          model.points?.map(p => this.transformService.transformPoint(p)) || [],
+          zoom * (model.options?.lineWidth || 0)
+        );
+        const width = box ? box.maxX - box.minX : 0;
+        const height = box ? box.maxY - box.minY : 0;
+        return box ? {
+          x: box.minX,
+          y: box.minY,
+          width,
+          height,
+          ...(box ?? {})
+        } : { x: 0, y: 0, width: 0, height: 0, minX: 0, minY: 0, maxX: 0, maxY: 0 };
+      }
+    }
+  }
+
   public setCurrentLineWithDraw(point: { x: number; y: number }, isEnd = false) {
     const ctx = this.board.getInteractionCtx();
     if (!ctx) return;
@@ -41,7 +104,8 @@ class DrawPlugin implements IPlugin {
       ctx.moveTo(point.x, point.y);
       this.currentLine = this.modelService.createModel("line", {
         points: [transformedPoint],
-        options: { ...this.configService.getCtxConfig() }
+        options: { ...this.configService.getCtxConfig() },
+        ctrlElement: this.createCtrlElement()
       });
       this.currentLine.points?.push(transformedPoint);
       return;
