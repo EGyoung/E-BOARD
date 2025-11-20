@@ -327,27 +327,47 @@ export class ConflictResolver {
 
   /**
    * 判断是否有因果关系 (op1 happens-before op2)
+   *
+   * 数学定义：op1 happens-before op2 当且仅当 VC(op1) < VC(op2)
+   * 即：
+   * 1. 对于所有用户 i：VC(op1)[i] ≤ VC(op2)[i]（所有分量小于等于）
+   * 2. 至少存在一个用户 j：VC(op1)[j] < VC(op2)[j]（至少有一个分量严格小于）
+   *
+   * 示例 1 - 有因果关系：
+   * op1: { vectorClock: { A: 1, B: 0 } }  // 用户 A 的操作
+   * op2: { vectorClock: { A: 1, B: 1 } }  // 用户 B 看到 op1 后的操作
+   * → hasCausalRelation(op1, op2) = true
+   *
+   * 示例 2 - 并发操作：
+   * op1: { vectorClock: { A: 1, B: 0 } }  // 用户 A 的操作
+   * op2: { vectorClock: { A: 0, B: 1 } }  // 用户 B 的操作（未看到 op1）
+   * → hasCausalRelation(op1, op2) = false（需要冲突解决）
    */
   private hasCausalRelation(op1: CollaborationOperation, op2: CollaborationOperation): boolean {
     const vc1 = op1.vectorClock;
     const vc2 = op2.vectorClock;
 
-    let allLessOrEqual = true;
-    let atLeastOneLess = false;
+    let allLessOrEqual = true; // 标记：所有分量是否 ≤
+    let atLeastOneLess = false; // 标记：是否至少有一个分量 <
 
+    // 遍历 op1 的向量时钟中的所有用户
     for (const userId in vc1) {
-      const v1 = vc1[userId] || 0;
-      const v2 = vc2[userId] || 0;
+      const v1 = vc1[userId] || 0; // op1 在该用户的时钟值
+      const v2 = vc2[userId] || 0; // op2 在该用户的时钟值
 
+      // 如果 op1 的某个分量 > op2，说明不满足 ≤ 条件
       if (v1 > v2) {
         allLessOrEqual = false;
-        break;
+        break; // 提前退出，已经不可能是因果关系了
       }
+
+      // 如果 op1 的某个分量 < op2，记录下来
       if (v1 < v2) {
         atLeastOneLess = true;
       }
     }
 
+    // 返回：所有分量 ≤ 且 至少一个分量 <
     return allLessOrEqual && atLeastOneLess;
   }
 
