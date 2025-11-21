@@ -111,6 +111,7 @@ class DrawPlugin implements IPlugin {
       return;
     }
     const points = this.currentLine.points!;
+
     // 如果点数太少，直接画直线
     if (points.length < 2) {
       ctx.lineTo(point.x, point.y);
@@ -124,15 +125,6 @@ class DrawPlugin implements IPlugin {
     }
 
     ctx.stroke();
-    // 如果不beginPath 会导致每次stroke 会重新绘制整条线段 导致降20倍速禁用GPU加速情况下长线段卡顿
-    // FIXME: 优化贝塞尔
-    ctx.beginPath();
-    const p1 = this.transformPoint(points[points.length - 1]); // 前一个点
-    const p2 = point; // 当前点
-    const midPointX = (p1.x + p2.x) / 2;
-    const midPointY = (p1.y + p2.y) / 2;
-    ctx.moveTo(midPointX, midPointY);
-    ctx.lineTo(point.x, point.y);
 
     this.currentLine.points?.push({
       x: transformedPoint.x,
@@ -147,85 +139,11 @@ class DrawPlugin implements IPlugin {
     }
   }
 
-  // public throttleSetCurrentLineWithDraw = throttleByRaf(this.setCurrentLineWithDraw.bind(this));
   public init({ board }: IPluginInitParams) {
     this.board = board;
     this.initDrawMode();
     this.registerLineDrawHandler();
   }
-
-  // private initSelectLine() {
-  //   const pointerEventService = eBoardContainer.get<IPointerEventService>(IPointerEventService);
-  //   const { dispose: pointerDownDispose } = pointerEventService.onPointerDown(
-  //     this.handleSelectLinePointerDown
-  //   );
-  //   this.disposeList.push(() => {
-  //     pointerDownDispose();
-  //   });
-  // }
-
-  // private handleSelectLinePointerDown = (e: PointerEvent) => {
-  //   const { clientX, clientY } = e;
-  //   this.modelService.getAllModels().forEach(model => {
-  //     if (model.type === "line") {
-  //       const points = model.points;
-  //       if (!points) return;
-  //       for (let i = 0; i < points.length - 1; i++) {
-  //         const distance = this.distanceToLineSegment(
-  //           { x: clientX, y: clientY },
-  //           points[i],
-  //           points[i + 1]
-  //         );
-  //         if (distance < 5) {
-  //           console.log("点击到了线段");
-  //         }
-  //       }
-  //     }
-  //   });
-  // };
-
-  // private distanceToLineSegment = (point: Point, p1: Point, p2: Point): number => {
-  //   const { x, y } = point;
-  //   const { x: x1, y: y1 } = p1;
-  //   const { x: x2, y: y2 } = p2;
-
-  //   const A = x - x1; // 点到起点的x分量
-  //   const B = y - y1; // 点到起点的y分量
-  //   const C = x2 - x1; // 线段的x分量
-  //   const D = y2 - y1; // 线段的y分量
-
-  //   const dot = A * C + B * D; // 向量点积
-  //   const len_sq = C * C + D * D; // 线段长度平方
-
-  //   // 如果线段退化为点,直接返回点到点的距离
-  //   if (len_sq === 0) return Math.sqrt(A * A + B * B);
-
-  //   // 计算投影点参数
-  //   const param = dot / len_sq;
-
-  //   // 根据参数确定最近点坐标
-  //   let xx, yy;
-
-  //   if (param < 0) {
-  //     // 最近点是起点
-  //     xx = x1;
-  //     yy = y1;
-  //   } else if (param > 1) {
-  //     // 最近点是终点
-  //     xx = x2;
-  //     yy = y2;
-  //   } else {
-  //     // 最近点在线段上
-  //     xx = x1 + param * C;
-  //     yy = y1 + param * D;
-  //   }
-
-  //   // 计算点到最近点的距离
-  //   const dx = x - xx;
-  //   const dy = y - yy;
-
-  //   return Math.sqrt(dx * dx + dy * dy);
-  // };
 
   private initDrawMode() {
     const modeService = eBoardContainer.get<IModeService>(IModeService);
