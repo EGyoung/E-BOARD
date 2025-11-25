@@ -1,27 +1,27 @@
 import { Emitter } from "@e-board/utils";
 import { IHistoryService, Operation, OperationType, BatchOperation } from "./type";
 import { IServiceInitParams, IBoard } from "../../types";
-import { eBoardContainer } from "../../common/IocContainer";
 import { IModelService, IModel, ModelChangeType, ModelChangeEvent } from "../modelService/type";
+import type { EBoard } from "../../board";
 
 class HistoryService implements IHistoryService {
     private undoStack: Operation[] = [];
     private redoStack: Operation[] = [];
     private maxHistorySize: number = 100;
-    private board!: IBoard;
+    private board!: EBoard;
     private modelService!: IModelService;
     private _historyChange = new Emitter<void>();
     private batchOperations: Operation[] | null = null;
     private isBatching: boolean = false;
     private isApplyingHistory: boolean = false;
-    private pendingCreateModels = new Map<string, IModel>();
     private modelOperationDisposable: { dispose: () => void } | null = null;
 
     public onHistoryChange = this._historyChange.event;
 
     init(params: IServiceInitParams): void {
-        this.board = params.board;
-        this.modelService = eBoardContainer.get<IModelService>(IModelService);
+        this.board = params.board as EBoard;
+        this.modelService = this.board.getService('modelService')
+        // 监听数据发生变化的操作是什么
         this.modelOperationDisposable = this.modelService.onModelOperation(this.handleModelOperation.bind(this));
     }
 
@@ -37,15 +37,19 @@ class HistoryService implements IHistoryService {
         if (this.isApplyingHistory) return;
 
         switch (event.type) {
+            // 创建数据
             case ModelChangeType.CREATE:
                 this.handleCreate(event);
                 break;
+            // 数据更新
             case ModelChangeType.UPDATE:
                 this.handleUpdate(event);
                 break;
+            // 删除数据
             case ModelChangeType.DELETE:
                 this.handleDelete(event);
                 break;
+            // 清空数据
             case ModelChangeType.CLEAR:
                 this.handleClear(event);
                 break;
@@ -54,31 +58,20 @@ class HistoryService implements IHistoryService {
 
     private handleCreate(event: ModelChangeEvent): void {
         if (!event.model) return;
+        const currentModel = this.modelService.getModelById(event.modelId);
+        if (currentModel) {
+            const operation: Operation = {
+                type: OperationType.CREATE,
+                modelId: event.modelId,
+                model: this.cloneModel(currentModel)
+            };
+            this.pushOperation(operation);
+        }
 
-        // 标记为待合并，等待第一次 update
-        this.pendingCreateModels.set(event.modelId, this.cloneModel(event.model));
     }
 
     private handleUpdate(event: ModelChangeEvent): void {
         if (!event.updates || !event.previousState) return;
-
-        // 检查是否有待合并的 create
-        if (this.pendingCreateModels.has(event.modelId)) {
-            this.pendingCreateModels.delete(event.modelId);
-
-            // 合并 create 和 update：直接记录当前最新状态的 create
-            const currentModel = this.modelService.getModelById(event.modelId);
-            if (currentModel) {
-                const operation: Operation = {
-                    type: OperationType.CREATE,
-                    modelId: event.modelId,
-                    model: this.cloneModel(currentModel)
-                };
-                this.pushOperation(operation);
-            }
-            return;
-        }
-
         // 普通的 update 操作
         const operation: Operation = {
             type: OperationType.UPDATE,
@@ -94,11 +87,6 @@ class HistoryService implements IHistoryService {
         if (!event.model) return;
 
         // 如果有待合并的 create，说明是创建后立即删除，不记录历史
-        if (this.pendingCreateModels.has(event.modelId)) {
-            this.pendingCreateModels.delete(event.modelId);
-            return;
-        }
-
         const operation: Operation = {
             type: OperationType.DELETE,
             modelId: event.modelId,
@@ -196,7 +184,6 @@ class HistoryService implements IHistoryService {
     clear(): void {
         this.undoStack = [];
         this.redoStack = [];
-        this.pendingCreateModels.clear();
         this._historyChange.fire();
     }
 
