@@ -34,7 +34,7 @@ class HistoryService implements IHistoryService {
     }
 
     private handleModelOperation(event: ModelChangeEvent): void {
-        if (this.isApplyingHistory) return;
+        if (this.isApplyingHistory) return; // 防止撤销时的数据变更 导致历史记录被重复添加
 
         switch (event.type) {
             // 创建数据

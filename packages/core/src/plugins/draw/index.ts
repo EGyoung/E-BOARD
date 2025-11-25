@@ -1,6 +1,6 @@
 import { initContextAttrs } from "@e-board/utils";
 import { eBoardContainer } from "../../common/IocContainer";
-import { IHistoryService, IModelService, IModeService, IPointerEventService } from "../../services";
+import { IModelService, IModeService, IPointerEventService } from "../../services";
 import { IConfigService, IModel } from "../../services";
 import { IRenderService } from "../../services/renderService/type";
 import { ITransformService } from "../../services/transformService/type";
@@ -8,12 +8,6 @@ import { IBoard, IPluginInitParams } from "../../types";
 import { IPlugin } from "../type";
 
 const CURRENT_MODE = "draw";
-
-// interface Point {
-//   x: number;
-//   y: number;
-// }
-
 class DrawPlugin implements IPlugin {
   private board!: IBoard;
   private disposeList: (() => void)[] = [];
@@ -22,7 +16,6 @@ class DrawPlugin implements IPlugin {
   private renderService = eBoardContainer.get<IRenderService>(IRenderService);
   private transformService = eBoardContainer.get<ITransformService>(ITransformService);
 
-  private currentLine: IModel | null = null;
 
   public pluginName = "DrawPlugin";
 
@@ -95,22 +88,19 @@ class DrawPlugin implements IPlugin {
     }
   }
 
+  private currentLinePoints: { x: number; y: number }[] = [];
+
   public setCurrentLineWithDraw(point: { x: number; y: number }, isEnd = false) {
     const ctx = this.board.getInteractionCtx();
     if (!ctx) return;
     const transformedPoint = this.transformPoint(point, true);
-    if (!this.currentLine) {
+    if (!this.currentLinePoints.length) {
       ctx.beginPath();
       ctx.moveTo(point.x, point.y);
-      this.currentLine = this.modelService.createModel("line", {
-        points: [transformedPoint],
-        options: { ...this.configService.getCtxConfig() },
-        ctrlElement: this.createCtrlElement()
-      });
-      this.currentLine.points?.push(transformedPoint);
+      this.currentLinePoints = [transformedPoint];
       return;
     }
-    const points = this.currentLine.points!;
+    const points = this.currentLinePoints!;
 
     // 如果点数太少，直接画直线
     if (points.length < 2) {
@@ -126,16 +116,18 @@ class DrawPlugin implements IPlugin {
 
     ctx.stroke();
 
-    this.currentLine.points?.push({
+    this.currentLinePoints?.push({
       x: transformedPoint.x,
       y: transformedPoint.y
     });
 
     if (isEnd) {
-      this.modelService.updateModel(this.currentLine.id, {
-        points: this.currentLine.points
+      this.modelService.createModel("line", {
+        points: this.currentLinePoints,
+        options: { ...this.configService.getCtxConfig() },
+        ctrlElement: this.createCtrlElement()
       });
-      this.currentLine = null;
+      this.currentLinePoints = [];
     }
   }
 
@@ -200,14 +192,11 @@ class DrawPlugin implements IPlugin {
 
   private initDraw = () => {
     const pointerEventService = eBoardContainer.get<IPointerEventService>(IPointerEventService);
-    const historyService = eBoardContainer.get<IHistoryService>(IHistoryService);
-
     let isDrawing = false;
     let lastPoint = { x: 0, y: 0 };
 
     const { dispose: disposePointerDown } = pointerEventService.onPointerDown(event => {
       const ctx = this.board.getInteractionCtx();
-      historyService.startBatch()
       if (!ctx) return;
       isDrawing = true;
       lastPoint = this.getCanvasPoint(event.clientX, event.clientY);
@@ -239,7 +228,6 @@ class DrawPlugin implements IPlugin {
       ctx.restore()
       // 结束当前路径
       isDrawing = false;
-      historyService.endBatch();
     });
 
     this.disposeList.push(disposePointerDown, disposePointerMove, disposePointerUp);
