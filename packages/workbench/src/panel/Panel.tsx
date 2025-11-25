@@ -1,9 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { ToolHeader, ColorSection, FillColorSection, ThicknessSection } from './components';
 import './styles.css';
+import { EBoard } from '@e-board/core';
 
 interface PanelWithBoardProps {
-    board?: any; // EBoard instance
+    board?: EBoard | null; // EBoard instance
     onColorChange?: (color: string) => void;
     onFillColorChange?: (color: string) => void;
     onThicknessChange?: (thickness: number) => void;
@@ -69,8 +70,8 @@ const Panel: React.FC<PanelWithBoardProps> = ({
         // 如果传入了 board 实例，更新配置服务
         if (board && board.getService) {
             try {
-                const IConfigService = Symbol.for('IConfigService');
-                const configService = board.getService('configService') as unknown as IConfigService;
+                // const IConfigService = Symbol.for('IConfigService');
+                const configService = board.getService('configService')
                 if (configService && configService.setCtxConfig) {
                     configService.setCtxConfig({ lineWidth: thickness });
                 }
