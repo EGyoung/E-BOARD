@@ -16,7 +16,7 @@ const App: React.FC = () => {
     });
     (window as any).board = board;
     eboard.current = board;
-    const modeService = board.getService(IModeService) as IModeService;
+    const modeService = board.getService('modeService');
     modeService.switchMode("draw");
 
     const { dispose } =
@@ -35,7 +35,7 @@ const App: React.FC = () => {
     if (!eboard.current) return;
     const board = eboard.current;
 
-    const configService = board.getService(IConfigService) as unknown as IConfigService;
+    const configService = board.getService('configService') as unknown as IConfigService;
     configService.setCtxConfig({ strokeStyle: color });
 
   };
@@ -44,7 +44,7 @@ const App: React.FC = () => {
     if (!eboard.current) return;
     const board = eboard.current;
 
-    const configService = board.getService(IConfigService) as unknown as IConfigService;
+    const configService = board.getService('configService') as unknown as IConfigService;
     configService.setCtxConfig({ fillStyle: color });
   };
 
@@ -52,7 +52,7 @@ const App: React.FC = () => {
     if (!eboard.current) return;
     const board = eboard.current;
 
-    const configService = board.getService(IConfigService) as unknown as IConfigService;
+    const configService = board.getService('configService') as unknown as IConfigService;
     configService.setCtxConfig({ lineWidth: thickness });
   }
 
@@ -60,7 +60,7 @@ const App: React.FC = () => {
     if (!eboard.current) return;
     const board = eboard.current;
 
-    const configService = board.getService(IConfigService) as unknown as IConfigService;
+    const configService = board.getService('configService') as unknown as IConfigService;
     configService.setCtxConfig(updates);
 
     // 如果有选中的元素，也更新元素本身的样式

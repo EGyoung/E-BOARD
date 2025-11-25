@@ -143,6 +143,7 @@ class DrawPlugin implements IPlugin {
     this.board = board;
     this.initDrawMode();
     this.registerLineDrawHandler();
+
   }
 
   private initDrawMode() {

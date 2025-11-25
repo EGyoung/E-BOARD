@@ -70,7 +70,7 @@ const Panel: React.FC<PanelWithBoardProps> = ({
         if (board && board.getService) {
             try {
                 const IConfigService = Symbol.for('IConfigService');
-                const configService = board.getService(IConfigService);
+                const configService = board.getService('configService') as unknown as IConfigService;
                 if (configService && configService.setCtxConfig) {
                     configService.setCtxConfig({ lineWidth: thickness });
                 }

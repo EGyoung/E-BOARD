@@ -4,7 +4,7 @@ import { IToolHandler } from '../types';
 export class UndoToolHandler implements IToolHandler {
     activate(board: any): void {
         try {
-            const historyService = board.getService(IHistoryService);
+            const historyService = board.getService('historyService')
 
             if (historyService && historyService.undo) {
                 const success = historyService.undo();

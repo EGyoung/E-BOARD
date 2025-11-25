@@ -5,7 +5,7 @@ export class SelectToolHandler implements IToolHandler {
     activate(board: any): void {
         try {
 
-            const modeService = board.getService(IModeService);
+            const modeService = board.getService('modeService');
             if (modeService) {
                 modeService.switchMode('selection');
             }

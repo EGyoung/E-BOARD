@@ -4,7 +4,7 @@ import { IToolHandler } from '../types';
 export class RedoToolHandler implements IToolHandler {
     activate(board: any): void {
         try {
-            const historyService = board.getService(IHistoryService);
+            const historyService = board.getService('historyService');
 
             if (historyService && historyService.redo) {
                 const success = historyService.redo();

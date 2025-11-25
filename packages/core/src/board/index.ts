@@ -1,4 +1,4 @@
-import { commonServicesMap } from "../common/initServices";
+import { commonServicesMap, GetServiceTypeByAttrName } from "../common/initServices";
 import { IService, IBoard, IBoardInitParams } from "../types";
 import { bindServices } from "./bindServices";
 import { eBoardContainer, resetContainer } from "../common/IocContainer";
@@ -10,7 +10,7 @@ export class EBoard implements IBoard {
   public id: string;
   private container: HTMLDivElement;
   private services: IService[] = [];
-  private servicesMap: Map<Symbol, IService> = new Map();
+  private servicesMap: Map<string, IService> = new Map();
   public config: Partial<IBoardInitParams> = {};
 
   constructor(params: IBoardInitParams) {
@@ -47,37 +47,37 @@ export class EBoard implements IBoard {
   }
 
   private initServices(): void {
-    commonServicesMap.forEach(({ name }) => {
+    commonServicesMap.forEach(({ name, attrName }) => {
       const service = eBoardContainer.get<IService>(name);
       this.services.push(service);
-      this.servicesMap.set(name, service);
+      this.servicesMap.set(attrName, service);
     });
     this.services.forEach(service => service.init?.({ board: this }));
   }
 
 
   public getCanvas(): HTMLCanvasElement | null {
-    const canvasService = this.getService(ICanvasService) as ICanvasService;
+    const canvasService = this.getService('canvasService')
     return canvasService?.getCanvas() || null;
   }
 
   public getCtx(): CanvasRenderingContext2D | null {
-    const canvasService = this.getService(ICanvasService) as ICanvasService;
+    const canvasService = this.getService('canvasService')
     return canvasService?.getCtx() || null;
   }
 
   public getInteractionCanvas(): HTMLCanvasElement | null {
-    const canvasService = this.getService(ICanvasService) as ICanvasService;
+    const canvasService = this.getService('canvasService')
     return canvasService?.getInteractionCanvas() || null;
   }
 
   public getInteractionCtx(): CanvasRenderingContext2D | null {
-    const canvasService = this.getService(ICanvasService) as ICanvasService;
+    const canvasService = this.getService('canvasService');
     return canvasService?.getInteractionCtx() || null;
   }
 
-  public getService<T extends IService = IService>(name: Symbol): T {
-    return this.servicesMap.get(name) as T;
+  public getService<ServiceName extends typeof commonServicesMap[number]['attrName']>(name: ServiceName): GetServiceTypeByAttrName<ServiceName> {
+    return this.servicesMap.get(name) as any
   }
 
   public getServices(): IService[] {

@@ -4,7 +4,7 @@ import { IToolHandler } from '../types';
 export class ClearToolHandler implements IToolHandler {
     activate(board: any): void {
         try {
-            const modelService = board.getService(IModelService);
+            const modelService = board.getService('modelService') as unknown as IModelService;
             if (modelService && modelService.clearModels) {
                 modelService.clearModels();
             }

@@ -12,8 +12,8 @@ export class ShapeToolHandler implements IToolHandler {
         try {
 
 
-            const modeService = board.getService(IModeService);
-            const configService = board.getService(IConfigService);
+            const modeService = board.getService('modeService');
+            const configService = board.getService('configService')
 
             if (modeService) {
                 modeService.switchMode('drawShape');

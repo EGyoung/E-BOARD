@@ -29,50 +29,78 @@ import { eBoardContainer } from "../IocContainer";
 const commonServicesMap = [
   {
     name: ICanvasService,
-    service: CanvasService
+    service: CanvasService,
+    attrName: "canvasService"
   },
   {
     name: IConfigService,
-    service: ConfigService
+    service: ConfigService,
+    attrName: "configService"
   },
   {
     name: IModelService,
-    service: ModelService
+    service: ModelService,
+    attrName: "modelService"
   },
   {
     name: IHistoryService,
-    service: HistoryService
+    service: HistoryService,
+    attrName: "historyService"
   },
   {
     name: IPluginService,
-    service: PluginService
+    service: PluginService,
+    attrName: "pluginService"
   },
   {
     name: IPointerEventService,
-    service: PointerEventService
+    service: PointerEventService,
+    attrName: "pointerEventService"
   },
   {
     name: ISelectionService,
-    service: SelectionService
+    service: SelectionService,
+    attrName: "selectionService"
   },
 
   {
     name: IRenderService,
-    service: RenderService
+    service: RenderService,
+    attrName: "renderService"
   },
   {
     name: ITransformService,
-    service: TransformService
+    service: TransformService,
+    attrName: "transformService"
   },
   {
     name: IElementService,
-    service: ElementService
+    service: ElementService,
+    attrName: "elementService"
   },
   {
     name: IModeService,
-    service: ModeService
+    service: ModeService,
+    attrName: "modeService"
   }
 ] as const;
+
+type CommonServiceItem = (typeof commonServicesMap)[number];
+
+export type CommonServiceAttrName = CommonServiceItem["attrName"];
+
+type CommonServiceCtorMap = {
+  [Item in CommonServiceItem as Item["attrName"]]: Item["service"];
+};
+
+type GetServiceConstructorTypeByAttrName<T extends CommonServiceAttrName> =
+  CommonServiceCtorMap[T];
+
+export type GetServiceTypeByAttrName<T extends CommonServiceAttrName> = InstanceType<
+  GetServiceConstructorTypeByAttrName<T>
+>;
+
+// type ss = GetServiceTypeByAttrName<'canvasService' '>
 export const bindCommonServices = () => {
   commonServicesMap.forEach(({ name, service }) => {
     eBoardContainer.bind(name).to(service).inSingletonScope();
