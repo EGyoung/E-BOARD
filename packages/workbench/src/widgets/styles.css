@@ -13,9 +13,9 @@
     0 2px 4px rgba(0, 0, 0, 0.06);
   z-index: 10000;
   pointer-events: auto;
-  animation: toolbarFadeIn 0.2s ease;
   user-select: none;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif;
 }
 
 @keyframes toolbarFadeIn {
@@ -86,7 +86,7 @@
 .color-hex {
   font-size: 11px;
   color: #6b7280;
-  font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+  font-family: "SF Mono", "Monaco", "Courier New", monospace;
   min-width: 60px;
   font-weight: 500;
 }
@@ -274,11 +274,11 @@
     flex-wrap: wrap;
     max-width: 90vw;
   }
-  
+
   .toolbar-section {
     min-width: auto;
   }
-  
+
   .color-hex {
     display: none;
   }
@@ -406,12 +406,3 @@
 }
 
 /* 动画优化 */
-@media (prefers-reduced-motion: reduce) {
-  .floating-toolbar {
-    animation: none;
-  }
-  
-  * {
-    transition: none !important;
-  }
-}

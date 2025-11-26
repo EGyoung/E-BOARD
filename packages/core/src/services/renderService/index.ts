@@ -17,13 +17,13 @@ class RenderService implements IRenderService {
   private modelHandler = new Map<string, IDrawModelHandler>();
   private disposeList: (() => void)[] = [];
 
-  private offscreenCanvas: HTMLCanvasElement | null = null;
-  private offscreenCtx: CanvasRenderingContext2D | null = null;
+  // private offscreenCanvas: HTMLCanvasElement | null = null;
+  // private offscreenCtx: CanvasRenderingContext2D | null = null;
   private redrawRequested = false;
 
   init = ({ board }: IServiceInitParams) => {
     this.board = board;
-    this.initOffscreenCanvas();
+    // this.initOffscreenCanvas();
     this.initModelChange();
   };
 
@@ -34,24 +34,24 @@ class RenderService implements IRenderService {
     this.disposeList.push(dispose);
   }
 
-  private initOffscreenCanvas() {
-    const mainCanvas = this.board.getCanvas()!;
-    const { width, height } = mainCanvas.style;
-    this.offscreenCanvas = document.createElement("canvas");
-    this.offscreenCanvas.width = parseInt(width);
-    this.offscreenCanvas.height = parseInt(height);
-    this.offscreenCtx = this.offscreenCanvas.getContext("2d", {
-      alpha: false
-    });
+  // private initOffscreenCanvas() {
+  //   const mainCanvas = this.board.getCanvas()!;
+  //   const { width, height } = mainCanvas.style;
+  //   this.offscreenCanvas = document.createElement("canvas");
+  //   this.offscreenCanvas.width = parseInt(width);
+  //   this.offscreenCanvas.height = parseInt(height);
+  //   this.offscreenCtx = this.offscreenCanvas.getContext("2d", {
+  //     alpha: false
+  //   });
 
-    const transformService = eBoardContainer.get<ITransformService>(ITransformService);
-    const configService = eBoardContainer.get<IConfigService>(IConfigService);
-    initContextAttrs(
-      this.offscreenCtx!,
-      { zoom: transformService.getView().zoom },
-      configService.getCtxConfig()
-    );
-  }
+  //   const transformService = eBoardContainer.get<ITransformService>(ITransformService);
+  //   const configService = eBoardContainer.get<IConfigService>(IConfigService);
+  //   initContextAttrs(
+  //     this.offscreenCtx!,
+  //     { zoom: transformService.getView().zoom },
+  //     configService.getCtxConfig()
+  //   );
+  // }
 
   public registerDrawModelHandler(key: string, handler: IDrawModelHandler) {
     this.modelHandler.set(key, handler);
@@ -63,9 +63,9 @@ class RenderService implements IRenderService {
 
   public dispose(): void {
     this.modelHandler = new Map();
-    this.offscreenCtx = null;
+    // this.offscreenCtx = null;
     this.disposeList.forEach(dispose => dispose());
-    this.offscreenCanvas = document.createElement("canvas");
+    // this.offscreenCanvas = document.createElement("canvas");
   }
 
   public reRender = () => {
@@ -79,7 +79,6 @@ class RenderService implements IRenderService {
   };
 
   private _render = () => {
-    console.time("render");
     const context = this.board.getCtx();
     const interactionCtx = this.board.getInteractionCtx();
     const models = this.modelService.getAllModels();
@@ -87,10 +86,10 @@ class RenderService implements IRenderService {
     const canvas = this.board.getCanvas();
     if (!canvas) return;
 
+    // context.save();
     // 清空主画布
-    context.save();
     context.clearRect(0, 0, canvas.width, canvas.height);
-    context.restore();
+    // context.restore();
 
     // 同时清空交互画布，避免重叠
     if (interactionCtx) {
@@ -99,7 +98,6 @@ class RenderService implements IRenderService {
 
     // 设置绘制属性（包括根据缩放调整的线条宽度）
     const transformService = eBoardContainer.get<ITransformService>(ITransformService);
-    const configService = eBoardContainer.get<IConfigService>(IConfigService);
 
 
     // 绘制笔记
@@ -110,14 +108,12 @@ class RenderService implements IRenderService {
         initContextAttrs(
           context,
           { zoom: transformService.getView().zoom },
-          // configService.getCtxConfig()
           model.options
         );
         handler(model, context as any);
         context.stroke();
       }
     });
-    console.timeEnd("render");
   };
 }
 

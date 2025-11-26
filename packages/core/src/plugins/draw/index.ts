@@ -89,37 +89,56 @@ class DrawPlugin implements IPlugin {
   }
 
   private currentLinePoints: { x: number; y: number }[] = [];
+  private lastScreenPoint: { x: number; y: number } | null = null;
+  // 记录最小采样距离，避免高频指针事件导致的重复绘制与模型点暴增
+  private readonly minDistanceSq = 1;
 
   public setCurrentLineWithDraw(point: { x: number; y: number }, isEnd = false) {
     const ctx = this.board.getInteractionCtx();
     if (!ctx) return;
+    if (
+      !isEnd &&
+      this.lastScreenPoint &&
+      this.lastScreenPoint.x === point.x &&
+      this.lastScreenPoint.y === point.y
+    ) {
+      return;
+    }
+    if (!isEnd && this.lastScreenPoint) {
+      const dx = point.x - this.lastScreenPoint.x;
+      const dy = point.y - this.lastScreenPoint.y;
+      if (dx * dx + dy * dy < this.minDistanceSq) {
+        return;
+      }
+    }
     const transformedPoint = this.transformPoint(point, true);
     if (!this.currentLinePoints.length) {
       ctx.beginPath();
       ctx.moveTo(point.x, point.y);
       this.currentLinePoints = [transformedPoint];
+      this.lastScreenPoint = { x: point.x, y: point.y };
       return;
     }
     const points = this.currentLinePoints!;
+    const previousScreenPoint = this.lastScreenPoint ?? point;
 
     // 如果点数太少，直接画直线
     if (points.length < 2) {
       ctx.lineTo(point.x, point.y);
     } else {
-      // 获取最后三个点
-      const p1 = this.transformPoint(points[points.length - 1]); // 前一个点
-      const p2 = point; // 当前点
-      const midPointX = (p1.x + p2.x) / 2;
-      const midPointY = (p1.y + p2.y) / 2;
-      ctx.quadraticCurveTo(p1.x, p1.y, midPointX, midPointY);
+      // 使用上一帧的屏幕坐标平滑曲线
+      const midPointX = (previousScreenPoint.x + point.x) / 2;
+      const midPointY = (previousScreenPoint.y + point.y) / 2;
+      ctx.quadraticCurveTo(previousScreenPoint.x, previousScreenPoint.y, midPointX, midPointY);
     }
 
     ctx.stroke();
 
-    this.currentLinePoints?.push({
+    this.currentLinePoints.push({
       x: transformedPoint.x,
       y: transformedPoint.y
     });
+    this.lastScreenPoint = { x: point.x, y: point.y };
 
     if (isEnd) {
       this.modelService.createModel("line", {
@@ -128,6 +147,7 @@ class DrawPlugin implements IPlugin {
         ctrlElement: this.createCtrlElement()
       });
       this.currentLinePoints = [];
+      this.lastScreenPoint = null;
     }
   }
 

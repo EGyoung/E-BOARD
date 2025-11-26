@@ -35,7 +35,6 @@
   right: 0;
   height: 2px;
   background: linear-gradient(90deg, transparent 0%, rgba(59, 130, 246, 0.8) 50%, transparent 100%);
-  animation: scanline 3s linear infinite;
   border-radius: 16px 16px 0 0;
 }
 
@@ -266,7 +265,6 @@
     0 0 25px rgba(59, 130, 246, 0.6),
     0 0 50px rgba(59, 130, 246, 0.3),
     inset 0 0 30px rgba(59, 130, 246, 0.1);
-  animation: activeGlow 2s ease-in-out infinite;
 }
 
 @keyframes activeGlow {
@@ -313,11 +311,6 @@
 
 .tool-button:hover .tool-icon svg {
   stroke-width: 2.5;
-}
-
-.tool-button.active .tool-icon {
-  filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.9));
-  animation: iconPulse 2s ease-in-out infinite;
 }
 
 .tool-button.active .tool-icon svg {

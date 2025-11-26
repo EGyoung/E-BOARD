@@ -34,7 +34,6 @@
   right: 0;
   height: 1px;
   background: linear-gradient(90deg, transparent 0%, rgba(59, 130, 246, 0.8) 50%, transparent 100%);
-  animation: scanline 3s linear infinite;
 }
 
 @keyframes scanline {
@@ -96,7 +95,6 @@
   content: "▶";
   margin-right: 8px;
   color: #3b82f6;
-  animation: pulse 2s ease-in-out infinite;
 }
 
 @keyframes pulse {
@@ -325,7 +323,6 @@
     0 0 20px rgba(59, 130, 246, 0.6),
     0 0 40px rgba(59, 130, 246, 0.3),
     inset 0 0 15px rgba(0, 0, 0, 0.3);
-  animation: colorPulse 2s ease-in-out infinite;
 }
 
 @keyframes colorPulse {
