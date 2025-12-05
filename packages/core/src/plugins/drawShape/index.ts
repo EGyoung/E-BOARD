@@ -72,6 +72,10 @@ class DrawShapePlugin implements IPlugin {
             const width = model.width || 0;
             const height = model.height || 0;
             const zoom = this.transformService.getView().zoom;
+            const strokeWidth =
+              (model.options?.lineWidth ?? this.configService.getCtxConfig().lineWidth ?? 1) *
+              zoom;
+            const halfStroke = strokeWidth / 2;
 
             // 将世界坐标转换为屏幕坐标
             const screenPos = this.transformPoint(point);
@@ -84,10 +88,10 @@ class DrawShapePlugin implements IPlugin {
               y: screenPos.y,
               width: screenWidth,
               height: screenHeight,
-              minX: screenPos.x,
-              minY: screenPos.y,
-              maxX: screenPos.x + screenWidth,
-              maxY: screenPos.y + screenHeight
+              minX: screenPos.x - halfStroke,
+              minY: screenPos.y - halfStroke,
+              maxX: screenPos.x + screenWidth + halfStroke,
+              maxY: screenPos.y + screenHeight + halfStroke
             };
           }
         }
@@ -316,6 +320,10 @@ class DrawShapePlugin implements IPlugin {
             const width = model.width || 0;
             const height = model.height || 0;
             const zoom = this.transformService.getView().zoom;
+            const strokeWidth =
+              (model.options?.lineWidth ?? this.configService.getCtxConfig().lineWidth ?? 1) *
+              zoom;
+            const halfStroke = strokeWidth / 2;
 
             const screenPos = this.transformPoint(point);
             const screenWidth = width * zoom;
@@ -326,10 +334,10 @@ class DrawShapePlugin implements IPlugin {
               y: screenPos.y,
               width: screenWidth,
               height: screenHeight,
-              minX: screenPos.x,
-              minY: screenPos.y,
-              maxX: screenPos.x + screenWidth,
-              maxY: screenPos.y + screenHeight
+              minX: screenPos.x - halfStroke,
+              minY: screenPos.y - halfStroke,
+              maxX: screenPos.x + screenWidth + halfStroke,
+              maxY: screenPos.y + screenHeight + halfStroke
             };
           }
         }
