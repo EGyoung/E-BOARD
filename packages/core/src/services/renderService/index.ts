@@ -161,7 +161,7 @@ class RenderService implements IRenderService {
     models.forEach(model => {
       if (this.currentRanges) {
         const modelBox = model.ctrlElement.getBoundingBox(model);
-        if (!isIntersect(this.currentRanges, modelBox)) {
+        if (!isIntersect(this.currentRanges, this.expendDirtyRange(modelBox))) {
           return;
         }
       }
