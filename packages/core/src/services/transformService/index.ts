@@ -1,12 +1,11 @@
-import { eBoardContainer } from "../../common/IocContainer";
-import { IBoard, IServiceInitParams } from "../../types";
+import type EBoard from "../../board";
+import { IServiceInitParams } from "../../types";
 import { IRenderService } from "../renderService/type";
 
 import { ITransformService } from "./type";
 
 class TransformService implements ITransformService {
-  private board!: IBoard;
-  private renderService = eBoardContainer.get<IRenderService>(IRenderService);
+  private board!: EBoard;
 
   private x: number = 0; // 画布坐标
 
@@ -15,7 +14,7 @@ class TransformService implements ITransformService {
   private zoom: number = 1;
 
   init = ({ board }: IServiceInitParams) => {
-    this.board = board;
+    this.board = board as EBoard;
     this.initAttribute();
   };
 
@@ -46,7 +45,8 @@ class TransformService implements ITransformService {
       const ctx = this.board.getCtx();
       const canvas = this.board.getCanvas();
       if (!ctx || !canvas) return;
-      this.renderService.reRender();
+      const renderService = this.board.getService('renderService')
+      renderService.reRender();
     }
   };
 
@@ -71,7 +71,7 @@ class TransformService implements ITransformService {
     };
   }
 
-  public dispose(): void {}
+  public dispose(): void { }
 }
 
 /**
