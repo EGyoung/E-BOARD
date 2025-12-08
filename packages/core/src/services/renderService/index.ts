@@ -46,56 +46,45 @@ class RenderService implements IRenderService {
     }
   }
 
+  private accumulateRange(nextRange: Range) {
+    if (!nextRange) return;
+    if (!this.currentRanges) {
+      this.currentRanges = { ...nextRange };
+      return;
+    }
+
+    this.currentRanges = {
+      minX: Math.min(this.currentRanges.minX, nextRange.minX),
+      minY: Math.min(this.currentRanges.minY, nextRange.minY),
+      maxX: Math.max(this.currentRanges.maxX, nextRange.maxX),
+      maxY: Math.max(this.currentRanges.maxY, nextRange.maxY),
+    };
+  }
+
+  private getExpandedBoundingBox(state?: any) {
+    const box: BoundingBox | undefined = state?.ctrlElement?.getBoundingBox?.(state);
+    return box ? this.expendDirtyRange(box as Range) : null;
+  }
+
   private handleModelOperationChange: Parameters<typeof this.modelService.onModelOperation>[0] = (event) => {
-    if (event.type === ModelChangeType.CREATE) {
-      const _boundingBox = event.model?.ctrlElement?.getBoundingBox(event.model);
-      if (!_boundingBox) return;
-      const boundingBox = this.expendDirtyRange(_boundingBox);
-
-      if (!this.currentRanges) {
-        this.currentRanges = {
-          minX: boundingBox.minX,
-          minY: boundingBox.minY,
-          maxX: boundingBox.maxX,
-          maxY: boundingBox.maxY,
-        }
-      } else {
-        // 当前画布的脏区域
-        this.currentRanges = {
-          minX: Math.min(this.currentRanges.minX, boundingBox.minX),
-          minY: Math.min(this.currentRanges.minY, boundingBox.minY),
-          maxX: Math.max(this.currentRanges.maxX, boundingBox.maxX),
-          maxY: Math.max(this.currentRanges.maxY, boundingBox.maxY),
-        }
-      }
+    // 只有Create Update Delete 走脏矩形渲染
+    if (event.type === ModelChangeType.CREATE || event.type === ModelChangeType.DELETE) {
+      const boundingBox = this.getExpandedBoundingBox(event.model);
+      if (!boundingBox) return;
+      this.accumulateRange(boundingBox);
     } else if (event.type === ModelChangeType.UPDATE) {
-      const _prevBoundingBox = event.previousState?.ctrlElement.getBoundingBox(event.previousState);
-      const _currentBoundBox = event.updates?.ctrlElement.getBoundingBox(event.updates);
-      if (!_prevBoundingBox || !_currentBoundBox) return
+      const prevBoundingBox = this.getExpandedBoundingBox(event.previousState);
+      const currentBoundingBox = this.getExpandedBoundingBox(event.updates);
+      if (!prevBoundingBox || !currentBoundingBox) return;
 
-      const prevBoundingBox = this.expendDirtyRange(_prevBoundingBox);
-      const currentBoundBox = this.expendDirtyRange(_currentBoundBox);
+      const updateBoundBox: Range = {
+        minX: Math.min(prevBoundingBox.minX, currentBoundingBox.minX),
+        minY: Math.min(prevBoundingBox.minY, currentBoundingBox.minY),
+        maxX: Math.max(prevBoundingBox.maxX, currentBoundingBox.maxX),
+        maxY: Math.max(prevBoundingBox.maxY, currentBoundingBox.maxY),
+      };
 
-
-      const updateBoundBox = {
-        minX: Math.min(prevBoundingBox.minX, currentBoundBox.minX),
-        minY: Math.min(prevBoundingBox.minY, currentBoundBox.minY),
-        maxX: Math.max(prevBoundingBox.maxX, currentBoundBox.maxX),
-        maxY: Math.max(prevBoundingBox.maxY, currentBoundBox.maxY),
-      }
-
-      if (!this.currentRanges) {
-        this.currentRanges = updateBoundBox
-      } else {
-        // 当前画布的脏区域
-        this.currentRanges = {
-          minX: Math.min(this.currentRanges.minX, updateBoundBox.minX),
-          minY: Math.min(this.currentRanges.minY, updateBoundBox.minY),
-          maxX: Math.max(this.currentRanges.maxX, updateBoundBox.maxX),
-          maxY: Math.max(this.currentRanges.maxY, updateBoundBox.maxY),
-        }
-      }
-
+      this.accumulateRange(updateBoundBox);
     }
 
     this.reRender()
@@ -197,10 +186,10 @@ class RenderService implements IRenderService {
 // 判断两个区域是否相交
 const isIntersect = (rangeA: Range, rangeB: Range): boolean => {
   return !(
-    rangeA.maxX < rangeB.minX ||
-    rangeA.minX > rangeB.maxX ||
-    rangeA.maxY < rangeB.minY ||
-    rangeA.minY > rangeB.maxY
+    rangeA.maxX <= rangeB.minX ||
+    rangeA.minX >= rangeB.maxX ||
+    rangeA.maxY <= rangeB.minY ||
+    rangeA.minY >= rangeB.maxY
   );
 }
 
