@@ -1,6 +1,6 @@
 import { initContextAttrs } from "@e-board/utils";
 import { eBoardContainer } from "../../common/IocContainer";
-import { IModelService, IModeService, IPointerEventService } from "../../services";
+import { BoundingBox, IModelService, IModeService, IPointerEventService } from "../../services";
 import { IConfigService, IModel } from "../../services";
 import { IRenderService } from "../../services/renderService/type";
 import { ITransformService } from "../../services/transformService/type";
@@ -11,7 +11,7 @@ const CURRENT_MODE = "drawShape";
 // const defaultFillStyle = 'pink'
 
 
-interface IShapeRectangle {
+type IShapeRectangle = {
   width: number;
   height: number;
 }
@@ -67,7 +67,7 @@ class DrawShapePlugin implements IPlugin {
 
             return isInside;
           },
-          getBoundingBox: (model: IModel<IShapeRectangle>) => {
+          getBoundingBox: (model: IModel<{ width: number, height: number }>) => {
             const [point] = model.points!;
             const width = model.width || 0;
             const height = model.height || 0;
@@ -92,12 +92,13 @@ class DrawShapePlugin implements IPlugin {
               minY: screenPos.y - halfStroke,
               maxX: screenPos.x + screenWidth + halfStroke,
               maxY: screenPos.y + screenHeight + halfStroke
-            };
+            } as BoundingBox;
           }
         }
       });
     };
-    const [_point] = this.currentModel.points!;
+
+    const [_point] = this.currentModel!.points!;
     const x = Math.min(_point.x, transformedPoint.x);
     const y = Math.min(_point.y, transformedPoint.y);
     const width = Math.abs(transformedPoint.x - _point.x);
@@ -116,19 +117,19 @@ class DrawShapePlugin implements IPlugin {
       height * this.transformService.getView().zoom
     );
 
-    if (this.currentModel.options?.fillStyle) {
-      ctx.fillStyle = this.currentModel.options?.fillStyle
+    if (this.currentModel!.options?.fillStyle) {
+      ctx.fillStyle = this.currentModel!.options?.fillStyle
       ctx.fill();
     }
 
     ctx.stroke();
 
     if (isEnd) {
-      this.modelService.updateModel(this.currentModel.id, {
+      this.modelService.updateModel(this.currentModel!.id, {
         points: [{ x, y }],
         width,
         height,
-        fillStyle: this.currentModel.options?.fillStyle
+        fillStyle: this.currentModel!.options?.fillStyle
       });
       this.currentModel = null;
     }

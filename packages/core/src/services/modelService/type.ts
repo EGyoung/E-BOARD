@@ -16,11 +16,13 @@ export interface ModelChangeEvent {
   deletedModels?: Map<string, IModel>;
 }
 
-export interface IModelService extends IService {
-  createModel(type: string, options?: Partial<IModel>): IModel;
-  getAllModels(): IModel[];
-  getModelById(id: string): IModel | undefined;
-  updateModel(id: string, updates: Partial<Omit<IModel, "id">>): IModel | undefined;
+export interface IModelService<ExtensionOptions extends Record<string, any> =
+  Record<string, any>
+> extends IService {
+  createModel(type: string, options?: Partial<IModel<ExtensionOptions>>): IModel<ExtensionOptions>;
+  getAllModels(): IModel<ExtensionOptions>[];
+  getModelById(id: string): IModel<ExtensionOptions> | undefined;
+  updateModel(id: string, updates: Partial<Omit<IModel<ExtensionOptions>, "id">>): IModel<ExtensionOptions> | undefined;
   deleteModel(id: string): boolean;
   clearModels(): void;
   onModelChange: (listener: () => void) => { dispose: () => void };
@@ -37,12 +39,36 @@ interface ModelOptions {
   [key: string]: any;
 }
 
+export type IPoint = {
+  x: number;
+  y: number;
+}
+
 export type IModel<T extends Record<string, any> = Record<string, any>> = {
   id: string;
   type: "line" | string;
-  points?: { x: number; y: number }[];
+  points?: IPoint[];
   options?: ModelOptions;
-  ctrlElement?: any
-} & T;
+  ctrlElement: {
+    getBoundingBox: (model: IModel<any>) => BoundingBox;
+    isHint: (params: any) => boolean;
+  }
+} & T
+
+
+
+
+export type BoundingBox = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  minX: number;
+  minY: number;
+  maxX: number;
+  maxY: number;
+};
+
+// export type BaseCtrlElement<Model> = 
 
 export const IModelService = Symbol("IModelService");
