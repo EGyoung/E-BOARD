@@ -134,7 +134,7 @@ class RenderService implements IRenderService {
     if (!canvas) return;
     const transformService = eBoardContainer.get<ITransformService>(ITransformService);
 
-    console.log(this.currentRanges, 'currentRanges');
+    // console.log(this.currentRanges, 'currentRanges');
     if (!this.currentRanges) {
       // 清空主画布
       context.clearRect(0, 0, canvas.width, canvas.height);
@@ -149,14 +149,11 @@ class RenderService implements IRenderService {
       const width = transformMaxPoint.x - transformMinPoint.x;
       const height = transformMaxPoint.y - transformMinPoint.y;
 
-
       const clearX = Math.floor(transformMinPoint.x - this.dirtyPadding);
       const clearY = Math.floor(transformMinPoint.y - this.dirtyPadding);
       const clearW = Math.ceil(width + this.dirtyPadding * 2);
       const clearH = Math.ceil(height + this.dirtyPadding * 2);
       context.clearRect(clearX, clearY, clearW, clearH);
-
-
 
       // // 同时清空交互画布，避免重叠
       if (interactionCtx) {
@@ -173,6 +170,12 @@ class RenderService implements IRenderService {
     // 设置绘制属性（包括根据缩放调整的线条宽度）
     // 绘制笔记
     models.forEach(model => {
+      if (this.currentRanges) {
+        const modelBox = model.ctrlElement.getBoundingBox(model);
+        if (!isIntersect(this.currentRanges, modelBox)) {
+          return;
+        }
+      }
       const handler = this.modelHandler.get(model.type);
       if (handler) {
         context.beginPath();
@@ -189,6 +192,16 @@ class RenderService implements IRenderService {
     context.restore();
     this.currentRanges = null;
   };
+}
+
+// 判断两个区域是否相交
+const isIntersect = (rangeA: Range, rangeB: Range): boolean => {
+  return !(
+    rangeA.maxX < rangeB.minX ||
+    rangeA.minX > rangeB.maxX ||
+    rangeA.maxY < rangeB.minY ||
+    rangeA.minY > rangeB.maxY
+  );
 }
 
 export default RenderService;
