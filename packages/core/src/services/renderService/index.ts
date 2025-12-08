@@ -73,8 +73,16 @@ class RenderService implements IRenderService {
       if (!boundingBox) return;
       this.accumulateRange(boundingBox);
     } else if (event.type === ModelChangeType.UPDATE) {
-      const prevBoundingBox = this.getExpandedBoundingBox(event.previousState);
-      const currentBoundingBox = this.getExpandedBoundingBox(event.updates);
+      // 获取更新后的完整模型
+      const currentModel = this.modelService.getModelById(event.modelId);
+      if (!currentModel) return;
+
+      // 构建更新前的完整模型状态（合并 previousState）
+      const previousModel = { ...currentModel, ...event.previousState };
+
+      const prevBoundingBox = this.getExpandedBoundingBox(previousModel);
+      const currentBoundingBox = this.getExpandedBoundingBox(currentModel);
+
       if (!prevBoundingBox || !currentBoundingBox) return;
 
       const updateBoundBox: Range = {
