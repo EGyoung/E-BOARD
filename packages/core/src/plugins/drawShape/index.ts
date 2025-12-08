@@ -154,9 +154,6 @@ class DrawShapePlugin implements IPlugin {
       afterSwitchMode: ({ currentMode }) => {
         if (currentMode === CURRENT_MODE) {
           this.initDraw();
-          // 可选：进入形状模式时一次性生成随机矩形用于压力测试
-          // 如不需要自动生成，可注释下一行或改为按钮触发
-          this.seedRandomRectangles(10000);
         }
       }
     });
@@ -245,105 +242,6 @@ class DrawShapePlugin implements IPlugin {
   public dispose() {
     this.disposeList.forEach(dispose => dispose());
     this.renderService.unregisterDrawModelHandler("rectangle");
-  }
-
-  // 生成指定数量的随机矩形
-  private seedRandomRectangles(count: number) {
-    const canvas = this.board.getCanvas();
-    if (!canvas || count <= 0) return;
-
-    const view = this.transformService.getView();
-    const zoom = view.zoom || 1;
-
-    const width = canvas.width;
-    const height = canvas.height;
-
-    // 矩形尺寸范围（世界坐标系下）
-    const minRectSize = 10 / zoom;
-    const maxRectSize = 80 / zoom;
-
-    // 颜色池（可选）
-    const colors = [
-      "#e74c3c",
-      "#3498db",
-      "#2ecc71",
-      "#9b59b6",
-      "#f1c40f",
-      "#e67e22",
-      "#1abc9c",
-      "#34495e"
-    ];
-
-    // 为避免频繁 transformPoint 调用，先随机屏幕坐标，再转换到世界坐标
-    for (let i = 0; i < count; i++) {
-      // 随机屏幕坐标
-      const screenX = Math.random() * width;
-      const screenY = Math.random() * height;
-
-      // 转世界坐标作为矩形左上角点
-      const worldPoint = this.transformPoint({ x: screenX, y: screenY }, true);
-
-      // 随机尺寸（世界坐标）
-      const rectW = minRectSize + Math.random() * (maxRectSize - minRectSize);
-      const rectH = minRectSize + Math.random() * (maxRectSize - minRectSize);
-
-      // 随机填充色（可选）
-      const fillStyle = colors[i % colors.length];
-
-      // 直接创建模型（批量）
-      this.modelService.createModel("rectangle", {
-        points: [{ x: worldPoint.x, y: worldPoint.y }],
-        width: rectW,
-        height: rectH,
-        options: {
-          ...this.configService.getCtxConfig(),
-          fillStyle
-        },
-        ctrlElement: {
-          isHint: (params: { point: { x: number, y: number }, model: { points: { x: number, y: number }[], options: any } }) => {
-            const { point, model } = params;
-            const [_point] = model.points!;
-            const zoom = this.transformService.getView().zoom;
-
-            const rectScreenPos = this.transformPoint(_point);
-            const rectWidth = ((model as any).width || 0) * zoom;
-            const rectHeight = ((model as any).height || 0) * zoom;
-
-            return (
-              point.x >= rectScreenPos.x &&
-              point.x <= rectScreenPos.x + rectWidth &&
-              point.y >= rectScreenPos.y &&
-              point.y <= rectScreenPos.y + rectHeight
-            );
-          },
-          getBoundingBox: (model: IModel<IShapeRectangle>) => {
-            const [point] = model.points!;
-            const width = model.width || 0;
-            const height = model.height || 0;
-            const zoom = this.transformService.getView().zoom;
-            const strokeWidth =
-              (model.options?.lineWidth ?? this.configService.getCtxConfig().lineWidth ?? 1) *
-              zoom;
-            const halfStroke = strokeWidth / 2;
-
-            const screenPos = this.transformPoint(point);
-            const screenWidth = width * zoom;
-            const screenHeight = height * zoom;
-
-            return {
-              x: screenPos.x,
-              y: screenPos.y,
-              width: screenWidth,
-              height: screenHeight,
-              minX: screenPos.x - halfStroke,
-              minY: screenPos.y - halfStroke,
-              maxX: screenPos.x + screenWidth + halfStroke,
-              maxY: screenPos.y + screenHeight + halfStroke
-            };
-          }
-        }
-      });
-    }
   }
 }
 

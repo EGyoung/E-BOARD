@@ -1,5 +1,5 @@
-import React, { useEffect, useLayoutEffect, useState } from "react";
-import { DrawShapePlugin, EBoard, IConfigService, IModeService } from "@e-board/core";
+import React, { useLayoutEffect, useState } from "react";
+import { DrawShapePlugin, EBoard, IConfigService, IModeService, IModelService, ITransformService } from "@e-board/core";
 import "./styles.css";
 import { RoamPlugin, SelectionPlugin, ClearPlugin, PicturePlugin } from "@e-board/core";
 import { Panel, StageTool, FloatingToolbar } from '@e-board/workbench'
@@ -82,6 +82,96 @@ const App: React.FC = () => {
     console.log('复制元素', selectedElement);
   };
 
+  const handleGenerateRandomShapes = (count: number = 1000) => {
+    if (!eboard.current) return;
+
+    const board = eboard.current;
+    const canvas = board.getCanvas();
+    if (!canvas) return;
+
+    const modelService = board.getService('modelService') as unknown as IModelService;
+    const configService = board.getService('configService') as unknown as IConfigService;
+    const transformService = board.getService('transformService') as unknown as ITransformService;
+
+    const view = transformService.getView();
+    const zoom = view.zoom || 1;
+    const width = canvas.width;
+    const height = canvas.height;
+
+    const minRectSize = 10 / zoom;
+    const maxRectSize = 80 / zoom;
+
+    const colors = [
+      "#e74c3c", "#3498db", "#2ecc71", "#9b59b6",
+      "#f1c40f", "#e67e22", "#1abc9c", "#34495e"
+    ];
+
+    const transformPoint = (point: { x: number; y: number }, inverse = false) => {
+      return transformService.transformPoint(point, inverse);
+    };
+
+    for (let i = 0; i < count; i++) {
+      const screenX = Math.random() * width;
+      const screenY = Math.random() * height;
+      const worldPoint = transformPoint({ x: screenX, y: screenY }, true);
+
+      const rectW = minRectSize + Math.random() * (maxRectSize - minRectSize);
+      const rectH = minRectSize + Math.random() * (maxRectSize - minRectSize);
+      const fillStyle = colors[i % colors.length];
+
+      modelService.createModel("rectangle", {
+        points: [{ x: worldPoint.x, y: worldPoint.y }],
+        width: rectW,
+        height: rectH,
+        options: {
+          ...configService.getCtxConfig(),
+          fillStyle
+        },
+        ctrlElement: {
+          isHint: (params: { point: { x: number, y: number }, model: any }) => {
+            const { point, model } = params;
+            const [_point] = model.points!;
+            const zoom = transformService.getView().zoom;
+
+            const rectScreenPos = transformPoint(_point);
+            const rectWidth = (model.width || 0) * zoom;
+            const rectHeight = (model.height || 0) * zoom;
+
+            return (
+              point.x >= rectScreenPos.x &&
+              point.x <= rectScreenPos.x + rectWidth &&
+              point.y >= rectScreenPos.y &&
+              point.y <= rectScreenPos.y + rectHeight
+            );
+          },
+          getBoundingBox: (model: any) => {
+            const [point] = model.points!;
+            const width = model.width || 0;
+            const height = model.height || 0;
+            const zoom = transformService.getView().zoom;
+            const strokeWidth = (model.options?.lineWidth ?? configService.getCtxConfig().lineWidth ?? 1) * zoom;
+            const halfStroke = strokeWidth / 2;
+
+            const screenPos = transformPoint(point);
+            const screenWidth = width * zoom;
+            const screenHeight = height * zoom;
+
+            return {
+              x: screenPos.x,
+              y: screenPos.y,
+              width: screenWidth,
+              height: screenHeight,
+              minX: screenPos.x - halfStroke,
+              minY: screenPos.y - halfStroke,
+              maxX: screenPos.x + screenWidth + halfStroke,
+              maxY: screenPos.y + screenHeight + halfStroke
+            };
+          }
+        }
+      });
+    }
+  };
+
   return (
     <div className="app-container">
       <div style={{ position: "absolute", zIndex: 10, top: 10, left: 10, display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -92,6 +182,61 @@ const App: React.FC = () => {
           board={eboard.current}
         />
         <StageTool board={eboard} />
+
+        {/* Debug Tools */}
+        <div style={{
+          background: "rgba(0, 0, 0, 0.8)",
+          padding: "10px",
+          borderRadius: "8px",
+          color: "white",
+          fontSize: "12px"
+        }}>
+          <div style={{ marginBottom: "8px", fontWeight: "bold" }}>🔧 Debug Tools</div>
+          <button
+            onClick={() => handleGenerateRandomShapes(100)}
+            style={{
+              padding: "6px 12px",
+              marginBottom: "4px",
+              width: "100%",
+              cursor: "pointer",
+              borderRadius: "4px",
+              border: "none",
+              background: "#3498db",
+              color: "white"
+            }}
+          >
+            生成 100 个矩形
+          </button>
+          <button
+            onClick={() => handleGenerateRandomShapes(1000)}
+            style={{
+              padding: "6px 12px",
+              marginBottom: "4px",
+              width: "100%",
+              cursor: "pointer",
+              borderRadius: "4px",
+              border: "none",
+              background: "#e67e22",
+              color: "white"
+            }}
+          >
+            生成 1000 个矩形
+          </button>
+          <button
+            onClick={() => handleGenerateRandomShapes(10000)}
+            style={{
+              padding: "6px 12px",
+              width: "100%",
+              cursor: "pointer",
+              borderRadius: "4px",
+              border: "none",
+              background: "#e74c3c",
+              color: "white"
+            }}
+          >
+            生成 10000 个矩形
+          </button>
+        </div>
       </div>
 
       {/* 浮动工具栏 - 跟随选中元素 */}
