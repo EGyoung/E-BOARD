@@ -267,38 +267,68 @@ class HistoryService implements IHistoryService {
     }
 
     private cloneModel<T>(model: T): T {
-        return this.deepClone(model);
+        return this.deepClone(model, false);
     }
 
     private clonePartialModel<T>(partial: T): T {
-        return this.deepClone(partial);
+        return this.deepClone(partial, true);
     }
 
-    private deepClone<T>(value: T): T {
-        // 处理 null 和 undefined
+    private deepClone<T>(value: T, skipNonPlainObjects: boolean, seen = new WeakMap<any, any>()): T {
         if (value === null || value === undefined) {
             return value;
         }
 
-        // 处理基本类型
         if (typeof value !== 'object') {
             return value;
         }
 
-        // 处理数组
-        if (Array.isArray(value)) {
-            return value.map(item => this.deepClone(item)) as any;
+        if (seen.has(value)) {
+            return seen.get(value);
         }
 
-        // 处理普通对象
-        const cloned: any = {};
-        for (const key in value) {
-            if (value.hasOwnProperty(key)) {
-                cloned[key] = this.deepClone(value[key]);
+        if (Array.isArray(value)) {
+            const clonedArray = value.map(item => this.deepClone(item, skipNonPlainObjects, seen));
+            seen.set(value, clonedArray);
+            return clonedArray as any;
+        }
+
+        if (skipNonPlainObjects && this.shouldSkipObjectClone(value)) {
+            return value;
+        }
+
+        const cloned: Record<string, any> = {};
+        seen.set(value, cloned);
+        for (const key in value as Record<string, any>) {
+            if (Object.prototype.hasOwnProperty.call(value, key)) {
+                cloned[key] = this.deepClone((value as Record<string, any>)[key], skipNonPlainObjects, seen);
             }
         }
 
         return cloned as T;
+    }
+
+    private shouldSkipObjectClone(value: object): boolean {
+        if (!this.isPlainObject(value)) {
+            return true;
+        }
+
+        for (const key in value as Record<string, any>) {
+            if (Object.prototype.hasOwnProperty.call(value, key) && typeof (value as Record<string, any>)[key] === 'function') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private isPlainObject(value: unknown): value is Record<string, any> {
+        if (value === null || typeof value !== 'object') {
+            return false;
+        }
+
+        const proto = Object.getPrototypeOf(value);
+        return proto === Object.prototype || proto === null;
     }
 }
 
