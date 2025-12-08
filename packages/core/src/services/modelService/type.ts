@@ -25,7 +25,6 @@ export interface IModelService<ExtensionOptions extends Record<string, any> =
   updateModel(id: string, updates: Partial<Omit<IModel<ExtensionOptions>, "id">>): IModel<ExtensionOptions> | undefined;
   deleteModel(id: string): boolean;
   clearModels(): void;
-  onModelChange: (listener: () => void) => { dispose: () => void };
   onModelOperation: (listener: (event: ModelChangeEvent) => void) => { dispose: () => void };
 }
 

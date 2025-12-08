@@ -6,10 +6,8 @@ type Model = IModel;
 
 export class ModelService implements IModelService {
   private models: Map<string, Model>;
-  private _modelChange = new Emitter<void>();
   private _modelOperation = new Emitter<ModelChangeEvent>();
 
-  public onModelChange = this._modelChange.event;
   public onModelOperation = this._modelOperation.event;
 
   constructor() {
@@ -22,7 +20,6 @@ export class ModelService implements IModelService {
 
   dispose(): void {
     console.log("ModelService dispose");
-    this._modelChange.dispose();
     this._modelOperation.dispose();
   }
 
@@ -33,11 +30,11 @@ export class ModelService implements IModelService {
    * @returns 创建的模型
    */
   createModel(type: string, options?: Partial<IModel>): Model {
-    const model: IModel = {
+    const model = {
       id: options?.id || uuid(),
       type,
       ...(options ?? {})
-    };
+    } as Model;
     this.models.set(model.id, model);
 
     // 发出操作事件
@@ -47,7 +44,6 @@ export class ModelService implements IModelService {
       model
     });
 
-    this._modelChange.fire();
     return model;
   }
 
@@ -102,7 +98,6 @@ export class ModelService implements IModelService {
       previousState
     });
 
-    this._modelChange.fire();
     return updatedModel;
   }
 
@@ -128,7 +123,6 @@ export class ModelService implements IModelService {
       });
     }
 
-    this._modelChange.fire();
     return result;
   }
 
@@ -149,7 +143,6 @@ export class ModelService implements IModelService {
       });
     }
 
-    this._modelChange.fire();
   }
 }
 
