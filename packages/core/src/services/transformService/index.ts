@@ -40,7 +40,7 @@ class TransformService implements ITransformService {
     if (view.x !== undefined) this.x = view.x;
     if (view.y !== undefined) this.y = view.y;
     if (view.zoom !== undefined) this.zoom = view.zoom;
-    console.log(this.getView(), "getView");
+    // console.log(this.getView(), "getView");
     if (view.x !== undefined || view.y !== undefined || view.zoom !== undefined) {
       const ctx = this.board.getCtx();
       const canvas = this.board.getCanvas();

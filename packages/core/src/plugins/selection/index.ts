@@ -91,7 +91,7 @@ class SelectionPlugin implements IPlugin {
           e.clientY >= this.AABbBox.y &&
           e.clientY <= this.AABbBox.y + this.AABbBox.height
         ) {
-          console.log(this.selectModels, 'this.selectModels')
+          // console.log(this.selectModels, 'this.selectModels')
           // 在AABB盒子内，开始拖拽已选模型
           this.pointerDownPoint = { x: e.clientX, y: e.clientY };
 
@@ -279,7 +279,7 @@ class SelectionPlugin implements IPlugin {
         // 判断是否相交
         if (isIntersecting) {
           const ctx = this.board.getInteractionCtx();
-          console.log("选中了", model.id);
+          // console.log("选中了", model.id);
           this.addSelectedModels(model.id);
           if (this.selectModels.size > 0) {
             this.updateAABbBox();
