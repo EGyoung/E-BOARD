@@ -1,7 +1,7 @@
 import React, { useLayoutEffect, useState } from "react";
 import { DrawShapePlugin, EBoard, IConfigService, IModeService, IModelService, ITransformService } from "@e-board/core";
 import "./styles.css";
-import { RoamPlugin, SelectionPlugin, ClearPlugin, PicturePlugin } from "@e-board/core";
+import { RoamPlugin, SelectionPlugin, ClearPlugin, PicturePlugin, FpsPlugin } from "@e-board/core";
 import { Panel, StageTool, FloatingToolbar } from '@e-board/workbench'
 
 const App: React.FC = () => {
@@ -12,7 +12,7 @@ const App: React.FC = () => {
     const board = new EBoard({
       container: document.getElementById("board") as HTMLDivElement,
       id: "app-board",
-      plugins: [RoamPlugin, SelectionPlugin, DrawShapePlugin, ClearPlugin, PicturePlugin]
+      plugins: [RoamPlugin, SelectionPlugin, DrawShapePlugin, ClearPlugin, PicturePlugin, FpsPlugin]
     });
     (window as any).board = board;
     eboard.current = board;
@@ -21,7 +21,7 @@ const App: React.FC = () => {
 
     const { dispose } =
       eboard.current.getPlugin("SelectionPlugin")?.exports.onSelectedElements((model: any) => {
-        console.log("选中元素", model);
+        // console.log("选中元素", model);
         // 更新选中的元素，用于显示浮动工具栏
         setSelectedElement(model && model.length > 0 ? model[0] : null);
       }) ?? {};
