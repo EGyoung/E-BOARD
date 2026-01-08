@@ -170,7 +170,7 @@ class DrawShapePlugin implements IPlugin {
     const context = this.board.getCtx();
     if (!context) return;
     const [point] = model.points!;
-    context.save()
+    // context.save()
     const transformedPoint = this.transformPoint({ x: point.x, y: point.y });
     context.rect(
       transformedPoint.x,
@@ -182,7 +182,7 @@ class DrawShapePlugin implements IPlugin {
       context.fillStyle = model.options.fillStyle;
       context.fill();
     }
-    context.restore();
+    // context.restore();
   };
 
   private getCanvasPoint(clientX: number, clientY: number) {

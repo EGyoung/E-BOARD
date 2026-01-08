@@ -191,7 +191,6 @@ class SelectionPlugin implements IPlugin {
             points: initialPoints.map(p => ({ x: p.x + x, y: p.y + y }))
           });
         });
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
         return;
       }
 
