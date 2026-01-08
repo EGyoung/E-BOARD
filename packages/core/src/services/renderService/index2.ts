@@ -24,6 +24,7 @@ class TileManager {
     private tiles: Map<string, Set<any>> = new Map();
     private canvasWidth: number = 0;
     private canvasHeight: number = 0;
+    private dpr: number = window.devicePixelRatio || 1;
 
     constructor(gridRows = 32, gridCols = 32) {
         this.gridRows = gridRows;
@@ -36,11 +37,14 @@ class TileManager {
         this.canvasHeight = height;
     }
 
-    // 获取当前瓦片尺寸（动态计算）
+    // 获取当前瓦片尺寸（基于 CSS 坐标系）
     getTileSize(): { width: number; height: number } {
+        // 使用 CSS 尺寸计算瓦片，因为 getBoundingBox 返回 CSS 坐标
+        const cssWidth = this.canvasWidth / this.dpr;
+        const cssHeight = this.canvasHeight / this.dpr;
         return {
-            width: this.canvasWidth / this.gridCols,
-            height: this.canvasHeight / this.gridRows
+            width: cssWidth / this.gridCols,
+            height: cssHeight / this.gridRows
         };
     }
 
