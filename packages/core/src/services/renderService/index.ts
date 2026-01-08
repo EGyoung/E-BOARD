@@ -60,22 +60,22 @@ class TileManager {
     return keys;
   }
 
-  public addModel(model: IModel<Record<string, any>> | undefined, boundingBox: Range) {
-    if (!model) return;
+  public addModelId(modelId: string | undefined, boundingBox: Range) {
+    if (!modelId) return;
     const keys = this.getKeysByBoundingBox(boundingBox);
     keys.forEach((key) => {
       if (!this.tailMap.has(key)) {
         this.tailMap.set(key, new Set());
       }
-      this.tailMap.get(key)?.add(model.id);
+      this.tailMap.get(key)?.add(modelId);
     })
   }
 
-  public removeModel(model: IModel<Record<string, any>> | undefined, boundingBox: Range) {
-    if (!model) return;
+  public removeModelId(modelId: string | undefined, boundingBox: Range) {
+    if (!modelId) return;
     const keys = this.getKeysByBoundingBox(boundingBox);
     keys.forEach((key) => {
-      this.tailMap.get(key)?.delete(model.id);
+      this.tailMap.get(key)?.delete(modelId);
       // 判断是否已经为空
       if (this.tailMap.get(key)?.size === 0) {
         // 如果为空，则从 map 中删除该键
@@ -84,9 +84,10 @@ class TileManager {
     })
   }
 
-  public updateModel(model: IModel<Record<string, any>> | undefined, oldBoundingBox: Range, newBoundingBox: Range) {
-    this.removeModel(model, oldBoundingBox);
-    this.addModel(model, newBoundingBox);
+  public updateModelId(modelId: string | undefined, oldBoundingBox: Range, newBoundingBox: Range) {
+    if (!modelId) return;
+    this.removeModelId(modelId, oldBoundingBox);
+    this.addModelId(modelId, newBoundingBox);
   }
 
   public getModelIdsInRange(boundingBox: Range) {
@@ -120,7 +121,7 @@ class RenderService implements IRenderService {
 
   public static readonly TILE_ROWS = 32;
   public static readonly TILE_COLS = 32;
-  public static readonly TILE_BUFFER = 200; // minX,minY,maxX,maxY 各扩展200px, 确保边界上的model也能被包含进来
+  public static readonly TILE_BUFFER = 10; // minX,minY,maxX,maxY 各扩展10px, 确保边界上的model也能被包含进来
 
   private getCanvasSize = () => {
     const canvas = this.board.getCanvas();
@@ -138,7 +139,7 @@ class RenderService implements IRenderService {
     models.forEach(model => {
       const box = model.ctrlElement?.getBoundingBox?.(model);
       if (box) {
-        this.tileManager.addModel(model, this.normalizeBoundingBox(box));
+        this.tileManager.addModelId(model.id, this.normalizeBoundingBox(box));
       }
     });
 
@@ -222,7 +223,7 @@ class RenderService implements IRenderService {
       this.accumulateRange(boundingBox);
       const box = event.model?.ctrlElement?.getBoundingBox?.(event.model);
       if (box) {
-        this.tileManager.addModel(event.model, this.normalizeBoundingBox(box));
+        this.tileManager.addModelId(event.model?.id, this.normalizeBoundingBox(box));
       }
     } else if (event.type === ModelChangeType.DELETE) {
       const boundingBox = this.getExpandedBoundingBox(event.model);
@@ -230,7 +231,7 @@ class RenderService implements IRenderService {
       this.accumulateRange(boundingBox);
       const box = event.model?.ctrlElement?.getBoundingBox?.(event.model);
       if (box) {
-        this.tileManager.removeModel(event.model, this.normalizeBoundingBox(box));
+        this.tileManager.removeModelId(event.model?.id, this.normalizeBoundingBox(box));
       }
     } else if (event.type === ModelChangeType.UPDATE) {
       // 获取更新后的完整模型
@@ -256,8 +257,8 @@ class RenderService implements IRenderService {
       const prevBox = previousModel.ctrlElement?.getBoundingBox?.(previousModel);
       const currentBox = currentModel.ctrlElement?.getBoundingBox?.(currentModel);
       if (prevBox && currentBox) {
-        this.tileManager.updateModel(
-          currentModel,
+        this.tileManager.updateModelId(
+          currentModel.id,
           this.normalizeBoundingBox(prevBox),
           this.normalizeBoundingBox(currentBox)
         );
@@ -322,8 +323,8 @@ class RenderService implements IRenderService {
       models.forEach((model) => {
         const box = model.ctrlElement?.getBoundingBox?.(model);
         if (box) {
-          this.tileManager.addModel(
-            model,
+          this.tileManager.addModelId(
+            model.id,
             this.normalizeBoundingBox(box as Range)
           );
         }
