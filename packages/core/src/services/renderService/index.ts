@@ -4,7 +4,7 @@ import { IModelService, ModelChangeType, BoundingBox, IModel } from '../modelSer
 import { ITransformService } from "../transformService/type";
 import { initContextAttrs } from "@e-board/utils";
 
-import { IDrawModelHandler, IRenderService, Range } from "./type";
+import { IDrawModelHandler, IRenderService, Range, View } from "./type";
 import { TileManager } from "./tileManager";
 
 class RenderService implements IRenderService {
@@ -191,9 +191,15 @@ class RenderService implements IRenderService {
     }
   };
 
+  private lastStatus: View | null = null
 
-
-  private lastStatus: any
+  private isViewChanged(view: View) {
+    return this.lastStatus && (
+      this.lastStatus.x !== view.x ||
+      this.lastStatus.y !== view.y ||
+      this.lastStatus.zoom !== view.zoom
+    );
+  }
 
   private _render = () => {
 
@@ -207,16 +213,8 @@ class RenderService implements IRenderService {
 
     let renderModels: IModel<Record<string, any>>[] = models;
     const view = transformService.getView();
-
-    // 检查视图是否发生变化（漫游、缩放）
-    const viewChanged = this.lastStatus && (
-      this.lastStatus.x !== view.x ||
-      this.lastStatus.y !== view.y ||
-      this.lastStatus.zoom !== view.zoom
-    );
-
     // 如果视图变化，重建瓦片索引
-    if (viewChanged) {
+    if (this.isViewChanged(view)) {
       this.tileManager.clear();
       models.forEach((model) => {
         const box = model.ctrlElement?.getBoundingBox?.(model);
@@ -232,8 +230,6 @@ class RenderService implements IRenderService {
         y: view.y,
         zoom: view.zoom
       };
-      // 注意：不要清空 currentRanges，让脏矩形渲染继续工作
-      // 只有在需要强制全屏渲染时才清空
     }
 
 

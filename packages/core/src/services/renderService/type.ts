@@ -12,3 +12,8 @@ export type Range = {
 export interface IDrawModelHandler {
     (model: any, ctx?: CanvasRenderingContext2D): void;
 }
+export interface View {
+    x: number;
+    y: number;
+    zoom: number;
+}
