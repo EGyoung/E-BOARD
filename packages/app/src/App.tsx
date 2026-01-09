@@ -1,8 +1,8 @@
 import React, { useLayoutEffect, useState } from "react";
-import { DrawShapePlugin, EBoard, IConfigService, IModeService, IModelService, ITransformService } from "@e-board/core";
+import { DrawShapePlugin, EBoard, IConfigService, IModelService, ITransformService } from "@e-board/core";
 import "./styles.css";
-import { RoamPlugin, SelectionPlugin, ClearPlugin, PicturePlugin, FpsPlugin } from "@e-board/core";
-import { Panel, StageTool, FloatingToolbar } from '@e-board/workbench'
+import { RoamPlugin, SelectionPlugin, ClearPlugin, PicturePlugin, FpsPlugin, HotkeyPlugin } from "@e-board/core";
+import { Panel, StageTool } from '@e-board/workbench'
 
 const App: React.FC = () => {
   const eboard = React.useRef<EBoard | null>(null);
@@ -12,7 +12,7 @@ const App: React.FC = () => {
     const board = new EBoard({
       container: document.getElementById("board") as HTMLDivElement,
       id: "app-board",
-      plugins: [RoamPlugin, SelectionPlugin, DrawShapePlugin, ClearPlugin, PicturePlugin, FpsPlugin]
+      plugins: [HotkeyPlugin, RoamPlugin, SelectionPlugin, DrawShapePlugin, ClearPlugin, PicturePlugin, FpsPlugin]
     });
     (window as any).board = board;
     eboard.current = board;

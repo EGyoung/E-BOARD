@@ -10,6 +10,7 @@ export * from "./elementService/type";
 export * from "./configService/type";
 export * from "./historyService/type";
 export * from "./canvasService/type";
+export * from './pluginService/type'
 
 export { default as PointerEventService } from "./pointerEventService";
 export { default as SelectionService } from "./selectionService";
@@ -21,4 +22,5 @@ export { default as ElementService } from "./elementService";
 export { default as ConfigService } from "./configService";
 export { default as HistoryService } from "./historyService";
 export { default as CanvasService } from "./canvasService";
+export { default as PluginService } from './pluginService'
 export type { IService };
