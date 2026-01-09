@@ -7,7 +7,9 @@ import { ITransformService } from "../../services/transformService/type";
 import { Emitter } from "@e-board/utils";
 
 const CURRENT_MODE = "selection";
-
+/**
+ * TODO: 修改为selectionService
+ */
 class SelectionPlugin implements IPlugin {
   private board!: IBoard;
   private disposeList: (() => void)[] = [];
@@ -183,6 +185,7 @@ class SelectionPlugin implements IPlugin {
       this.rafId = requestAnimationFrame(() => {
         if (!this.pointerDownPoint) return;
 
+
         if (this.selectModels.size > 0) {
           const deltaX = e.clientX - this.pointerDownPoint.x;
           const deltaY = e.clientY - this.pointerDownPoint.y;
@@ -199,6 +202,7 @@ class SelectionPlugin implements IPlugin {
             this.modelService.updateModel(id, {
               points: initialPoints.map(p => ({ x: p.x + x, y: p.y + y }))
             });
+            tempModel.ctrlElement?.onElementMove?.();
           });
           return;
         }

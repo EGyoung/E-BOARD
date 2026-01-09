@@ -6,6 +6,8 @@ import { IRenderService } from "../../services/renderService/type";
 import { ITransformService } from "../../services/transformService/type";
 import { IBoard, IPluginInitParams } from "../../types";
 import { IPlugin } from "../type";
+import { TextEditor } from "./textEditor";
+import { getCanvasTextConfig } from "./textEditor/config";
 
 const CURRENT_MODE = "drawShape";
 // const defaultFillStyle = 'pink'
@@ -24,12 +26,15 @@ class DrawShapePlugin implements IPlugin {
   private renderService = eBoardContainer.get<IRenderService>(IRenderService);
   private transformService = eBoardContainer.get<ITransformService>(ITransformService);
   private lastPoint = { x: 0, y: 0 };
+  private textEditor: TextEditor | null = null
 
   private currentModel: IModel | null = null;
 
   public pluginName = "DrawShapePlugin";
 
   public dependencies = [];
+
+  // private canSelection = true
 
   public transformPoint(point: { x: number; y: number }, inverse = false) {
     return this.transformService.transformPoint(point, inverse);
@@ -49,6 +54,7 @@ class DrawShapePlugin implements IPlugin {
           ...this.configService.getCtxConfig()
         },
         ctrlElement: {
+          // canSelection: () => this.canSelection,
           isHint: (params: { point: { x: number, y: number }, model: { points: { x: number, y: number }[], options: any } }) => {
             const { point, model } = params;
             const [_point] = model.points!;
@@ -93,6 +99,11 @@ class DrawShapePlugin implements IPlugin {
               maxX: screenPos.x + screenWidth + halfStroke,
               maxY: screenPos.y + screenHeight + halfStroke
             } as BoundingBox;
+          },
+          onElementMove: () => {
+            console.log('????sdfasdfas', this.textEditor)
+            this.textEditor?.blurCurrentTextarea()
+            // this.textEditor?.dispose()
           }
         }
       });
@@ -141,6 +152,9 @@ class DrawShapePlugin implements IPlugin {
     this.board = board;
     this.initDrawMode();
     this.registerShapeDrawHandler();
+    // 可以通过设置 debug: true 来启用调试模式
+    this.textEditor = new TextEditor(this.board as any, { debug: false })
+    this.textEditor.init()
   }
 
   private initDrawMode() {
@@ -170,19 +184,56 @@ class DrawShapePlugin implements IPlugin {
     const context = this.board.getCtx();
     if (!context) return;
     const [point] = model.points!;
-    // context.save()
     const transformedPoint = this.transformPoint({ x: point.x, y: point.y });
+    const zoom = this.transformService.getView().zoom;
+
+    // 绘制矩形
     context.rect(
       transformedPoint.x,
       transformedPoint.y,
-      model.width * this.transformService.getView().zoom,
-      model.height * this.transformService.getView().zoom
+      model.width * zoom,
+      model.height * zoom
     );
     if (model.options?.fillStyle) {
       context.fillStyle = model.options.fillStyle;
       context.fill();
     }
-    // context.restore();
+
+    // 绘制文本（支持多行布局）
+    if ((model as any).text) {
+      context.save();
+      const textLayout = (model as any).textLayout;
+
+      if (textLayout) {
+        // 使用保存的文本布局信息
+        // 注意：canvas context 已经通过 ctx.scale(dpr, dpr) 进行了缩放
+        // 所以我们使用的是 CSS 像素，不需要再乘以 dpr
+        const { lines, lineHeight, fontSize, fontFamily, paddingTop, paddingLeft, dpr } = textLayout;
+
+        // 使用 CSS 像素，canvas 已经处理了 DPR 缩放
+        context.font = `${fontSize * zoom}px ${fontFamily}`;
+        context.fillStyle = 'black';
+        context.textBaseline = 'top';
+
+        // 绘制每一行文本
+        // transformedPoint、padding、lineHeight 都是 CSS 像素
+        // canvas context 的 scale(dpr, dpr) 会自动处理到物理像素的转换
+        lines.forEach((line: string, index: number) => {
+          const textX = transformedPoint.x + (paddingLeft * zoom);
+          const textY = transformedPoint.y + (paddingTop * zoom) + (index * lineHeight * zoom);
+          context.fillText(line, textX, textY);
+        });
+      } else {
+        // 降级方案：使用配置中的默认值
+        const config = getCanvasTextConfig(zoom);
+        context.font = `${config.fontSize}px ${config.fontFamily}`;
+        context.fillStyle = config.textColor;
+        context.textBaseline = 'top';
+        context.fillText((model as any).text, transformedPoint.x + config.paddingLeft, transformedPoint.y + config.paddingTop);
+      }
+
+      context.restore();
+    }
   };
 
   private getCanvasPoint(clientX: number, clientY: number) {
@@ -242,6 +293,7 @@ class DrawShapePlugin implements IPlugin {
   public dispose() {
     this.disposeList.forEach(dispose => dispose());
     this.renderService.unregisterDrawModelHandler("rectangle");
+    this.textEditor?.dispose()
   }
 }
 

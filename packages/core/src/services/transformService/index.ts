@@ -1,3 +1,4 @@
+import { Emitter } from "@e-board/utils";
 import type EBoard from "../../board";
 import { IServiceInitParams } from "../../types";
 import { IRenderService } from "../renderService/type";
@@ -12,6 +13,10 @@ class TransformService implements ITransformService {
   private y: number = 0;
 
   private zoom: number = 1;
+
+  private readonly _onTransformChange = new Emitter<{ x: number; y: number; zoom: number }>()
+
+  public readonly onTransformChange = this._onTransformChange.event;
 
   init = ({ board }: IServiceInitParams) => {
     this.board = board as EBoard;
@@ -47,6 +52,7 @@ class TransformService implements ITransformService {
       if (!ctx || !canvas) return;
       const renderService = this.board.getService('renderService')
       renderService.reRender();
+      this._onTransformChange.fire({ x: this.x, y: this.y, zoom: this.zoom });
     }
   };
 
