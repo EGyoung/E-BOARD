@@ -16,6 +16,7 @@ class SelectionPlugin implements IPlugin {
   private selectModels = new Set<string>();
   private initialModelPositions = new Map<string, { x: number; y: number }[]>();
   private currentSelectRange: { x: number; y: number; width: number; height: number } | null = null;
+  private rafId: number | null = null;
   private modelService = eBoardContainer.get<IModelService>(IModelService);
   private transformService = eBoardContainer.get<ITransformService>(ITransformService);
   private readonly _onSelectedElements = new Emitter<IModel>();
@@ -173,48 +174,63 @@ class SelectionPlugin implements IPlugin {
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
 
-      if (this.selectModels.size > 0) {
-        const deltaX = e.clientX - this.pointerDownPoint.x;
-        const deltaY = e.clientY - this.pointerDownPoint.y;
-        const x = deltaX / (this.transformService.getView().zoom || 1);
-        const y = deltaY / (this.transformService.getView().zoom || 1);
-        // 基于初始位置和总偏移量更新模型位置
-        this.selectModels.forEach(id => {
-          const initialPoints = this.initialModelPositions.get(id);
-          if (!initialPoints) return;
-
-          const tempModel = this.modelService.getModelById(id);
-          if (!tempModel) return;
-
-          this.modelService.updateModel(id, {
-            ...tempModel,
-            points: initialPoints.map(p => ({ x: p.x + x, y: p.y + y }))
-          });
-        });
-        return;
+      // 使用 requestAnimationFrame 节流
+      if (this.rafId !== null) {
+        cancelAnimationFrame(this.rafId);
       }
 
-      const width = e.clientX - this.pointerDownPoint.x;
-      const height = e.clientY - this.pointerDownPoint.y;
+      // 移动过程中要添加帧截流 不然会非常卡顿 每次移动的时候都要遍历一遍selectModels
+      this.rafId = requestAnimationFrame(() => {
+        if (!this.pointerDownPoint) return;
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.save();
-      ctx.strokeStyle = "rgba(14, 87, 75, 1)";
-      // 虚线
-      ctx.setLineDash([5, 5]);
-      ctx.lineWidth = 2;
-      ctx.strokeRect(this.pointerDownPoint.x, this.pointerDownPoint.y, width, height);
-      this.currentSelectRange = {
-        x: this.pointerDownPoint.x,
-        y: this.pointerDownPoint.y,
-        width: width || 1,
-        height: height || 1
-      };
-      ctx.restore();
+        if (this.selectModels.size > 0) {
+          const deltaX = e.clientX - this.pointerDownPoint.x;
+          const deltaY = e.clientY - this.pointerDownPoint.y;
+          const x = deltaX / (this.transformService.getView().zoom || 1);
+          const y = deltaY / (this.transformService.getView().zoom || 1);
+          // 基于初始位置和总偏移量更新模型位置
+          this.selectModels.forEach(id => {
+            const initialPoints = this.initialModelPositions.get(id);
+            if (!initialPoints) return;
+
+            const tempModel = this.modelService.getModelById(id);
+            if (!tempModel) return;
+
+            this.modelService.updateModel(id, {
+              points: initialPoints.map(p => ({ x: p.x + x, y: p.y + y }))
+            });
+          });
+          return;
+        }
+
+        const width = e.clientX - this.pointerDownPoint.x;
+        const height = e.clientY - this.pointerDownPoint.y;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.save();
+        ctx.strokeStyle = "rgba(14, 87, 75, 1)";
+        // 虚线
+        ctx.setLineDash([5, 5]);
+        ctx.lineWidth = 2;
+        ctx.strokeRect(this.pointerDownPoint.x, this.pointerDownPoint.y, width, height);
+        this.currentSelectRange = {
+          x: this.pointerDownPoint.x,
+          y: this.pointerDownPoint.y,
+          width: width || 1,
+          height: height || 1
+        };
+        ctx.restore();
+      });
     };
 
     const handlePointerUp = (e: PointerEvent) => {
       if (!this.pointerDownPoint) return;
+
+      // 清理 requestAnimationFrame
+      if (this.rafId !== null) {
+        cancelAnimationFrame(this.rafId);
+        this.rafId = null;
+      }
 
       if (this.selectModels.size > 0) {
         container.removeEventListener("pointermove", handlePointerMove);
@@ -355,6 +371,10 @@ class SelectionPlugin implements IPlugin {
   }
 
   public dispose() {
+    if (this.rafId !== null) {
+      cancelAnimationFrame(this.rafId);
+      this.rafId = null;
+    }
     this.disposeList.forEach(dispose => dispose());
     this.disposeList = [];
   }
