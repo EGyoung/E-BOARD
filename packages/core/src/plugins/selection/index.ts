@@ -23,7 +23,11 @@ class SelectionPlugin implements IPlugin {
   private transformService = eBoardContainer.get<ITransformService>(ITransformService);
   private readonly _onSelectedElements = new Emitter<IModel>();
   private emitSelectedElement = this._onSelectedElements.fire.bind(this._onSelectedElements);
+  /**
+   * 是否选中元素 如果已经渲染的元素再次被选中则不会被触发
+   */
   public onSelectedElements = this._onSelectedElements.event;
+
   public pluginName = "SelectionPlugin";
 
   public exports = {
@@ -202,7 +206,7 @@ class SelectionPlugin implements IPlugin {
             this.modelService.updateModel(id, {
               points: initialPoints.map(p => ({ x: p.x + x, y: p.y + y }))
             });
-            tempModel.ctrlElement?.onElementMove?.();
+            tempModel.ctrlElement?.onElementMove?.(e);
           });
           return;
         }

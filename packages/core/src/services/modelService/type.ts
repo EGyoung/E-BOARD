@@ -51,7 +51,7 @@ export type IModel<T extends Record<string, any> = Record<string, any>> = {
   ctrlElement: {
     getBoundingBox: (model: IModel<any>) => BoundingBox;
     isHint: (params: any) => boolean;
-    onElementMove?: () => void;
+    onElementMove?: (e: any) => void;
   }
 } & T
 

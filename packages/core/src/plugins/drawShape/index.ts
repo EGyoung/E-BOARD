@@ -50,6 +50,7 @@ class DrawShapePlugin implements IPlugin {
         points: [{ x: transformedPoint.x, y: transformedPoint.y }],
         width: 0,
         height: 0,
+        isDrawing: true,
         options: {
           ...this.configService.getCtxConfig()
         },
@@ -100,10 +101,16 @@ class DrawShapePlugin implements IPlugin {
               maxY: screenPos.y + screenHeight + halfStroke
             } as BoundingBox;
           },
-          onElementMove: () => {
-            console.log('????sdfasdfas', this.textEditor)
+          onElementMove: (e: any) => {
+            // 移动距离
+            const { movementX, movementY } = e;
+            console.log('?????? move', movementX, movementY)
+            if (
+              Math.abs(movementX) <= 1 && Math.abs(movementY) <= 1
+            ) {
+              return
+            }
             this.textEditor?.blurCurrentTextarea()
-            // this.textEditor?.dispose()
           }
         }
       });
@@ -140,7 +147,8 @@ class DrawShapePlugin implements IPlugin {
         points: [{ x, y }],
         width,
         height,
-        fillStyle: this.currentModel!.options?.fillStyle
+        fillStyle: this.currentModel!.options?.fillStyle,
+        isDrawing: false
       });
       this.currentModel = null;
     }
