@@ -8,6 +8,7 @@ class EventService implements IEventService {
   private _pointerDownEvent = new Emitter<PointerEvent>();
   private _pointerMoveEvent = new Emitter<PointerEvent>();
   private _pointerUpEvent = new Emitter<PointerEvent>();
+  private _doubleClickEvent = new Emitter<MouseEvent>();
 
   private handlePointerDown = (e: PointerEvent) => {
     e.preventDefault();
@@ -29,9 +30,15 @@ class EventService implements IEventService {
     this._pointerUpEvent.fire(e);
   };
 
+  private handleDoubleClick = (e: MouseEvent) => {
+    e.preventDefault();
+    this._doubleClickEvent.fire(e);
+  }
+
   public onPointerDown = this._pointerDownEvent.event;
   public onPointerMove = this._pointerMoveEvent.event;
   public onPointerUp = this._pointerUpEvent.event;
+  public onDoubleClick = this._doubleClickEvent.event;
 
   public init({ board }: IServiceInitParams) {
     this.board = board;
@@ -54,6 +61,7 @@ class EventService implements IEventService {
     canvas.addEventListener("pointermove", this.handlePointerMove);
     canvas.addEventListener("pointerup", this.handlePointerUp);
     canvas.addEventListener("pointerleave", this.handlePointerLeave);
+    canvas.addEventListener("dblclick", this.handleDoubleClick);
   };
 
   public dispose(): void {
