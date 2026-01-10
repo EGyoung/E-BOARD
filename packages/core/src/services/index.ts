@@ -1,6 +1,6 @@
 import { IService } from "./type";
 
-export * from "./pointerEventService/type";
+export * from "./eventService/type";
 export * from "./selectionService/type";
 export * from "./modelService/type";
 export * from "./modeService/type";
@@ -12,7 +12,7 @@ export * from "./historyService/type";
 export * from "./canvasService/type";
 export * from './pluginService/type'
 
-export { default as PointerEventService } from "./pointerEventService";
+export { default as EventService } from "./eventService";
 export { default as SelectionService } from "./selectionService";
 export { default as ModelService } from "./modelService";
 export { default as ModeService } from "./modeService";

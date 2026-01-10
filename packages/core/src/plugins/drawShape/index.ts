@@ -1,6 +1,6 @@
 import { initContextAttrs } from "@e-board/utils";
 import { eBoardContainer } from "../../common/IocContainer";
-import { BoundingBox, IModelService, IModeService, IPointerEventService } from "../../services";
+import { BoundingBox, IModelService, IModeService, IEventService } from "../../services";
 import { IConfigService, IModel } from "../../services";
 import { IRenderService } from "../../services/renderService/type";
 import { ITransformService } from "../../services/transformService/type";
@@ -269,11 +269,11 @@ class DrawShapePlugin implements IPlugin {
   }
 
   private initDraw = () => {
-    const pointerEventService = eBoardContainer.get<IPointerEventService>(IPointerEventService);
+    const eventService = eBoardContainer.get<IEventService>(IEventService);
 
     let isDrawing = false;
 
-    const { dispose: disposePointerDown } = pointerEventService.onPointerDown(event => {
+    const { dispose: disposePointerDown } = eventService.onPointerDown(event => {
       const ctx = this.board.getInteractionCtx();
       if (!ctx) return;
       isDrawing = true;
@@ -289,7 +289,7 @@ class DrawShapePlugin implements IPlugin {
       this.setCurrentRectangleWithDraw(this.lastPoint);
     });
 
-    const { dispose: disposePointerMove } = pointerEventService.onPointerMove(event => {
+    const { dispose: disposePointerMove } = eventService.onPointerMove(event => {
       if (!isDrawing) return;
       const currentPoint = this.getCanvasPoint(event.clientX, event.clientY);
       const ctx = this.board.getInteractionCtx();
@@ -298,7 +298,7 @@ class DrawShapePlugin implements IPlugin {
       this.setCurrentRectangleWithDraw(currentPoint);
     });
 
-    const { dispose: disposePointerUp } = pointerEventService.onPointerUp(event => {
+    const { dispose: disposePointerUp } = eventService.onPointerUp(event => {
       if (!isDrawing) return;
       const ctx = this.board.getInteractionCtx();
       if (!ctx) return;

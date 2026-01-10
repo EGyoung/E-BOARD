@@ -1,10 +1,10 @@
 import {
   IModelService,
-  IPointerEventService,
+  IEventService,
   ISelectionService,
   ModelService,
   ModeService,
-  PointerEventService,
+  EventService,
   SelectionService,
   RenderService,
   IModeService,
@@ -53,9 +53,9 @@ const commonServicesMap = [
     attrName: "pluginService"
   },
   {
-    name: IPointerEventService,
-    service: PointerEventService,
-    attrName: "pointerEventService"
+    name: IEventService,
+    service: EventService,
+    attrName: "eventService"
   },
   {
     name: ISelectionService,

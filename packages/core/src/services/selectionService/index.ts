@@ -1,6 +1,6 @@
 import { eBoardContainer } from "../../common/IocContainer";
 import { IBoard, IServiceInitParams } from "../../types";
-import { IPointerEventService } from "../pointerEventService/type";
+import { IEventService } from "../eventService/type";
 import { ISelectionService } from "./type";
 interface Point {
   x: number;
@@ -13,26 +13,26 @@ class SelectionService implements ISelectionService {
   private pointerDownPoint: { x: number; y: number } | null = null;
 
   init({ board }: IServiceInitParams) {
-    this.board = board;
-    const pointerEventService = eBoardContainer.get<IPointerEventService>(IPointerEventService);
-    const { dispose: pointerDownDispose } = pointerEventService.onPointerDown(
-      this.handlePointerDown
-    );
-    this.disposeList.push(() => {
-      pointerDownDispose();
-    });
-    return;
+    // this.board = board;
+    // const eventService = eBoardContainer.get<IEventService>(IEventService);
+    // const { dispose: pointerDownDispose } = eventService.onPointerDown(
+    //   this.handlePointerDown
+    // );
+    // this.disposeList.push(() => {
+    //   pointerDownDispose();
+    // });
+    // // return;
 
-    const { dispose: pointerMoveDispose } = pointerEventService.onPointerMove(
-      this.handlePointerMove
-    );
-    const { dispose: pointerUpDispose } = pointerEventService.onPointerUp(this.handlePointerUp);
+    // const { dispose: pointerMoveDispose } = eventService.onPointerMove(
+    //   this.handlePointerMove
+    // );
+    // const { dispose: pointerUpDispose } = eventService.onPointerUp(this.handlePointerUp);
 
-    this.disposeList.push(() => {
-      pointerDownDispose();
-      pointerMoveDispose();
-      pointerUpDispose();
-    });
+    // this.disposeList.push(() => {
+    //   pointerDownDispose();
+    //   pointerMoveDispose();
+    //   pointerUpDispose();
+    // });
   }
 
   private handlePointerMove = (e: PointerEvent) => {
