@@ -22,7 +22,7 @@ const TEXT_EDITOR_CONFIG = {
     borderColor: '#4a90e2',
 
     // 背景设置
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: 'rgba(77, 148, 72, 1)',
 
     // 文本颜色
     textColor: 'black',

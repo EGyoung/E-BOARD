@@ -1,8 +1,5 @@
 import type EBoard from '../../../board/index';
-import type SelectionPlugin from '../../selection';
-import { logTextareaDebugInfo } from './debugHelper';
 import { getTextareaStyles } from './config';
-import type RoamPlugin from '../../roam';
 import { IModeService } from '../../../../../core/src/services';
 import { eBoardContainer } from '../../../../../core/src/common/IocContainer';
 
@@ -171,115 +168,110 @@ class TextEditor {
     public disposeWrapper = ({ dispose }: { dispose: () => void }) => {
         this.disposeLists.push(dispose)
     }
+    private handleBlur = (textarea: HTMLTextAreaElement) => {
+        const container = textarea.parentElement
+        const newText = textarea.value
+        const textLayout = this.getTextLayoutInfo(textarea)
+        const modelService = this.board.getService('modelService')
+        modelService.updateModel(textarea.id, {
+            text: newText,
+            textLayout: textLayout
+        })
+        container?.removeChild(textarea)
+        // 删除之前的 textarea
+        this.removeTextareaFns.forEach((fn) => fn())
+        this.removeTextareaFns = []
 
+    }
 
-
-    public init = () => {
-        // const selectionPlugin = this.board.getPlugin('SelectionPlugin') as SelectionPlugin
-        const container = this.board.getContainer()
-
-        const onHintElements = (e: PointerEvent) => {
-            const modeService = this.board.getService('modeService')
-            if (modeService.getCurrentMode() !== 'selection') return
-            const modelService = this.board.getService('modelService')
-            modelService.getAllModels().forEach((model) => {
-                const ctrlElement = model.ctrlElement
-                if (ctrlElement && ctrlElement.isHint({
-                    point: {
-                        x: e.clientX,
-                        y: e.clientY
-                    }, model
-                })) {
-                    if (model.isDrawing) return
-                    console.log(model, 'selected models =======')
-                    // 
-                    if (model) {
-                        // 删除之前的 textarea
-                        this.removeTextareaFns.forEach((fn) => fn())
-                        this.removeTextareaFns = []
-                    }
-                    // console.log(models, '选中元素 ======')
-                    const { x, y, width, height } = model.ctrlElement.getBoundingBox(model)
-                    const textarea = this.createTextarea({
-                        x: x, y: y, height, width
-                    })
-                    const container = this.board.getContainer()
-                    // 插入到最上面
-                    container.appendChild(textarea)
-                    // 进入编辑状态
-                    textarea.focus()
-                    // 失去焦点后，更新模型内容并删除 textarea
-                    const id = model.id
-                    textarea.id = id
-                    if (model.text) {
-                        textarea.value = model.text
-                    }
-                    const handleBlur = () => {
-                        const newText = textarea.value
-                        const textLayout = this.getTextLayoutInfo(textarea)
-
-                        // // 调试模式：打印布局信息
-                        // if (this.debugMode) {
-                        //     console.log('💬 Text Layout Info:', textLayout);
-                        //     logTextareaDebugInfo(textarea);
-                        // }
-
-                        const modelService = this.board.getService('modelService')
-                        modelService.updateModel(id, {
-                            text: newText,
-                            textLayout: textLayout
-                        })
-                        container.removeChild(textarea)
-                        // 删除之前的 textarea
-                        this.removeTextareaFns.forEach((fn) => fn())
-                        this.removeTextareaFns = []
-
-                    }
-                    textarea.addEventListener('blur', handleBlur)
-                    this.removeTextareaFns.push(() => {
-                        textarea.removeEventListener('blur', handleBlur)
-                        if (container.contains(textarea)) {
-                            container.removeChild(textarea)
-                        }
-                    })
-                }
-            })
-        }
-
-        container.addEventListener("pointerdown", onHintElements);
-
-        this.disposeLists.push(() => {
-            container.removeEventListener("pointerdown", onHintElements);
-        });
-
-        // 监听回车，删除对应的 textarea
-        const handleKeyDown = (e: KeyboardEvent) => {
-            e.stopPropagation()
-
-        }
-        const handlePointerUp = (e: PointerEvent) => {
-            const modeService = eBoardContainer.get<IModeService>(IModeService)
-
-            console.log(modeService.getCurrentMode(), 'current mode ========')
-            // if (modeService.getCurrentMode() !== 'selection') return
-            const activeElement = document.activeElement as HTMLTextAreaElement
-            console.log(activeElement, 'activeElement =======')
-            if (activeElement && activeElement.tagName === 'TEXTAREA') {
-                // 点击的不是当前的 textarea，则让 textarea 失去焦点
-                if (e.target !== activeElement) {
-                    activeElement.blur()
-                }
+    private onHintElements = (e: MouseEvent) => {
+        const modeService = this.board.getService('modeService')
+        if (modeService.getCurrentMode() !== 'selection') return
+        const modelService = this.board.getService('modelService')
+        modelService.getAllModels().forEach((model) => {
+            const ctrlElement = model.ctrlElement
+            const point = {
+                x: e.clientX,
+                y: e.clientY
             }
-        }
-        container.addEventListener('keydown', handleKeyDown, { capture: true })
-        container.addEventListener('pointerup', handlePointerUp)
-        this.disposeWrapper({
-            dispose: () => {
-                container.removeEventListener('keydown', handleKeyDown, { capture: true })
-                window.removeEventListener('pointerup', handlePointerUp)
+            const isHint = () => ctrlElement?.isHint({ point, model });
+            if (isHint()) {
+                if (model.isDrawing) return
+                if (model) {
+                    // 删除之前的 textarea
+                    this.removeTextareaFns.forEach((fn) => fn())
+                    this.removeTextareaFns = []
+                }
+                const { x, y, width, height } = model.ctrlElement.getBoundingBox(model)
+                const textarea = this.createTextarea({
+                    x: x, y: y, height, width
+                })
+                const container = this.board.getContainer()
+                // 插入到最上面
+                container.appendChild(textarea)
+                // 进入编辑状态
+                textarea.focus()
+                // 失去焦点后，更新模型内容并删除 textarea
+                const id = model.id
+                textarea.id = id
+                if (model.text) {
+                    textarea.value = model.text
+                }
+                this.initTextareaEvent(textarea)
+
             }
         })
+    }
+
+    private initTextareaEvent = (textarea: HTMLTextAreaElement) => {
+        const blur = this.handleBlur.bind(this, textarea)
+        const container = textarea.parentElement
+        textarea.addEventListener('blur', blur)
+        this.removeTextareaFns.push(() => {
+            textarea.removeEventListener('blur', blur)
+            if (container?.contains(textarea)) {
+                container?.removeChild(textarea)
+            }
+        })
+        const pointerDown = (e: PointerEvent) => e.stopPropagation()
+        textarea.addEventListener('pointerdown', pointerDown, { capture: true })
+        this.removeTextareaFns.push(() => {
+            textarea.removeEventListener('pointerdown', pointerDown, { capture: true })
+        })
+    }
+
+
+
+
+    private handlePointerUp = (e: PointerEvent) => {
+        const modeService = eBoardContainer.get<IModeService>(IModeService)
+        if (modeService.getCurrentMode() !== 'selection') return
+        const activeElement = document.activeElement as HTMLTextAreaElement
+        if (activeElement && activeElement.tagName === 'TEXTAREA') {
+            // 点击的不是当前的 textarea，则让 textarea 失去焦点
+            if (e.target !== activeElement) {
+                activeElement.blur()
+            }
+        }
+    }
+
+
+    // 监听回车，删除对应的 textarea
+    private handleKeyDown = (e: KeyboardEvent) => e.stopPropagation()
+
+    public init = () => {
+        const eventService = this.board.getService('eventService')
+        const container = this.board.getContainer()
+        this.disposeWrapper(eventService.onDoubleClick(this.onHintElements))
+        container.addEventListener('keydown', this.handleKeyDown, { capture: true })
+        container.addEventListener('pointerup', this.handlePointerUp)
         this.initTransformListeners();
+        this.disposeWrapper({
+            dispose: () => {
+                container.removeEventListener('keydown', this.handleKeyDown, { capture: true })
+                window.removeEventListener('pointerup', this.handlePointerUp)
+            }
+        })
     }
 
     public blurCurrentTextarea() {

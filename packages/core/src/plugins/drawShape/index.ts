@@ -10,7 +10,6 @@ import { TextEditor } from "./textEditor";
 import { getCanvasTextConfig } from "./textEditor/config";
 
 const CURRENT_MODE = "drawShape";
-// const defaultFillStyle = 'pink'
 
 
 type IShapeRectangle = {
@@ -101,15 +100,7 @@ class DrawShapePlugin implements IPlugin {
               maxY: screenPos.y + screenHeight + halfStroke
             } as BoundingBox;
           },
-          onElementMove: (e: any) => {
-            // 移动距离
-            const { movementX, movementY } = e;
-            console.log('?????? move', movementX, movementY)
-            if (
-              Math.abs(movementX) <= 1 && Math.abs(movementY) <= 1
-            ) {
-              return
-            }
+          onElementMove: () => {
             this.textEditor?.blurCurrentTextarea()
           }
         }
