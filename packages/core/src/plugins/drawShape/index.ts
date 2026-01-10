@@ -196,6 +196,7 @@ class DrawShapePlugin implements IPlugin {
     const zoom = this.transformService.getView().zoom;
 
     // 绘制矩形
+    context.beginPath();
     context.rect(
       transformedPoint.x,
       transformedPoint.y,
@@ -206,10 +207,22 @@ class DrawShapePlugin implements IPlugin {
       context.fillStyle = model.options.fillStyle;
       context.fill();
     }
+    context.stroke();
 
     // 绘制文本（支持多行布局）
     if ((model as any).text) {
       context.save();
+
+      // 添加裁剪避免由文字溢出导致的渲染残留
+      context.beginPath();
+      context.rect(
+        transformedPoint.x,
+        transformedPoint.y,
+        model.width * zoom,
+        model.height * zoom
+      );
+      context.clip();
+
       const textLayout = (model as any).textLayout;
 
       if (textLayout) {
