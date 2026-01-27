@@ -1,8 +1,8 @@
-import { IBoard, IPluginInitParams } from "../../types";
-import { IPlugin } from "../type";
 
-class FpsPlugin implements IPlugin {
-    private board!: IBoard;
+
+
+class FpsPlugin {
+    private board!: any;
     private animationFrameId: number | null = null;
     private lastFrameTime = performance.now();
     private frameCount = 0;
@@ -21,7 +21,7 @@ class FpsPlugin implements IPlugin {
         isEnabled: this.isEnabled.bind(this)
     };
 
-    public init({ board }: IPluginInitParams) {
+    public init({ board }: any) {
         this.board = board;
         this.createFpsElement();
         this.startFpsMonitor();
@@ -118,14 +118,6 @@ class FpsPlugin implements IPlugin {
             <div style="font-size: 10px; color: #000000;">avg: ${avgFps}</div>
         `;
     };
-
-    private getFpsColor(fps: number): string {
-        if (fps >= 55) return '#00ff00'; // 绿色：优秀
-        if (fps >= 45) return '#90ee90'; // 浅绿色：良好
-        if (fps >= 30) return '#ffff00'; // 黄色：一般
-        if (fps >= 20) return '#ffa500'; // 橙色：较差
-        return '#ff0000'; // 红色：很差
-    }
 
     public getFps(): number {
         return this.fps;

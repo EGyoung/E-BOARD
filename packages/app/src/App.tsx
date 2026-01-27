@@ -1,8 +1,9 @@
 import React, { useLayoutEffect, useState } from "react";
 import { DrawShapePlugin, EBoard, IConfigService, IModelService, ITransformService, RectCtrlElement } from "@e-board/core";
 import "./styles.css";
-import { RoamPlugin, SelectionPlugin, ClearPlugin, PicturePlugin, FpsPlugin, HotkeyPlugin } from "@e-board/core";
-import { Panel, StageTool } from '@e-board/workbench'
+import { RoamPlugin, SelectionPlugin, ClearPlugin, PicturePlugin, HotkeyPlugin } from "@e-board/core";
+import { Panel, StageTool } from '@e-board/workbench';
+import { FpsPlugin } from './plugins'
 
 const App: React.FC = () => {
   const eboard = React.useRef<EBoard | null>(null);
