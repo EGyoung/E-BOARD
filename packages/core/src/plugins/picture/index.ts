@@ -1,5 +1,5 @@
 import { eBoardContainer } from "../../common/IocContainer";
-import { IModelService } from "../../services";
+import { IConfigService, IModelService } from "../../services";
 import { IRenderService } from "../../services/renderService/type";
 import { ITransformService } from "../../services/transformService/type";
 import { IBoard, IPluginInitParams } from "../../types";
@@ -20,6 +20,7 @@ class PicturePlugin implements IPlugin {
     private modelService = eBoardContainer.get<IModelService>(IModelService);
     private renderService = eBoardContainer.get<IRenderService>(IRenderService);
     private transformService = eBoardContainer.get<ITransformService>(ITransformService);
+    private configService = eBoardContainer.get<IConfigService>(IConfigService);
     private imageCache = new Map<string, HTMLImageElement>();
 
     public pluginName = "PicturePlugin";
@@ -73,6 +74,10 @@ class PicturePlugin implements IPlugin {
                     width: img.width,
                     height: img.height,
                     points: [finalPosition],
+                    options: {
+                        ...this.configService.getCtxConfig(),
+                        lineWidth: 0
+                    },
                     ctrlElementConstructor: RectCtrlElement
                 } as Partial<PictureModel>);
 
