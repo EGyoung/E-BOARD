@@ -262,7 +262,7 @@ private isIntersecting(a: IRect, b: IRect): boolean {
 `DrawPlugin` 中的 `createCtrlElement` 已经提供了：
 
 - `getBoundingBox(model)`：通过所有 `points`（已转换成画布坐标）计算 `minX/minY/maxX/maxY`；
-- `isHint`：用于命中测试。
+- `isHit`：用于命中测试。
 
 这类 `getBoundingBox` 完全可以直接被 `ModelService` 和 `RenderService` 复用。
 

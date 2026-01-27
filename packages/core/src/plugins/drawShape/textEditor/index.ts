@@ -184,7 +184,7 @@ class TextEditor {
 
     }
 
-    private onHintElements = (e: MouseEvent) => {
+    private onHitElements = (e: MouseEvent) => {
         const modeService = this.board.getService('modeService')
         if (modeService.getCurrentMode() !== 'selection') return
         const modelService = this.board.getService('modelService')
@@ -194,15 +194,15 @@ class TextEditor {
                 x: e.clientX,
                 y: e.clientY
             }
-            const isHint = () => ctrlElement?.isHint({ point, model });
-            if (isHint()) {
+            const isHit = () => ctrlElement?.isHit({ point, model });
+            if (isHit()) {
                 if (model.isDrawing) return
                 if (model) {
                     // 删除之前的 textarea
                     this.removeTextareaFns.forEach((fn) => fn())
                     this.removeTextareaFns = []
                 }
-                const { x, y, width, height } = model.ctrlElement.getBoundingBox(model)
+                const { x, y, width, height } = model.ctrlElement.getBoundingBox();
                 const textarea = this.createTextarea({
                     x: x, y: y, height, width
                 })
@@ -262,7 +262,7 @@ class TextEditor {
     public init = () => {
         const eventService = this.board.getService('eventService')
         const container = this.board.getContainer()
-        this.disposeWrapper(eventService.onDoubleClick(this.onHintElements))
+        this.disposeWrapper(eventService.onDoubleClick(this.onHitElements))
         container.addEventListener('keydown', this.handleKeyDown, { capture: true })
         container.addEventListener('pointerup', this.handlePointerUp)
         this.initTransformListeners();

@@ -35,7 +35,7 @@ class RenderService implements IRenderService {
     this.tileManager.clear();
 
     models.forEach(model => {
-      const box = model.ctrlElement?.getBoundingBox?.(model);
+      const box = model.ctrlElement?.getBoundingBox?.();
       if (box) {
         this.tileManager.addModelId(model.id, this.normalizeBoundingBox(box));
       }
@@ -85,8 +85,8 @@ class RenderService implements IRenderService {
     };
   }
 
-  private getExpandedBoundingBox(state?: any) {
-    const box: BoundingBox | undefined = state?.ctrlElement?.getBoundingBox?.(state);
+  private getExpandedBoundingBox(model?: any) {
+    const box: BoundingBox | undefined = model?.ctrlElement?.getBoundingBox?.(model);
     return box ? this.expendDirtyRange(box as Range) : null;
   }
 
@@ -119,7 +119,7 @@ class RenderService implements IRenderService {
       const boundingBox = this.getExpandedBoundingBox(event.model);
       if (!boundingBox) return;
       this.accumulateRange(boundingBox);
-      const box = event.model?.ctrlElement?.getBoundingBox?.(event.model);
+      const box = event.model?.ctrlElement?.getBoundingBox?.();
       if (box) {
         this.tileManager.addModelId(event.model?.id, this.normalizeBoundingBox(box));
       }
@@ -278,7 +278,7 @@ class RenderService implements IRenderService {
 
     for (const model of renderModels) {
       if (this.currentRanges) {
-        const modelBox = model.ctrlElement.getBoundingBox(model);
+        const modelBox = model.ctrlElement.getBoundingBox();
         if (!modelBox) continue;
         if (!isIntersect(this.currentRanges, modelBox)) {
           continue;

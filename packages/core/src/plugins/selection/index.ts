@@ -128,11 +128,11 @@ class SelectionPlugin implements IPlugin {
         count++
         const ctrlElement = model.ctrlElement
         if (!ctrlElement) continue;
-        const isIntersecting = ctrlElement.isHint({
+        const isIntersecting = ctrlElement.isHit({
           point: this.pointerDownPoint,
           model: model,
         })
-        const bounding = ctrlElement.getBoundingBox(model)
+        const bounding = ctrlElement.getBoundingBox()
         if (!bounding) continue;
         const width = bounding.width;
         const height = bounding.height;
@@ -247,7 +247,7 @@ class SelectionPlugin implements IPlugin {
           // 重新渲染外包围
           const model = this.modelService.getModelById(id);
           if (!model) return;
-          const bounding = model.ctrlElement?.getBoundingBox(model);
+          const bounding = model.ctrlElement?.getBoundingBox();
 
           if (!bounding) return;
           const width = bounding.width;
@@ -278,7 +278,7 @@ class SelectionPlugin implements IPlugin {
       // 计算所有的包围盒
       const models = this.modelService.getAllModels();
       models.forEach(model => {
-        const bounding = model.ctrlElement?.getBoundingBox(model);
+        const bounding = model.ctrlElement?.getBoundingBox();
 
 
         if (!this.currentSelectRange) return;
@@ -341,12 +341,11 @@ class SelectionPlugin implements IPlugin {
   }
 
   private updateAABbBox() {
-    // const zoom = this.transformService.getView().zoom || 1;
     const boxes = Array.from(this.selectModels)
       .map(id => {
         const model = this.modelService.getModelById(id);
         if (!model) return null;
-        const bounding = model.ctrlElement?.getBoundingBox(model);
+        const bounding = model.ctrlElement?.getBoundingBox();
         return bounding;
       })
       .filter(Boolean);

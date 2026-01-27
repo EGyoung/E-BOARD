@@ -5,6 +5,7 @@ import { ITransformService } from "../../services/transformService/type";
 import { IBoard, IPluginInitParams } from "../../types";
 import { IPlugin } from "../type";
 import { IModel } from "../../services/modelService/type";
+import { RectCtrlElement } from "../../board/element/rectElement";
 
 interface PictureModel extends IModel {
     type: "picture";
@@ -72,49 +73,7 @@ class PicturePlugin implements IPlugin {
                     width: img.width,
                     height: img.height,
                     points: [finalPosition],
-                    ctrlElement: {
-                        isHint: (params: { point: { x: number, y: number }, model: { points: { x: number, y: number }[], options: any } }) => {
-                            const { point, model } = params;
-                            const [_point] = model.points!;
-                            const zoom = this.transformService.getView().zoom;
-
-                            // 将世界坐标转换为屏幕坐标
-                            const rectScreenPos = this.transformPoint(_point);
-                            const rectWidth = ((model as any).width || 0) * zoom;
-                            const rectHeight = ((model as any).height || 0) * zoom;
-
-                            // 检查点是否在矩形范围内（屏幕坐标系）
-                            const isInside = point.x >= rectScreenPos.x &&
-                                point.x <= rectScreenPos.x + rectWidth &&
-                                point.y >= rectScreenPos.y &&
-                                point.y <= rectScreenPos.y + rectHeight;
-
-                            return isInside;
-                        },
-                        getBoundingBox: (model: IModel<any>) => {
-                            const [point] = model.points!;
-                            const width = model.width || 0;
-                            const height = model.height || 0;
-                            const zoom = this.transformService.getView().zoom;
-
-                            // 将世界坐标转换为屏幕坐标
-                            const screenPos = this.transformPoint(point);
-                            const screenWidth = width * zoom;
-                            const screenHeight = height * zoom;
-
-                            // 返回矩形的边界框（屏幕坐标系）
-                            return {
-                                x: screenPos.x,
-                                y: screenPos.y,
-                                width: screenWidth,
-                                height: screenHeight,
-                                minX: screenPos.x,
-                                minY: screenPos.y,
-                                maxX: screenPos.x + screenWidth,
-                                maxY: screenPos.y + screenHeight
-                            };
-                        }
-                    }
+                    ctrlElementConstructor: RectCtrlElement
                 } as Partial<PictureModel>);
 
                 resolve(model.id);

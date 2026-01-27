@@ -1,5 +1,5 @@
 import React, { useLayoutEffect, useState } from "react";
-import { DrawShapePlugin, EBoard, IConfigService, IModelService, ITransformService } from "@e-board/core";
+import { DrawShapePlugin, EBoard, IConfigService, IModelService, ITransformService, RectCtrlElement } from "@e-board/core";
 import "./styles.css";
 import { RoamPlugin, SelectionPlugin, ClearPlugin, PicturePlugin, FpsPlugin, HotkeyPlugin } from "@e-board/core";
 import { Panel, StageTool } from '@e-board/workbench'
@@ -127,47 +127,7 @@ const App: React.FC = () => {
           ...configService.getCtxConfig(),
           fillStyle
         },
-        ctrlElement: {
-          isHint: (params: { point: { x: number, y: number }, model: any }) => {
-            const { point, model } = params;
-            const [_point] = model.points!;
-            const zoom = transformService.getView().zoom;
-
-            const rectScreenPos = transformPoint(_point);
-            const rectWidth = (model.width || 0) * zoom;
-            const rectHeight = (model.height || 0) * zoom;
-
-            return (
-              point.x >= rectScreenPos.x &&
-              point.x <= rectScreenPos.x + rectWidth &&
-              point.y >= rectScreenPos.y &&
-              point.y <= rectScreenPos.y + rectHeight
-            );
-          },
-          getBoundingBox: (model: any) => {
-            const [point] = model.points!;
-            const width = model.width || 0;
-            const height = model.height || 0;
-            const zoom = transformService.getView().zoom;
-            const strokeWidth = (model.options?.lineWidth ?? configService.getCtxConfig().lineWidth ?? 1) * zoom;
-            const halfStroke = strokeWidth / 2;
-
-            const screenPos = transformPoint(point);
-            const screenWidth = width * zoom;
-            const screenHeight = height * zoom;
-
-            return {
-              x: screenPos.x,
-              y: screenPos.y,
-              width: screenWidth,
-              height: screenHeight,
-              minX: screenPos.x - halfStroke,
-              minY: screenPos.y - halfStroke,
-              maxX: screenPos.x + screenWidth + halfStroke,
-              maxY: screenPos.y + screenHeight + halfStroke
-            };
-          }
-        }
+        ctrlElementConstructor: RectCtrlElement
       });
     }
   };

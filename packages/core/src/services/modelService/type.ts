@@ -49,10 +49,11 @@ export type IModel<T extends Record<string, any> = Record<string, any>> = {
   points?: IPoint[];
   options?: ModelOptions;
   ctrlElement: {
-    getBoundingBox: (model: IModel<any>) => BoundingBox;
-    isHint: (params: any) => boolean;
+    getBoundingBox: (model?: IModel<any>) => BoundingBox;
+    isHit: (params: any) => boolean;
     onElementMove?: (e: any) => void;
-  }
+  },
+  ctrlElementConstructor: any
 } & T
 
 
