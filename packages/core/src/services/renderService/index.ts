@@ -52,8 +52,7 @@ class RenderService implements IRenderService {
     this.rebuildTileIndex()
 
     // 在重建索引后初始化视图状态，避免首次渲染时误判为视图变化
-    const transformService = eBoardContainer.get<ITransformService>(ITransformService);
-    this.lastStatus = transformService.getView();
+    this.lastStatus = this.transformService.getView();
   };
 
   private initModelChange() {
@@ -179,6 +178,7 @@ class RenderService implements IRenderService {
   public dispose(): void {
     this.modelHandler = new Map();
     this.disposeList.forEach(dispose => dispose());
+    RenderService.transformService = null;
   }
 
   public reRender = () => {
@@ -201,18 +201,27 @@ class RenderService implements IRenderService {
     );
   }
 
-  private _render = () => {
+  public static transformService: ITransformService | null = null;
 
+  private get transformService() {
+    if (!RenderService.transformService) {
+      RenderService.transformService = eBoardContainer.get<ITransformService>(ITransformService);
+    }
+    return RenderService.transformService;
+  }
+
+
+  private _render = () => {
     const context = this.board.getCtx();
     const interactionCtx = this.board.getInteractionCtx();
     const models = this.modelService.getAllModels();
     if (!context) return;
     const canvas = this.board.getCanvas();
     if (!canvas) return;
-    const transformService = eBoardContainer.get<ITransformService>(ITransformService);
 
     let renderModels: IModel<Record<string, any>>[] = models;
-    const view = transformService.getView();
+    const view = this.transformService.getView();
+    console.log(view, '>>>>>>>>>>>>>>>>>>>>>>')
     // 如果视图变化，重建瓦片索引
     if (this.isViewChanged(view)) {
       this.tileManager.clear();
@@ -274,7 +283,7 @@ class RenderService implements IRenderService {
 
     // 设置绘制属性（包括根据缩放调整的线条宽度）
     // 绘制笔记
-    const zoom = transformService.getView().zoom
+    const zoom = this.transformService.getView().zoom
 
     for (const model of renderModels) {
       if (this.currentRanges) {
