@@ -2,7 +2,7 @@ import { eBoardContainer } from "../../common/IocContainer";
 import { IBoard, IServiceInitParams } from "../../types";
 import { IModelService, ModelChangeType, BoundingBox, IModel } from '../modelService/type';
 import { ITransformService } from "../transformService/type";
-import { initContextAttrs } from "@e-board/utils";
+import { Emitter, initContextAttrs } from "@e-board/utils";
 
 import { IDrawModelHandler, IRenderService, Range, View } from "./type";
 import { TileManager } from "./tileManager";
@@ -11,6 +11,10 @@ class RenderService implements IRenderService {
   private board!: IBoard;
   private modelService = eBoardContainer.get<IModelService>(IModelService);
   private modelHandler = new Map<string, IDrawModelHandler>();
+  private readonly _renderStart = new Emitter<void>();
+  private readonly _renderEnd = new Emitter<void>();
+  public onRenderStart = this._renderStart.event;
+  public onRenderEnd = this._renderEnd.event;
   private disposeList: (() => void)[] = [];
   private redrawRequested = false;
   private currentRanges: Range | null = null;
@@ -218,10 +222,10 @@ class RenderService implements IRenderService {
     if (!context) return;
     const canvas = this.board.getCanvas();
     if (!canvas) return;
+    this._renderStart.fire();
 
     let renderModels: IModel<Record<string, any>>[] = models;
     const view = this.transformService.getView();
-    console.log(view, '>>>>>>>>>>>>>>>>>>>>>>')
     // 如果视图变化，重建瓦片索引
     if (this.isViewChanged(view)) {
       this.tileManager.clear();
@@ -306,6 +310,7 @@ class RenderService implements IRenderService {
 
     context.restore();
     this.currentRanges = null;
+    this._renderEnd.fire();
   };
 
 }

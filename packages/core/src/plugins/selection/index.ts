@@ -21,6 +21,7 @@ class SelectionPlugin implements IPlugin {
   private rafId: number | null = null;
   private modelService = eBoardContainer.get<IModelService>(IModelService);
   private transformService = eBoardContainer.get<ITransformService>(ITransformService);
+  private renderService = eBoardContainer.get<IRenderService>(IRenderService);
   private readonly _onSelectedElements = new Emitter<IModel>();
   private emitSelectedElement = this._onSelectedElements.fire.bind(this._onSelectedElements);
   /**
@@ -53,8 +54,11 @@ class SelectionPlugin implements IPlugin {
     if (!canvas) return;
     // todo 通过roam来监听
     canvas.addEventListener("wheel", e => {
-      this.updateAABbBox()
+      this.renderSelectionOverlay();
     });
+
+    const { dispose } = this.renderService.onRenderEnd(this.renderSelectionOverlay);
+    this.disposeList.push(dispose);
 
     modeService.registerMode(CURRENT_MODE, {
       beforeSwitchMode: ({ currentMode }) => {
@@ -134,23 +138,10 @@ class SelectionPlugin implements IPlugin {
         })
         const bounding = ctrlElement.getBoundingBox()
         if (!bounding) continue;
-        const width = bounding.width;
-        const height = bounding.height;
-        const x = bounding.x;
-        const y = bounding.y;
 
         if (isIntersecting) {
-          const ctx = this.board.getInteractionCtx();
           this.addSelectedModels(model.id);
-          if (!ctx) return;
-          ctx.save();
-
-          ctx.strokeStyle = "white";
-          ctx.setLineDash([5, 5]);
-          ctx.lineWidth = 2;
-
-          ctx.strokeRect(x, y, width, height);
-          ctx.restore();
+          this.renderSelectionOverlay();
           break
         }
         // 判断是否最后一个
@@ -239,31 +230,13 @@ class SelectionPlugin implements IPlugin {
         cancelAnimationFrame(this.rafId);
         this.rafId = null;
       }
-
       if (this.selectModels.size > 0) {
         container.removeEventListener("pointermove", handlePointerMove);
         container.removeEventListener("pointerup", handlePointerUp);
-        this.selectModels.forEach(id => {
-          // 重新渲染外包围
-          const model = this.modelService.getModelById(id);
-          if (!model) return;
-          const bounding = model.ctrlElement?.getBoundingBox();
+        // pointer up 后清除框选矩形，只保留元素外框
+        this.currentSelectRange = null;
+        requestAnimationFrame(this.renderSelectionOverlay);
 
-          if (!bounding) return;
-          const width = bounding.width;
-          const height = bounding.height;
-          const x = bounding.x;
-          const y = bounding.y;
-          const ctx = this.board.getInteractionCtx();
-          if (!ctx) return;
-          ctx.save();
-          ctx.strokeStyle = "white";
-          ctx.setLineDash([5, 5]);
-          ctx.lineWidth = 2;
-          ctx.strokeRect(x, y, width, height);
-          ctx.restore();
-        });
-        this.updateAABbBox();
         return;
       }
 
@@ -301,23 +274,14 @@ class SelectionPlugin implements IPlugin {
           bounding.maxY > selectRect.y;
         // 判断是否相交
         if (isIntersecting) {
-          const ctx = this.board.getInteractionCtx();
           // console.log("选中了", model.id);
           this.addSelectedModels(model.id);
-          if (this.selectModels.size > 0) {
-            this.updateAABbBox();
-          }
-          if (!ctx) return;
-          ctx.save();
-
-          ctx.strokeStyle = "white";
-          ctx.setLineDash([5, 5]);
-          ctx.lineWidth = 2;
-
-          ctx.strokeRect(bounding.x, bounding.y, bounding.width, bounding.height);
-          ctx.restore();
         }
       });
+
+      // 计算完成后再清除框选矩形
+      this.currentSelectRange = null;
+      this.renderSelectionOverlay();
     };
 
     container.addEventListener("pointerdown", handlePointerDown);
@@ -340,35 +304,90 @@ class SelectionPlugin implements IPlugin {
 
   }
 
-  private updateAABbBox() {
-    const boxes = Array.from(this.selectModels)
+  private normalizeBoundingBox(box: any) {
+    if (box.minX !== undefined && box.maxX !== undefined) {
+      return box;
+    }
+
+    return {
+      ...box,
+      minX: box.x,
+      minY: box.y,
+      maxX: box.x + box.width,
+      maxY: box.y + box.height
+    };
+  }
+
+  private renderSelectionOverlay = () => {
+    const canvas = this.board.getInteractionCanvas();
+    const ctx = this.board.getInteractionCtx();
+    if (!canvas || !ctx) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // 在进行框选时保持选框绘制
+    if (this.currentSelectRange) {
+      const { x, y, width, height } = this.currentSelectRange;
+      ctx.save();
+      ctx.strokeStyle = "rgba(14, 87, 75, 1)";
+      ctx.setLineDash([5, 5]);
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x, y, width, height);
+      ctx.restore();
+    }
+
+    if (this.selectModels.size === 0) {
+      this.AABbBox = null;
+      return;
+    }
+
+    const boxes: any[] = [];
+    this.selectModels.forEach(id => {
+      const model = this.modelService.getModelById(id);
+      const bounding = model?.ctrlElement?.getBoundingBox?.();
+      if (!bounding) return;
+
+      boxes.push(bounding);
+      ctx.save();
+      ctx.strokeStyle = "white";
+      ctx.setLineDash([5, 5]);
+      ctx.lineWidth = 2;
+      ctx.strokeRect(bounding.x, bounding.y, bounding.width, bounding.height);
+      ctx.restore();
+    });
+
+    this.updateAABbBox(boxes, ctx);
+  };
+
+  private updateAABbBox(boxes?: any[], ctx?: CanvasRenderingContext2D) {
+    const normalizedBoxes = (boxes ?? Array.from(this.selectModels)
       .map(id => {
         const model = this.modelService.getModelById(id);
         if (!model) return null;
         const bounding = model.ctrlElement?.getBoundingBox();
         return bounding;
       })
-      .filter(Boolean);
+      .filter(Boolean))
+      .map(box => this.normalizeBoundingBox(box));
 
-    if (boxes.length === 0) {
+    if (normalizedBoxes.length === 0) {
       this.AABbBox = null;
       return;
     }
 
-    let minX = Math.min(...boxes.map(box => box!.minX));
-    let minY = Math.min(...boxes.map(box => box!.minY));
-    let maxX = Math.max(...boxes.map(box => box!.maxX));
-    let maxY = Math.max(...boxes.map(box => box!.maxY));
+    let minX = Math.min(...normalizedBoxes.map(box => box!.minX));
+    let minY = Math.min(...normalizedBoxes.map(box => box!.minY));
+    let maxX = Math.max(...normalizedBoxes.map(box => box!.maxX));
+    let maxY = Math.max(...normalizedBoxes.map(box => box!.maxY));
     this.AABbBox = {
       x: minX,
       y: minY,
       width: maxX - minX,
       height: maxY - minY
     };
-    // 绘制AABB盒子
-    const ctx = this.board.getInteractionCtx();
-    const canvas = this.board.getInteractionCanvas();
-    if (!ctx || !canvas) return;
+
+    if (!ctx) return;
+
     ctx.save();
     ctx.strokeStyle = "pink";
     ctx.setLineDash([10, 5]);
