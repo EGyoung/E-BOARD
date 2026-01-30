@@ -130,7 +130,6 @@ class DrawShapePlugin implements IPlugin {
     const zoom = this.transformService.getView().zoom;
 
     // 绘制矩形
-    context.beginPath();
     context.rect(
       transformedPoint.x,
       transformedPoint.y,
@@ -141,7 +140,6 @@ class DrawShapePlugin implements IPlugin {
       context.fillStyle = model.options.fillStyle;
       context.fill();
     }
-    context.stroke();
   };
 
   private getCanvasPoint(clientX: number, clientY: number) {

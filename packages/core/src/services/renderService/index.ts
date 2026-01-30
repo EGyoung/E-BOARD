@@ -229,6 +229,7 @@ class RenderService implements IRenderService {
     // 如果视图变化，重建瓦片索引
     if (this.isViewChanged(view)) {
       this.tileManager.clear();
+      console.time('rebuildTileIndex');
       models.forEach((model) => {
         const box = model.ctrlElement?.getBoundingBox?.(model);
         if (box) {
@@ -238,6 +239,7 @@ class RenderService implements IRenderService {
           );
         }
       });
+      console.timeEnd('rebuildTileIndex');
       this.lastStatus = {
         x: view.x,
         y: view.y,
@@ -288,6 +290,7 @@ class RenderService implements IRenderService {
     // 设置绘制属性（包括根据缩放调整的线条宽度）
     // 绘制笔记
     const zoom = this.transformService.getView().zoom
+    console.time('renderModels111');
 
     for (const model of renderModels) {
       if (this.currentRanges) {
@@ -305,7 +308,10 @@ class RenderService implements IRenderService {
         context.stroke();
       }
 
+
     }
+    console.timeEnd('renderModels111');
+
 
 
     context.restore();
