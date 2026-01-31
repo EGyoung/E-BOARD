@@ -90,5 +90,9 @@ class TileManager {
     public clear() {
         this.tailMap.clear();
     }
+
+    public tailsSize() {
+        return this.tailMap.size;
+    }
 }
 export { TileManager };

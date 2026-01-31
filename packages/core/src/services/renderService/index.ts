@@ -34,24 +34,11 @@ class RenderService implements IRenderService {
     }
   }
 
-  private rebuildTileIndex() {
-    const models = this.modelService.getAllModels();
-    this.tileManager.clear();
-
-    models.forEach(model => {
-      const box = model.ctrlElement?.getBoundingBox?.();
-      if (box) {
-        this.tileManager.addModelId(model.id, this.normalizeBoundingBox(box));
-      }
-    });
-
-  }
 
   init = ({ board }: IServiceInitParams) => {
     this.board = board;
     this.initModelChange();
     this.tileManager = new TileManager(RenderService.TILE_ROWS, RenderService.TILE_COLS, this.getCanvasSize())
-    // window.tileManager = this.tileManager;
     // 先重建瓦片索引
     this.rebuildTileIndex()
 
@@ -116,7 +103,25 @@ class RenderService implements IRenderService {
     };
   }
 
+  private rebuildTileIndex() {
+    if (!this.tileManager.tailsSize()) {
+      const models = this.modelService.getAllModels();
+      if (models.length) {
+        models.forEach((model) => {
+          const box = model.ctrlElement?.getBoundingBox?.(model);
+          if (box) {
+            this.tileManager.addModelId(
+              model.id,
+              this.normalizeBoundingBox(box as Range)
+            );
+          }
+        });
+      }
+    }
+  }
+
   private handleModelOperationChange: Parameters<typeof this.modelService.onModelOperation>[0] = (event) => {
+    this.rebuildTileIndex()
     // 只有Create Update Delete 走脏矩形渲染
     if (event.type === ModelChangeType.CREATE) {
       const boundingBox = this.getExpandedBoundingBox(event.model);
@@ -226,20 +231,9 @@ class RenderService implements IRenderService {
 
     let renderModels: IModel<Record<string, any>>[] = models;
     const view = this.transformService.getView();
-    // 如果视图变化，重建瓦片索引
+    // 如果视图变化, 清除瓦片, 下次modelchange前时再重新构建
     if (this.isViewChanged(view)) {
       this.tileManager.clear();
-      console.time('rebuildTileIndex');
-      models.forEach((model) => {
-        const box = model.ctrlElement?.getBoundingBox?.(model);
-        if (box) {
-          this.tileManager.addModelId(
-            model.id,
-            this.normalizeBoundingBox(box as Range)
-          );
-        }
-      });
-      console.timeEnd('rebuildTileIndex');
       this.lastStatus = {
         x: view.x,
         y: view.y,
