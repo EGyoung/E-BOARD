@@ -14,5 +14,5 @@ export function initContextAttrs(
   const currentConfig = config || {};
   merge(context, currentConfig);
   if (currentConfig.lineWidth !== undefined)
-    context.lineWidth = Math.max(1, currentConfig.lineWidth * zoom);
+    context.lineWidth = currentConfig.lineWidth * zoom
 }

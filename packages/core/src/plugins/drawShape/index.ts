@@ -122,20 +122,32 @@ class DrawShapePlugin implements IPlugin {
 
   private drawRectangleModelHandler = (
     model: IModel<IShapeRectangle>,
+    _: any,
+    isViewChanged: boolean = false
   ) => {
     const context = this.board.getCtx();
     if (!context) return;
     const [point] = model.points!;
-    const transformedPoint = this.transformPoint({ x: point.x, y: point.y });
-    const zoom = this.transformService.getView().zoom;
+    if (isViewChanged) {
+      context.rect(
+        point.x,
+        point.y,
+        model.width,
+        model.height
+      )
+    } else {
+      const transformedPoint = this.transformPoint({ x: point.x, y: point.y });
+      const zoom = this.transformService.getView().zoom;
 
-    // 绘制矩形
-    context.rect(
-      transformedPoint.x,
-      transformedPoint.y,
-      model.width * zoom,
-      model.height * zoom
-    );
+      // 绘制矩形
+      context.rect(
+        transformedPoint.x,
+        transformedPoint.y,
+        model.width * zoom,
+        model.height * zoom
+      );
+    }
+
     if (model.options?.fillStyle) {
       context.fillStyle = model.options.fillStyle;
       context.fill();

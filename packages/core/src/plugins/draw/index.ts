@@ -116,19 +116,22 @@ class DrawPlugin implements IPlugin {
     this.renderService.registerDrawModelHandler("line", this.drawLineModelHandler);
   }
 
-  private drawLineModelHandler = (model: IModel, ctx?: CanvasRenderingContext2D) => {
+  private drawLineModelHandler = (model: IModel, ctx?: CanvasRenderingContext2D, useWorldCoords = false) => {
     const context = this.board.getCtx();
     if (!context) return;
     context.save()
+    const toScreenPoint = useWorldCoords
+      ? (point: { x: number; y: number }) => point
+      : (point: { x: number; y: number }) => this.transformPoint(point);
     model.points?.forEach((point, index) => {
-      const transformedPoint = this.transformPoint(point);
+      const transformedPoint = toScreenPoint(point);
       if (index === 0) {
         context.moveTo(transformedPoint.x, transformedPoint.y);
       } else if (index < 2) {
         context.lineTo(transformedPoint.x, transformedPoint.y);
       } else {
-        const p1 = this.transformPoint(model.points![index - 1]);
-        const p2 = this.transformPoint(point);
+        const p1 = toScreenPoint(model.points![index - 1]);
+        const p2 = toScreenPoint(point);
         const midPointX = (p1.x + p2.x) / 2;
         const midPointY = (p1.y + p2.y) / 2;
         context.quadraticCurveTo(p1.x, p1.y, midPointX, midPointY);

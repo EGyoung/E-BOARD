@@ -231,8 +231,9 @@ class RenderService implements IRenderService {
 
     let renderModels: IModel<Record<string, any>>[] = models;
     const view = this.transformService.getView();
+    const isViewChange = this.isViewChanged(view);
     // 如果视图变化, 清除瓦片, 下次modelchange前时再重新构建
-    if (this.isViewChanged(view)) {
+    if (isViewChange) {
       this.tileManager.clear();
       this.lastStatus = {
         x: view.x,
@@ -242,9 +243,25 @@ class RenderService implements IRenderService {
     }
 
 
+
     if (!this.currentRanges) {
-      // 清空主画布
       context.clearRect(0, 0, canvas.width, canvas.height);
+      if (isViewChange) {
+        context.save();
+        // 缩放和移动 还有 dpr
+        const dpr = window.devicePixelRatio || 1;
+        const zoom = this.transformService.getView().zoom;
+        context.setTransform(
+          dpr * zoom,
+          0,
+          0,
+          dpr * zoom,
+          -view.x * dpr * zoom,
+          -view.y * dpr * zoom
+        );
+      }
+
+
       // 同时清空交互画布，避免重叠
       if (interactionCtx) {
         interactionCtx.clearRect(0, 0, interactionCtx.canvas.width, interactionCtx.canvas.height);
@@ -280,11 +297,8 @@ class RenderService implements IRenderService {
       renderModels = models.filter(model => modelIdSet.has(model.id));
     }
 
-
-    // 设置绘制属性（包括根据缩放调整的线条宽度）
-    // 绘制笔记
-    const zoom = this.transformService.getView().zoom
-    console.time('renderModels111');
+    const useWorldCoords = !this.currentRanges && isViewChange;
+    const zoom = useWorldCoords ? 1 : this.transformService.getView().zoom
 
     for (const model of renderModels) {
       if (this.currentRanges) {
@@ -298,13 +312,12 @@ class RenderService implements IRenderService {
       if (handler) {
         context.beginPath();
         initContextAttrs(context, { zoom }, model.options);
-        handler(model, context as any);
+        handler(model, context as any, !!useWorldCoords);
         context.stroke();
       }
 
 
     }
-    console.timeEnd('renderModels111');
 
 
 

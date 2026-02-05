@@ -104,7 +104,7 @@ class PicturePlugin implements IPlugin {
         this.renderService.registerDrawModelHandler("picture", this.drawPictureModelHandler);
     }
 
-    private drawPictureModelHandler = (model: PictureModel) => {
+    private drawPictureModelHandler = (model: PictureModel, _: any, useWorldCoords = false) => {
         const context = this.board.getCtx();
         if (!context || !model.imageData || !model.points) return;
 
@@ -118,10 +118,10 @@ class PicturePlugin implements IPlugin {
         }
 
         if (img.complete) {
-            const transformedPos = this.transformPoint(model.points[0]);
             const zoom = this.transformService.getView().zoom;
-            const width = (model.width || img.width) * zoom;
-            const height = (model.height || img.height) * zoom;
+            const transformedPos = useWorldCoords ? model.points[0] : this.transformPoint(model.points[0]);
+            const width = useWorldCoords ? (model.width || img.width) : (model.width || img.width) * zoom;
+            const height = useWorldCoords ? (model.height || img.height) : (model.height || img.height) * zoom;
 
             // 将图片中心对齐到指定位置，而不是左上角
             const drawX = transformedPos.x

@@ -10,7 +10,7 @@ export type Range = {
 }
 
 export interface IDrawModelHandler {
-    (model: any, ctx?: CanvasRenderingContext2D): void;
+    (model: any, ctx?: CanvasRenderingContext2D, useWorldCoords?: boolean): void;
 }
 export interface View {
     x: number;
