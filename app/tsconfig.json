@@ -24,6 +24,7 @@
     { "path": "../packages/board-core" },
     { "path": "../packages/board-ui" },
     { "path": "../packages/board-utils" },
-    { "path": "../packages/board-workbench" }
+    { "path": "../packages/board-workbench" },
+    { "path": "../packages/board-plugin-fps" }
   ]
 }

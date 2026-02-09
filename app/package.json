@@ -10,6 +10,7 @@
     "@e-board/board-core": "workspace:*",
     "@e-board/board-utils": "workspace:*",
     "@e-board/board-workbench": "workspace:*",
+    "@e-board/board-plugin-fps": "workspace:*",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

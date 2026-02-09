@@ -4,7 +4,8 @@
     "target": "es2015",
     "outDir": "dist",
     "rootDir": "src",
-    "composite": true
+    "composite": true,
+    "declaration": true
   },
   "include": ["src"]
 }

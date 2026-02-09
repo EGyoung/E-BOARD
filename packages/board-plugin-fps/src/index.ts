@@ -1,8 +1,7 @@
-
-
+import type { EBoard } from "@e-board/board-core";
 
 class FpsPlugin {
-    private board!: any;
+    private board!: EBoard;
     private animationFrameId: number | null = null;
     private lastFrameTime = performance.now();
     private frameCount = 0;
@@ -21,7 +20,7 @@ class FpsPlugin {
         isEnabled: this.isEnabled.bind(this)
     };
 
-    public init({ board }: any) {
+    public init({ board }: { board: EBoard }) {
         this.board = board;
         this.createFpsElement();
         this.startFpsMonitor();

@@ -2,10 +2,9 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "outDir": "dist",
-    "rootDir": "src",
     "composite": true,
-    "declaration": true
+    "rootDir": "src"
   },
   "include": ["src"],
-  "references": [{ "path": "../board-ui" }, { "path": "../board-utils" }]
+  "references": [{ "path": "../board-core" }, { "path": "../board-utils" }]
 }

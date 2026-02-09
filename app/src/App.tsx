@@ -3,7 +3,7 @@ import { DrawShapePlugin, EBoard, IConfigService, IModelService, ITransformServi
 import "./styles.css";
 import { RoamPlugin, SelectionPlugin, ClearPlugin, PicturePlugin, HotkeyPlugin } from "@e-board/board-core";
 import { Panel, StageTool } from '@e-board/board-workbench';
-import { FpsPlugin } from './plugins'
+import FpsPlugin from '@e-board/board-plugin-fps';
 
 const App: React.FC = () => {
   const eboard = React.useRef<EBoard | null>(null);
