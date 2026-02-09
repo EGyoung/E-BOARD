@@ -3,32 +3,80 @@ import { DrawShapePlugin, EBoard, IConfigService, IModelService, ITransformServi
 import "./styles.css";
 import { RoamPlugin, SelectionPlugin, ClearPlugin, PicturePlugin, HotkeyPlugin } from "@e-board/board-core";
 import { Panel, StageTool } from '@e-board/board-workbench';
-import FpsPlugin from '@e-board/board-plugin-fps';
 
 const App: React.FC = () => {
   const eboard = React.useRef<EBoard | null>(null);
   const [selectedElement, setSelectedElement] = useState<any>(null);
 
-  useLayoutEffect(() => {
-    const board = new EBoard({
-      container: document.getElementById("board") as HTMLDivElement,
-      id: "app-board",
-      plugins: [HotkeyPlugin, RoamPlugin, SelectionPlugin, DrawShapePlugin, ClearPlugin, PicturePlugin, FpsPlugin]
-    });
-    (window as any).board = board;
-    eboard.current = board;
-    const modeService = board.getService('modeService');
-    modeService.switchMode("draw");
+  const getConfig = async () => {
+    const config = await fetch('https://cdn.jsdelivr.net/gh/EGyoung/Juyoung-cdn@main/e-board-plugins-config/index.json').then(res => res.json())
+    return config
+  }
 
-    const { dispose } =
-      eboard.current.getPlugin("SelectionPlugin")?.exports.onSelectedElements((model: any) => {
-        // console.log("选中元素", model);
-        // 更新选中的元素，用于显示浮动工具栏
-        setSelectedElement(model && model.length > 0 ? model[0] : null);
-      }) ?? {};
+  // 远程插件加载工具
+  function loadRemotePlugin(url: string, globalName: string): Promise<any> {
+    console.log(globalName, '正在加载远程插件：', url);
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = url;
+      script.async = true;
+      script.onload = () => {
+        if ((window as any)[globalName]) {
+          resolve((window as any)[globalName].default);
+        } else {
+          reject(new Error('Remote plugin not found: ' + globalName));
+        }
+      };
+      script.onerror = () => reject(new Error('Failed to load remote plugin: ' + url));
+      document.head.appendChild(script);
+    });
+  }
+
+  useLayoutEffect(() => {
+    // 远程插件配置
+
+    let disposed = false;
+
+    const loadPlugins = async () => {
+      const plugins = [HotkeyPlugin, RoamPlugin, SelectionPlugin, DrawShapePlugin, ClearPlugin, PicturePlugin];
+      const board = new EBoard({
+        container: document.getElementById("board") as HTMLDivElement,
+        id: "app-board",
+        plugins
+      });
+      (window as any).board = board;
+      eboard.current = board;
+      const modeService = board.getService('modeService');
+      modeService.switchMode("draw");
+
+
+      const remotePluginConfig: any = await getConfig()
+      for (const _plugin of Object.values(remotePluginConfig as any)) {
+        const plugin = _plugin as any;
+        if (plugin.enabled) {
+          console.log(`插件 ${plugin.name} 已启用，远程地址：${plugin.src}`);
+          board.registerPlugin(await loadRemotePlugin(plugin.src, plugin.name));
+        } else {
+          console.log(`插件 ${plugin.name} 未启用`);
+        }
+      }
+
+      const { dispose } =
+        eboard.current.getPlugin("SelectionPlugin")?.exports.onSelectedElements((model: any) => {
+          setSelectedElement(model && model.length > 0 ? model[0] : null);
+        }) ?? {};
+      return () => {
+        disposed = true;
+        board.dispose();
+        dispose?.();
+      };
+    };
+
+    let cleanup: (() => void) | undefined;
+    loadPlugins().then(fn => cleanup = fn);
     return () => {
-      board.dispose();
-      dispose?.();
+      if (cleanup) cleanup();
+      disposed = true;
     };
   }, []);
 
