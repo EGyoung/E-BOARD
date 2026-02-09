@@ -1,4 +1,3 @@
-import { IConfigService, IModeService } from '@e-board/core';
 import { IToolHandler, ShapeType } from '../types';
 
 export class ShapeToolHandler implements IToolHandler {

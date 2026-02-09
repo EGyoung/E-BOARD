@@ -1,4 +1,3 @@
-import { IModeService } from '@e-board/core';
 import { IToolHandler } from '../types';
 
 export class SelectToolHandler implements IToolHandler {

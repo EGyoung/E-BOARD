@@ -1,4 +1,3 @@
-import { IHistoryService } from '@e-board/core';
 import { IToolHandler } from '../types';
 
 export class RedoToolHandler implements IToolHandler {
