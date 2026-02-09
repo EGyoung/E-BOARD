@@ -13,6 +13,10 @@ export interface IBoard {
   // 生命周期方法
   // init(): void;
   dispose(): void;
+
+  // 动态注册插件
+  registerPlugin(PluginClass: new ({ board }: IPluginInitParams) => IPlugin): void;
+  registerPlugins(plugins: Array<new ({ board }: IPluginInitParams) => IPlugin>): void;
 }
 
 export interface IPluginInitParams {

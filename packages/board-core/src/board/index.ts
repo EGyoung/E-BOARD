@@ -1,5 +1,5 @@
 import { commonServicesMap, GetServiceTypeByAttrName } from "../common/initServices";
-import { IService, IBoard, IBoardInitParams } from "../types";
+import { IService, IBoard, IBoardInitParams, IPluginInitParams } from "../types";
 import { bindServices } from "./bindServices";
 import { eBoardContainer, resetContainer } from "../common/IocContainer";
 import { IPluginService } from "../services/pluginService/type";
@@ -91,6 +91,16 @@ export class EBoard implements IBoard {
   public getPlugin<T extends IPlugin = IPlugin>(name: string): T {
     const pluginService = eBoardContainer.get<IPluginService>(IPluginService);
     return pluginService.getPlugin(name) as T;
+  }
+
+  public registerPlugin(PluginClass: new ({ board }: IPluginInitParams) => IPlugin): void {
+    const pluginService = eBoardContainer.get<IPluginService>(IPluginService);
+    pluginService.registerPlugin(PluginClass);
+  }
+
+  public registerPlugins(plugins: Array<new ({ board }: IPluginInitParams) => IPlugin>): void {
+    const pluginService = eBoardContainer.get<IPluginService>(IPluginService);
+    plugins.forEach(pluginClass => pluginService.registerPlugin(pluginClass));
   }
 
   public dispose(): void {

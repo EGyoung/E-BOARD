@@ -4,7 +4,7 @@ import { IPluginService } from "./type";
 import { IPlugin, IPluginInitParams } from "../../plugins/type";
 
 interface IPluginConstructor {
-  new (p: IPluginInitParams): IPlugin;
+  new(p: IPluginInitParams): IPlugin;
 }
 
 export class PluginService implements IPluginService {
@@ -105,7 +105,6 @@ export class PluginService implements IPluginService {
       registerWithDependencies(pluginName);
     }
 
-    // 清空待处理列表
     this.pendingPlugins.clear();
   }
 
