@@ -12,7 +12,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "father build",
-    "dev": "father dev"
+    "dev": "father dev",
+    "build:umd": "rollup -c rollup.config.umd.cjs"
   },
   "keywords": [],
   "author": "",

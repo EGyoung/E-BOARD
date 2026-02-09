@@ -12,7 +12,13 @@ export default defineConfig({
         input: "src",
         output: "dist/cjs",
         platform: "node",
-        transformer: "babel",
+        sourcemap: true,
+        transformer: "babel"
+    },
+    umd: {
+        output: "dist/umd",
+        name: "FpsPlugin",
+        platform: "browser",
         sourcemap: true
     },
     prebundle: {
