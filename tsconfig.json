@@ -19,11 +19,10 @@
     }
   },
   "references": [
-    { "path": "./packages/core" },
-    { "path": "./packages/ui" },
-    { "path": "./packages/utils" },
-    { "path": "./packages/app" },
-    { "path": "./packages/workbench" }
+    { "path": "./packages/board-core" },
+    { "path": "./packages/board-ui" },
+    { "path": "./packages/board-utils" },
+    { "path": "./packages/board-workbench" }
   ],
   "exclude": ["node_modules"]
 }

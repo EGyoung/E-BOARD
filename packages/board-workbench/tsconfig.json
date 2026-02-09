@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "target": "es2015",
+    "outDir": "dist",
+    "rootDir": "src",
+    "composite": true
+  },
+  "include": ["src"],
+  "references": [
+    { "path": "../board-core" },
+    { "path": "../board-ui" },
+    { "path": "../board-utils" }
+  ]
+}
