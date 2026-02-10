@@ -25,6 +25,7 @@
     { "path": "../packages/board-ui" },
     { "path": "../packages/board-utils" },
     { "path": "../packages/board-workbench" },
-    { "path": "../packages/board-plugin-fps" }
+    { "path": "../packages/board-plugin-fps" },
+    { "path": "../packages/board-websocket" }
   ]
 }

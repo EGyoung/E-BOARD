@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "target": "es2015",
+    "outDir": "dist",
+    "rootDir": "src",
+    "composite": true,
+    "declaration": true
+  },
+  "include": ["src"]
+}
