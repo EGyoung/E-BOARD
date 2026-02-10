@@ -3,9 +3,7 @@
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src",
-    "composite": true,
-    "declaration": true,
-    "paths": {}
+    "composite": true
   },
   "include": ["src"],
   "references": [{ "path": "../board-ui" }, { "path": "../board-utils" }]
