@@ -120,7 +120,7 @@ export class PluginService implements IPluginService {
 
       // 检查插件名称是否已存在
       if (this.plugins.has(plugin.pluginName)) {
-        throw new Error(`Plugin with name ${plugin.pluginName} already exists`);
+        return console.warn(`Plugin with name ${plugin.pluginName} already exists, skipping registration`);
       }
 
       this.plugins.set(plugin.pluginName, plugin);

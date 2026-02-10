@@ -37,19 +37,7 @@ const App: React.FC = () => {
 
     let disposed = false;
 
-    const loadPlugins = async () => {
-      const plugins = [HotkeyPlugin, RoamPlugin, SelectionPlugin, DrawShapePlugin, ClearPlugin, PicturePlugin];
-      const board = new EBoard({
-        container: document.getElementById("board") as HTMLDivElement,
-        id: "app-board",
-        plugins
-      });
-      (window as any).board = board;
-      eboard.current = board;
-      const modeService = board.getService('modeService');
-      modeService.switchMode("draw");
-
-
+    const initRemotePlugins = async (board: any) => {
       const remotePluginConfig: any = await getConfig()
       for (const _plugin of Object.values(remotePluginConfig as any)) {
         const plugin = _plugin as any;
@@ -60,6 +48,23 @@ const App: React.FC = () => {
           console.log(`插件 ${plugin.name} 未启用`);
         }
       }
+    }
+
+    const loadPlugins = async () => {
+      const plugins = [HotkeyPlugin, RoamPlugin, SelectionPlugin, DrawShapePlugin, ClearPlugin, PicturePlugin];
+      const board = new EBoard({
+        container: document.getElementById("board") as HTMLDivElement,
+        id: "app-board",
+        plugins
+      });
+      initRemotePlugins(board);
+      (window as any).board = board;
+      eboard.current = board;
+      const modeService = board.getService('modeService');
+      modeService.switchMode("draw");
+
+
+
 
       const { dispose } =
         eboard.current.getPlugin("SelectionPlugin")?.exports.onSelectedElements((model: any) => {
