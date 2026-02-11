@@ -1,0 +1,19 @@
+{
+  "name": "@e-board/board-collaboration",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "father dev",
+    "build": "father build"
+  },
+  "dependencies": {
+    "@e-board/board-utils": "workspace:*",
+    "inversify": "^7.2.0",
+    "reflect-metadata": "^0.2.2"
+  },
+  "devDependencies": {
+    "father": "^4.3.0",
+    "typescript": "^5.3.3"
+  }
+}
