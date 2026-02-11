@@ -1,6 +1,6 @@
-import { eBoardContainer } from "../../common/IocContainer";
-import { BoundingBox, IConfigService, IModel, ITransformService } from "../../services";
-import { BaseCtrlElement } from "./baseElement";
+import { eBoardContainer } from "../../../common/IocContainer";
+import { BoundingBox, IConfigService, IModel, ITransformService } from "../../../services";
+import { BaseCtrlElement } from "../../baseElement/baseCtrlElement";
 
 
 // 矩形元素控制类
@@ -63,3 +63,4 @@ class RectCtrlElement extends BaseCtrlElement {
 
 
 export { RectCtrlElement };
+//rectangle

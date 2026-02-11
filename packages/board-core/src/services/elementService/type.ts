@@ -1,16 +1,16 @@
-import { IServiceInitParams } from "../../types";
+import type { IServiceInitParams } from "../../types";
 
-export interface IElementService<Params extends Record<string, any>> {
+export type IElementService = {
   init: (params: IServiceInitParams) => void;
+  registerElement: (shape: IElement) => void;
+  getElement: (type: string) => IElement | undefined;
+  getAllElement: () => IElement[];
   dispose: () => void;
 }
-
 export const IElementService = Symbol("IElementService");
 
-export interface IElement<Params extends Record<string, any>> {
+export interface IElement {
   type: string;
-  model: {
-    ctrlElement: any;
-    data: any;
-  }
+  ctrlElement: any;
+  saveInfoProvider: any
 }

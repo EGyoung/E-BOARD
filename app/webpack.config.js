@@ -20,7 +20,11 @@ module.exports = (env, argv) => {
         "@e-board/board-core": path.resolve(__dirname, "../packages/board-core/src"),
         "@e-board/board-workbench": path.resolve(__dirname, "../packages/board-workbench/src"),
         "@e-board/board-plugin-fps": path.resolve(__dirname, "../packages/board-plugin-fps/src"),
-        "@e-board/board-websocket": path.resolve(__dirname, "../packages/board-websocket")
+        "@e-board/board-websocket": path.resolve(__dirname, "../packages/board-websocket"),
+        "@e-board/board-collaboration": path.resolve(
+          __dirname,
+          "../packages/board-collaboration/src"
+        )
       }
     },
     module: {

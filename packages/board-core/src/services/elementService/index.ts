@@ -1,17 +1,23 @@
-// import { eBoardContainer } from "../../common/IocContainer";
 import { IBoard, IServiceInitParams } from "../../types";
-// import { IRenderService } from "../renderService/type";
-
+import { commonElements } from "./commonElements";
 import { IElement, IElementService } from "./type";
 
-class ElementService<Params extends Record<string, any>> implements IElementService<Params> {
+class ElementService implements IElementService {
   private board!: IBoard;
-  private elementMap: Map<string, IElement<Params>> = new Map();
+  private elementMap: Map<string, IElement> = new Map();
   init = ({ board }: IServiceInitParams) => {
     this.board = board;
+    this.registerCommonElements();
   };
 
-  public registerElement(shape: IElement<Params>) {
+  private registerCommonElements() {
+    // 注册常用元素
+    commonElements.forEach(element => {
+      this.registerElement(element);
+    })
+  }
+
+  public registerElement(shape: IElement) {
     this.elementMap.set(shape.type, shape);
   }
 
@@ -23,7 +29,9 @@ class ElementService<Params extends Record<string, any>> implements IElementServ
     return Array.from(this.elementMap.values());
   }
 
-  public dispose(): void { }
+  public dispose(): void {
+    this.elementMap.clear();
+  }
 }
 
 export default ElementService;

@@ -94,8 +94,6 @@ const commonServicesMap = [
     attrName: "renderService"
   },
   // ==============================普通服务end========================
-
-
 ] as const;
 
 type CommonServiceItem = (typeof commonServicesMap)[number];
@@ -113,7 +111,7 @@ export type GetServiceTypeByAttrName<T extends CommonServiceAttrName> = Instance
   GetServiceConstructorTypeByAttrName<T>
 >;
 
-// type ss = GetServiceTypeByAttrName<'canvasService' '>
+
 export const bindCommonServices = () => {
   commonServicesMap.forEach(({ name, service }) => {
     eBoardContainer.bind(name).to(service).inSingletonScope();

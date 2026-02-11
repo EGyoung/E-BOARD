@@ -1,7 +1,7 @@
-import { calculateBBox } from "@e-board/board-utils";
+import { calculateBBox, cloneDeep } from "@e-board/board-utils";
 import { eBoardContainer } from "../../common/IocContainer";
 import { IModel, IModelService, ITransformService } from "../../services";
-import { IProps, IPoint } from "./type";
+import { IProps, IPoint } from "../type";
 
 // 默认是线段
 class BaseCtrlElement {
@@ -28,8 +28,6 @@ class BaseCtrlElement {
         }
         return BaseCtrlElement.modelService;
     }
-
-
 
     public get model() {
         if (!this.modelService) {

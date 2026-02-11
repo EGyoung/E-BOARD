@@ -79,10 +79,4 @@ class TransformService implements ITransformService {
   public dispose(): void { }
 }
 
-/**
- *
- *  公式：
- *
- */
-
 export default TransformService;

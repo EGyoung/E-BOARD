@@ -6,7 +6,7 @@ import { IRenderService } from "../../services/renderService/type";
 import { ITransformService } from "../../services/transformService/type";
 import { IBoard, IPluginInitParams } from "../../types";
 import { IPlugin } from "../type";
-import { BaseCtrlElement } from "../../board/element/baseElement";
+import { BaseCtrlElement } from "../../elements/baseElement/baseCtrlElement";
 
 const CURRENT_MODE = "draw";
 class DrawPlugin implements IPlugin {

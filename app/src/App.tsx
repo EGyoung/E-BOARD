@@ -2,6 +2,8 @@ import React, { useEffect, useLayoutEffect, useState } from "react";
 import { DrawShapePlugin, EBoard, IConfigService, IModelService, ITransformService, RectCtrlElement } from "@e-board/board-core";
 import "./styles.css";
 import { RoamPlugin, SelectionPlugin, ClearPlugin, PicturePlugin, HotkeyPlugin } from "@e-board/board-core";
+import { BoardCollaboration } from '@e-board/board-collaboration';
+
 import { Panel, StageTool } from '@e-board/board-workbench';
 import { WebSocketProvider } from "@e-board/board-websocket";
 const WS_URL = 'ws://localhost:3010/collaboration';
@@ -26,6 +28,14 @@ const App: React.FC = () => {
     }
 
   }, [])
+
+
+  const initCollaboration = (board: any) => {
+    const boardCollaboration = new BoardCollaboration(board)
+    return () => {
+      boardCollaboration.dispose();
+    }
+  }
 
   // 远程插件加载工具
   function loadRemotePlugin(url: string, globalName: string): Promise<any> {
@@ -72,6 +82,7 @@ const App: React.FC = () => {
         plugins
       });
       initRemotePlugins(board);
+      const cleanupCollaboration = initCollaboration(board);
       (window as any).board = board;
       eboard.current = board;
       const modeService = board.getService('modeService');
@@ -88,6 +99,7 @@ const App: React.FC = () => {
         disposed = true;
         board.dispose();
         dispose?.();
+        cleanupCollaboration();
       };
     };
 

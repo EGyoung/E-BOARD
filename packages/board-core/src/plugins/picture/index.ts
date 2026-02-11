@@ -5,7 +5,7 @@ import { ITransformService } from "../../services/transformService/type";
 import { IBoard, IPluginInitParams } from "../../types";
 import { IPlugin } from "../type";
 import { IModel } from "../../services/modelService/type";
-import { RectCtrlElement } from "../../board/element/rectElement";
+import { RectCtrlElement } from "../../elements/rectElement/ctrlElement";
 
 interface PictureModel extends IModel {
     type: "picture";
