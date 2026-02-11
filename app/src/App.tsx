@@ -207,7 +207,6 @@ const App: React.FC = () => {
           ...configService.getCtxConfig(),
           fillStyle
         },
-        ctrlElementConstructor: RectCtrlElement
       });
     }
   };

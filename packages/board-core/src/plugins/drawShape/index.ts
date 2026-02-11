@@ -6,7 +6,6 @@ import { IRenderService } from "../../services/renderService/type";
 import { ITransformService } from "../../services/transformService/type";
 import { IBoard, IPluginInitParams } from "../../types";
 import { IPlugin } from "../type";
-import { RectCtrlElement } from "../../elements/rectElement/ctrlElement";
 
 const CURRENT_MODE = "drawShape";
 
@@ -49,7 +48,6 @@ class DrawShapePlugin implements IPlugin {
         options: {
           ...this.configService.getCtxConfig()
         },
-        ctrlElementConstructor: RectCtrlElement
       });
     };
 

@@ -53,7 +53,6 @@ export type IModel<T extends Record<string, any> = Record<string, any>> = {
     isHit: (params: any) => boolean;
     onElementMove?: (e: any) => void;
   },
-  ctrlElementConstructor: any
 } & T
 
 

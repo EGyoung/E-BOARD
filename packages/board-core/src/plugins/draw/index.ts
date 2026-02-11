@@ -6,7 +6,6 @@ import { IRenderService } from "../../services/renderService/type";
 import { ITransformService } from "../../services/transformService/type";
 import { IBoard, IPluginInitParams } from "../../types";
 import { IPlugin } from "../type";
-import { BaseCtrlElement } from "../../elements/baseElement/baseCtrlElement";
 
 const CURRENT_MODE = "draw";
 class DrawPlugin implements IPlugin {
@@ -82,7 +81,6 @@ class DrawPlugin implements IPlugin {
       this.modelService.createModel("line", {
         points: this.currentLinePoints,
         options: { ...this.configService.getCtxConfig() },
-        ctrlElementConstructor: BaseCtrlElement
       });
       this.currentLinePoints = [];
       this.lastScreenPoint = null;

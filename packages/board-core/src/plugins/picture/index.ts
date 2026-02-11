@@ -5,7 +5,6 @@ import { ITransformService } from "../../services/transformService/type";
 import { IBoard, IPluginInitParams } from "../../types";
 import { IPlugin } from "../type";
 import { IModel } from "../../services/modelService/type";
-import { RectCtrlElement } from "../../elements/rectElement/ctrlElement";
 
 interface PictureModel extends IModel {
     type: "picture";
@@ -78,7 +77,6 @@ class PicturePlugin implements IPlugin {
                         ...this.configService.getCtxConfig(),
                         lineWidth: 0
                     },
-                    ctrlElementConstructor: RectCtrlElement
                 } as Partial<PictureModel>);
 
                 resolve(model.id);

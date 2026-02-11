@@ -1,15 +1,16 @@
 import { Emitter, uuid } from "@e-board/board-utils";
 import { IModelService, IModel, ModelChangeType, ModelChangeEvent } from "./type";
 import { IServiceInitParams } from "../../types";
+import { eBoardContainer } from "../../common/IocContainer";
+import { IElementService } from "../elementService/type";
 
 type Model = IModel;
 
 export class ModelService implements IModelService {
   private models: Map<string, Model>;
   private _modelOperation = new Emitter<ModelChangeEvent>();
-
   public onModelOperation = this._modelOperation.event;
-
+  private elementService = eBoardContainer.get<IElementService>(IElementService);
   constructor() {
     this.models = new Map<string, Model>();
   }
@@ -30,14 +31,14 @@ export class ModelService implements IModelService {
    * @returns 创建的模型
    */
   createModel(type: string, options?: Partial<IModel>): Model {
-    const { ctrlElementConstructor, ...rest } = options ?? {};
     const model = {
       id: options?.id || uuid(),
       type,
-      ...(rest ?? {})
+      ...(options ?? {})
     } as Model;
-    if (ctrlElementConstructor) {
-      model.ctrlElement = new ctrlElementConstructor({ model })
+    const element = this.elementService.getElement(type);
+    if (element) {
+      model.ctrlElement = new element.ctrlElement({ model });
     }
     this.models.set(model.id, model);
 
