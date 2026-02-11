@@ -10,6 +10,7 @@ class SaveInfoProvider {
         },
          */
         return {
+            type: data.type,
             points: [...data.points],
             width: data.width,
             height: data.height,
@@ -19,6 +20,7 @@ class SaveInfoProvider {
 
     static importSaveInfo(info: any) {
         return {
+            type: info.type,
             isDrawing: false,
             points: info.points,
             width: info.width,

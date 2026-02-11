@@ -1,6 +1,7 @@
 class SaveInfoProvider {
     static parse(data: any) {
         return {
+            type: data.type,
             imageData: data.imageData,
             width: data.width,
             height: data.height,
@@ -11,6 +12,7 @@ class SaveInfoProvider {
 
     static importSaveInfo(info: any) {
         return {
+            type: info.type,
             imageData: info.imageData,
             width: info.width,
             height: info.height,
