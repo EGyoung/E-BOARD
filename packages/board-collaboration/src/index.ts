@@ -1,4 +1,4 @@
-import type { EBoard, ModelService } from "@e-board/board-core";
+import type { EBoard, ModelChangeEvent, ModelService } from "@e-board/board-core";
 
 class BoardCollaboration {
     private modelService: ModelService
@@ -10,7 +10,7 @@ class BoardCollaboration {
 
     private init = () => {
         const { dispose } = this.modelService.onModelOperation(
-            (operation) => {
+            (operation: ModelChangeEvent) => {
                 console.log('Received operation:', operation);
             }
         )

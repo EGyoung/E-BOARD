@@ -5,7 +5,11 @@
     "outDir": "dist",
     "rootDir": "src",
     "composite": true,
-    "declaration": true
+    "declaration": true,
+    "baseUrl": ".",
+    "paths": {
+      "@e-board/*": ["../*/dist/esm"]
+    }
   },
   "include": ["src"],
   "references": [{ "path": "../board-utils" }, { "path": "../board-core" }]

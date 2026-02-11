@@ -8,6 +8,7 @@
     "build": "father build"
   },
   "dependencies": {
+    "@e-board/board-core": "workspace:*",
     "@e-board/board-utils": "workspace:*",
     "inversify": "^7.2.0",
     "reflect-metadata": "^0.2.2"
