@@ -30,11 +30,11 @@ export class ModelService implements IModelService {
    * @returns 创建的模型
    */
   createModel(type: string, options?: Partial<IModel>): Model {
-    const ctrlElementConstructor = options?.ctrlElementConstructor
+    const { ctrlElementConstructor, ...rest } = options ?? {};
     const model = {
       id: options?.id || uuid(),
       type,
-      ...(options ?? {})
+      ...(rest ?? {})
     } as Model;
     if (ctrlElementConstructor) {
       model.ctrlElement = new ctrlElementConstructor({ model })

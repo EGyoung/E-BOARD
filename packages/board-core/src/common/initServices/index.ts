@@ -15,18 +15,21 @@ import {
   IHistoryService,
   CanvasService,
   ICanvasService,
-  ElementService
+  ElementService,
+  ISaveInfoService,
+  SaveInfoService,
+  IPluginService,
+  IRenderService,
+  PluginService,
+  IElementService,
+  ITransformService
 } from "../../services";
-import PluginService from "../../services/pluginService";
-import { IPluginService } from "../../services/pluginService/type";
-import { IRenderService } from "../../services/renderService/type";
-import { IElementService } from "../../services/elementService/type";
-import { ITransformService } from "../../services/transformService/type";
 import { eBoardContainer } from "../IocContainer";
 /**
  *  绑定列表需要注意相互之间的依赖关系！！！！！！
  */
 const commonServicesMap = [
+  // ==============================核心独立服务end========================
   {
     name: ICanvasService,
     service: CanvasService,
@@ -38,40 +41,19 @@ const commonServicesMap = [
     attrName: "configService"
   },
   {
-    name: IModelService,
-    service: ModelService,
-    attrName: "modelService"
-  },
-  {
-    name: IHistoryService,
-    service: HistoryService,
-    attrName: "historyService"
-  },
-  {
-    name: IPluginService,
-    service: PluginService,
-    attrName: "pluginService"
-  },
-  {
     name: IEventService,
     service: EventService,
     attrName: "eventService"
   },
   {
-    name: ISelectionService,
-    service: SelectionService,
-    attrName: "selectionService"
-  },
-
-  {
-    name: IRenderService,
-    service: RenderService,
-    attrName: "renderService"
+    name: IModelService,
+    service: ModelService,
+    attrName: "modelService"
   },
   {
-    name: ITransformService,
-    service: TransformService,
-    attrName: "transformService"
+    name: IPluginService,
+    service: PluginService,
+    attrName: "pluginService"
   },
   {
     name: IElementService,
@@ -82,7 +64,38 @@ const commonServicesMap = [
     name: IModeService,
     service: ModeService,
     attrName: "modeService"
-  }
+  },
+  {
+    name: ITransformService,
+    service: TransformService,
+    attrName: "transformService"
+  },
+  // ==============================核心独立服务end========================
+
+  // ==============================普通服务start========================
+  {
+    name: ISaveInfoService,
+    service: SaveInfoService,
+    attrName: "saveInfoService"
+  },
+  {
+    name: IHistoryService,
+    service: HistoryService,
+    attrName: "historyService"
+  },
+  {
+    name: ISelectionService,
+    service: SelectionService,
+    attrName: "selectionService"
+  },
+  {
+    name: IRenderService,
+    service: RenderService,
+    attrName: "renderService"
+  },
+  // ==============================普通服务end========================
+
+
 ] as const;
 
 type CommonServiceItem = (typeof commonServicesMap)[number];

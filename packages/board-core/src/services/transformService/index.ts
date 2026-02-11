@@ -1,7 +1,6 @@
 import { Emitter } from "@e-board/board-utils";
 import type EBoard from "../../board";
 import { IServiceInitParams } from "../../types";
-import { IRenderService } from "../renderService/type";
 
 import { ITransformService } from "./type";
 
