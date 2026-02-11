@@ -6,5 +6,5 @@
     "composite": true
   },
   "include": ["src"],
-  "references": [{ "path": "../board-ui" }, { "path": "../board-utils" }]
+  "references": [{ "path": "../board-utils" }]
 }
