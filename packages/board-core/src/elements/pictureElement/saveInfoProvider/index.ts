@@ -6,7 +6,8 @@ class SaveInfoProvider {
             width: data.width,
             height: data.height,
             points: [...data.points],
-            options: { ...data.options },
+            options: data.options ? { ...data.options } : undefined,
+            id: data.id
         }
     }
 
@@ -17,7 +18,8 @@ class SaveInfoProvider {
             width: info.width,
             height: info.height,
             points: info.points,
-            options: info.options,
+            options: info.options ? { ...info.options } : undefined,
+            id: info.id
         }
     }
 }

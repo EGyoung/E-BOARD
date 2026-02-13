@@ -1,20 +1,12 @@
 class SaveInfoProvider {
     static parse(data: any) {
-        /**
-         *  points: [{ x: transformedPoint.x, y: transformedPoint.y }],
-        width: 0,
-        height: 0,
-        isDrawing: true,
-        options: {
-          ...this.configService.getCtxConfig()
-        },
-         */
         return {
             type: data.type,
             points: [...data.points],
             width: data.width,
             height: data.height,
-            options: { ...data.options },
+            options: data.options ? { ...data.options } : undefined,
+            id: data.id
         }
     }
 
@@ -25,7 +17,8 @@ class SaveInfoProvider {
             points: info.points,
             width: info.width,
             height: info.height,
-            options: info.options,
+            options: info?.options ? { ...info.options } : undefined,
+            id: info.id
         }
     }
 }

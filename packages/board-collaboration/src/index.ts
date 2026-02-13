@@ -32,10 +32,14 @@ class BoardCollaboration {
                         const saveInfoService = this.board.getService('saveInfoService')
                         saveInfoService.importSaveInfo(operation.model, OperationSource.REMOTE)
                     } else if (operation.operation === 'update') {
-                        const element = this.elementService.getElement(operation.updates.type);
-                        if (!element) throw new Error(`Unregistered element type: ${operation.updates.type}`);
-                        const model = element.saveInfoProvider.importSaveInfo(operation.data.updates)
-                        this.modelService.updateModel(model.id, model, OperationSource.REMOTE)
+                        const modelId = operation.modelId;
+                        // 获取type
+                        const model = this.modelService.getModelById(modelId);
+                        const type = model?.type;
+                        if (!type) throw new Error('Operation missing type');
+                        const element = this.elementService.getElement(type);
+                        if (!element) throw new Error(`Unregistered element type: ${type}`);
+                        this.modelService.updateModel(model.id, operation.updates, OperationSource.REMOTE)
                     } else if (operation.operation === 'delete') {
 
                         operation.data.deletedModels.forEach((m: any) => {
@@ -57,10 +61,7 @@ class BoardCollaboration {
 
         const { dispose } = this.modelService.onModelOperation(
             (operation: ModelChangeEvent) => {
-                const type = operation.model?.type
-                if (!type) throw new Error('Operation missing type');
-                const element = this.elementService.getElement(type);
-                if (!element) throw new Error(`Unregistered element type: ${type}`);
+
                 const body: any = {
                     type: MsgType.OPERATION,
                     id: `msg-${Date.now()}`,
@@ -72,17 +73,40 @@ class BoardCollaboration {
                 // 内存模型转外存模型
                 if (operation.type === 'create') {
 
+                    const type = operation.model?.type
+                    if (!type) throw new Error('Operation missing type');
+                    const element = this.elementService.getElement(type);
+                    if (!element) throw new Error(`Unregistered element type: ${type}`);
+
+
+
                     body.data = JSON.stringify({ operation: 'create', model: element.saveInfoProvider.parse(operation.model) })
                 } else if (operation.type === 'update') {
+                    const modelId = operation.modelId;
+                    // 获取type
+                    const model = this.modelService.getModelById(modelId);
+                    const type = model?.type;
+                    if (!type) throw new Error('Operation missing type');
+                    const element = this.elementService.getElement(type);
+                    if (!element) throw new Error(`Unregistered element type: ${type}`);
+
                     body.data = JSON.stringify({
                         operation: 'update',
-                        updates: element.saveInfoProvider.parse(operation.model),
-                        previousState: element.saveInfoProvider.parse(operation.previousState)
+                        updates: element.saveInfoProvider.parse(operation.updates),
+                        previousState: element.saveInfoProvider.parse(operation.previousState),
+                        modelId: operation.modelId
                     })
                 } else if (operation.type === 'delete') {
                     body.data = JSON.stringify({
                         operation: 'delete',
-                        deletedModels: Array.from(operation.deletedModels?.values() || []).map(m => element.saveInfoProvider.parse(m))
+                        deletedModels: Array.from(operation.deletedModels?.values() || []).map(m => {
+                            const type = m?.type;
+                            if (!type) throw new Error('Operation missing type');
+                            const element = this.elementService.getElement(type);
+                            if (!element) throw new Error(`Unregistered element type: ${type}`);
+                            return element.saveInfoProvider.parse(m);
+                        }),
+                        modelId: operation.modelId
                     })
                 } else {
                     throw new Error(`Unsupported operation type: ${operation.type}`);
