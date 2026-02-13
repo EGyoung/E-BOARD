@@ -1,2 +1,8 @@
 import { lineElement, pictureElement, rectElement } from '../../../elements'
-export const commonElements = [lineElement, rectElement, pictureElement]
+import type { IElement } from '../type'
+
+export const commonElements: Array<IElement<any>> = [
+	lineElement,
+	rectElement,
+	pictureElement
+]

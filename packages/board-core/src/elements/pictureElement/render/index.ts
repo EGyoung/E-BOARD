@@ -1,4 +1,4 @@
-import { IModel } from "@e-board/board-core";
+import { IModel } from "../../../services/modelService/type";
 import { BaseRender } from "../../baseElement/baseRender";
 import { IPictureModel } from "../type";
 

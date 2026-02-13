@@ -4,7 +4,7 @@ import { IElement, IElementService } from "./type";
 
 class ElementService implements IElementService {
   private board!: IBoard;
-  private elementMap: Map<string, IElement> = new Map();
+  private elementMap: Map<string, IElement<any>> = new Map();
   init = ({ board }: IServiceInitParams) => {
     this.board = board;
     this.registerCommonElements();
@@ -17,7 +17,7 @@ class ElementService implements IElementService {
     })
   }
 
-  public registerElement(shape: IElement) {
+  public registerElement(shape: IElement<any>) {
     this.elementMap.set(shape.type, shape);
   }
 

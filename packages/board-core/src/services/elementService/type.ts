@@ -3,9 +3,9 @@ import type { IServiceInitParams } from "../../types";
 
 export type IElementService = {
   init: (params: IServiceInitParams) => void;
-  registerElement: <T extends Record<string, any>>(shape: IElement<T>) => void;
-  getElement: <T extends Record<string, any>>(type: string) => IElement<T> | undefined;
-  getAllElement: <T extends Record<string, any>>() => IElement<T>[];
+  registerElement: (shape: IElement<any>) => void;
+  getElement: (type: string) => IElement<any> | undefined;
+  getAllElement: () => IElement<any>[];
   dispose: () => void;
 }
 export const IElementService = Symbol("IElementService");

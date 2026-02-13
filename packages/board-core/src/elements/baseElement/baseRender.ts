@@ -1,6 +1,5 @@
 import { EBoard } from '../../board'
-import { IShapeRectangle } from '../rectElement/type'
-import { IModel } from '@e-board/board-core'
+import { IModel } from '../../services/modelService/type'
 class BaseRender<T extends Record<string, any>> {
     protected board: EBoard
     constructor(board: EBoard) {
