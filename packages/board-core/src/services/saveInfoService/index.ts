@@ -1,6 +1,7 @@
 import { IServiceInitParams } from 'src/types';
 import type EBoard from '../../board';
 import { ISaveInfoService } from './type'
+import { OperationSource } from '../modelService/type';
 
 
 class SaveInfoService implements ISaveInfoService {
@@ -39,7 +40,7 @@ class SaveInfoService implements ISaveInfoService {
         return saveInfoList as any[]
     }
 
-    importSaveInfo(info: any) {
+    importSaveInfo(info: any, operationSource = OperationSource.LOCAL) {
         const element = this.elementService.getElement(info.type)
         if (!element) {
             console.warn(`Element of type ${info.type} not found, skipping...`)
@@ -50,11 +51,11 @@ class SaveInfoService implements ISaveInfoService {
             return
         }
         const model = element.saveInfoProvider.importSaveInfo(info)
-        this.modelService.createModel(model.type, model)
+        this.modelService.createModel(model.type, model, operationSource)
     }
 
-    importSaveInfoList(infoList: any[]) {
-        return infoList.forEach(info => this.importSaveInfo(info))
+    importSaveInfoList(infoList: any[], operationSource = OperationSource.LOCAL) {
+        return infoList.forEach(info => this.importSaveInfo(info, operationSource))
     }
 
 

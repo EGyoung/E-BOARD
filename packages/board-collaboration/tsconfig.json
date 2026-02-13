@@ -10,5 +10,9 @@
     "paths": {}
   },
   "include": ["src"],
-  "references": [{ "path": "../board-utils" }, { "path": "../board-core" }]
+  "references": [
+    { "path": "../board-utils" },
+    { "path": "../board-core" },
+    { "path": "../board-websocket" }
+  ]
 }

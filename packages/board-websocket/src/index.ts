@@ -1,5 +1,5 @@
 import { IMessage, MsgType, MessageHandler, StatusChangeHandler } from './types';
-
+export * from './types';
 export class WebSocketProvider {
     private ws: WebSocket | null = null;
     private url: string = '';
@@ -129,7 +129,7 @@ export class WebSocketProvider {
             // 发送心跳包
             this.send({
                 type: MsgType.HEARTBEAT,
-                content: 'ping',
+                data: 'ping',
                 id: 'heartbeat',
                 senderId: 'system',
                 timestamp: Date.now()

@@ -6,7 +6,10 @@ export enum ModelChangeType {
   DELETE = "delete",
   CLEAR = "clear"
 }
-
+export enum OperationSource {
+  LOCAL = 'local',
+  REMOTE = 'remote'
+}
 export interface ModelChangeEvent {
   type: ModelChangeType;
   modelId: string;
@@ -14,6 +17,7 @@ export interface ModelChangeEvent {
   updates?: Partial<Omit<IModel, "id">>;
   previousState?: Partial<Omit<IModel, "id">>;
   deletedModels?: Map<string, IModel>;
+  operationSource?: OperationSource;
 }
 
 export interface IModelService<ExtensionOptions extends Record<string, any> =

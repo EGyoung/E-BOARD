@@ -1,8 +1,7 @@
 // types.ts
 
 export enum MsgType {
-    TEXT = 'text',
-    IMAGE = 'image',
+    OPERATION = 'operation',
     HEARTBEAT = 'heartbeat',
     ACK = 'ack', // 消息确认回执
 }
@@ -16,7 +15,7 @@ export enum MsgStatus {
 export interface IMessage {
     id: string;        // 消息唯一ID (UUID)
     type: MsgType;
-    content: string;
+    data: string;
     senderId: string;
     timestamp: number;
     status?: MsgStatus; // 前端专用状态，用于UI展示loading/重试

@@ -3,7 +3,6 @@ import { IService, IBoard, IBoardInitParams, IPluginInitParams } from "../types"
 import { bindServices } from "./bindServices";
 import { eBoardContainer, resetContainer } from "../common/IocContainer";
 import { IPluginService } from "../services/pluginService/type";
-import { ICanvasService } from "../services/canvasService/type";
 import { IPlugin } from "../plugins/type";
 
 export class EBoard implements IBoard {

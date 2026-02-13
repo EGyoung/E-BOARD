@@ -1,10 +1,12 @@
 import { Emitter, uuid } from "@e-board/board-utils";
-import { IModelService, IModel, ModelChangeType, ModelChangeEvent } from "./type";
+import { IModelService, IModel, ModelChangeType, ModelChangeEvent, OperationSource } from "./type";
 import { IServiceInitParams } from "../../types";
 import { eBoardContainer } from "../../common/IocContainer";
 import { IElementService } from "../elementService/type";
 
 type Model = IModel;
+
+
 
 export class ModelService implements IModelService {
   private models: Map<string, Model>;
@@ -30,7 +32,7 @@ export class ModelService implements IModelService {
    * @param description 模型描述（可选）
    * @returns 创建的模型
    */
-  createModel(type: string, options?: Partial<IModel>): Model {
+  createModel(type: string, options?: Partial<IModel>, operationSource: OperationSource = OperationSource.LOCAL): Model {
     const model = {
       id: options?.id || uuid(),
       type,
@@ -46,7 +48,8 @@ export class ModelService implements IModelService {
     this._modelOperation.fire({
       type: ModelChangeType.CREATE,
       modelId: model.id,
-      model
+      model,
+      operationSource,
     });
 
     return model;
@@ -75,7 +78,7 @@ export class ModelService implements IModelService {
    * @param updates 需要更新的字段
    * @returns 更新后的模型，如果模型不存在则返回undefined
    */
-  updateModel(id: string, updates: Partial<Omit<Model, "id">>): Model | undefined {
+  updateModel(id: string, updates: Partial<Omit<Model, "id">>, operationSource: OperationSource = OperationSource.LOCAL): Model | undefined {
     const model = this.models.get(id);
     if (!model) {
       return undefined;
@@ -100,7 +103,8 @@ export class ModelService implements IModelService {
       type: ModelChangeType.UPDATE,
       modelId: id,
       updates,
-      previousState
+      previousState,
+      operationSource
     });
 
     return updatedModel;
@@ -111,7 +115,7 @@ export class ModelService implements IModelService {
    * @param id 模型ID
    * @returns 是否删除成功
    */
-  deleteModel(id: string): boolean {
+  deleteModel(id: string, operationSource: OperationSource = OperationSource.LOCAL): boolean {
     const model = this.models.get(id);
     if (!model) {
       return false;
@@ -124,7 +128,8 @@ export class ModelService implements IModelService {
       this._modelOperation.fire({
         type: ModelChangeType.DELETE,
         modelId: id,
-        model
+        model,
+        operationSource
       });
     }
 

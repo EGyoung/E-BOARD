@@ -10,6 +10,7 @@
   "dependencies": {
     "@e-board/board-core": "workspace:*",
     "@e-board/board-utils": "workspace:*",
+    "@e-board/board-websocket": "workspace:*",
     "inversify": "^7.2.0",
     "reflect-metadata": "^0.2.2"
   },

@@ -1,12 +1,10 @@
-import React, { useEffect, useLayoutEffect, useState } from "react";
-import { DrawShapePlugin, EBoard, IConfigService, IModelService, ITransformService, RectCtrlElement } from "@e-board/board-core";
+import React, { useLayoutEffect, useState } from "react";
+import { DrawShapePlugin, EBoard, IConfigService, IModelService, ITransformService } from "@e-board/board-core";
 import "./styles.css";
 import { RoamPlugin, SelectionPlugin, ClearPlugin, PicturePlugin, HotkeyPlugin } from "@e-board/board-core";
 import { BoardCollaboration } from '@e-board/board-collaboration';
 
 import { Panel, StageTool } from '@e-board/board-workbench';
-import { WebSocketProvider } from "@e-board/board-websocket";
-const WS_URL = 'ws://localhost:3010/collaboration';
 const App: React.FC = () => {
   const eboard = React.useRef<EBoard | null>(null);
   const [selectedElement, setSelectedElement] = useState<any>(null);
@@ -16,18 +14,7 @@ const App: React.FC = () => {
     return config
   }
 
-  useEffect(() => {
-    try {
-      const wsProvider = new WebSocketProvider();
-      wsProvider.connect(WS_URL);
-      wsProvider.onMessage((...args) => {
-        console.log('Received message from server:', ...args);
-      })
-    } catch (err) {
-      console.error('WebSocket 连接失败:', err);
-    }
 
-  }, [])
 
 
   const initCollaboration = (board: any) => {
