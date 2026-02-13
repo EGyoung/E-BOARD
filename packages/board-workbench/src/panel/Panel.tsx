@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { ToolHeader, ColorSection, FillColorSection, ThicknessSection } from './components';
 import './styles.css';
-import { EBoard } from '@e-board/core';
+import type { EBoard } from '@e-board/board-core';
 
 interface PanelWithBoardProps {
     board?: EBoard | null; // EBoard instance
