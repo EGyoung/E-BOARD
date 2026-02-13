@@ -45,7 +45,7 @@ export type IPoint = {
 
 export type IModel<T extends Record<string, any> = Record<string, any>> = {
   id: string;
-  type: "line" | string;
+  type: string;
   points?: IPoint[];
   options?: ModelOptions;
   ctrlElement: {

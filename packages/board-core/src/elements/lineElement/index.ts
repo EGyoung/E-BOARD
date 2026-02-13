@@ -1,11 +1,13 @@
 import { IElement } from "../../services";
 import { LineCtrlElement } from "./ctrlElement";
+import { Render } from "./render";
 import SaveInfoProvider from "./saveInfoProvider";
 
-const lineElement: IElement = {
+const lineElement = {
     type: "line",
     ctrlElement: LineCtrlElement,
-    saveInfoProvider: SaveInfoProvider
-}
+    saveInfoProvider: SaveInfoProvider,
+    render: Render
+} satisfies IElement;
 
 export default lineElement;

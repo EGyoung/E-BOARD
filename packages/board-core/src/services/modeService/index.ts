@@ -1,8 +1,6 @@
 
 import { IBoard, IServiceInitParams } from "../../types";
 import {
-  IAfterSwitchModeEvent,
-  IBeforeSwitchModeEvent,
   IModeService,
   IModeServiceOptions,
   Mode
