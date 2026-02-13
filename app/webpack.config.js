@@ -4,7 +4,7 @@ const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPl
 
 module.exports = (env, argv) => {
   const isProduction = argv.mode === "production";
-  const isAnalyze = process.env.ANALYZE === 'true' || (env && env.analyze);
+  const isAnalyze = process.env.ANALYZE === "true" || (env && env.analyze);
 
   const plugins = [
     new HtmlWebpackPlugin({

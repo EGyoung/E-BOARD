@@ -6,9 +6,7 @@
     "composite": true,
     "declaration": true,
     "baseUrl": ".",
-    "paths": {
-      "@e-board/*": ["../*/dist/esm"]
-    }
+    "paths": {}
   },
   "include": ["src"],
   "references": [{ "path": "../board-utils" }]
