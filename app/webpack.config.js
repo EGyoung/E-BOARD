@@ -1,8 +1,19 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
 
 module.exports = (env, argv) => {
   const isProduction = argv.mode === "production";
+  const isAnalyze = process.env.ANALYZE === 'true' || (env && env.analyze);
+
+  const plugins = [
+    new HtmlWebpackPlugin({
+      template: "./public/index.html"
+    })
+  ];
+  if (isAnalyze) {
+    plugins.push(new BundleAnalyzerPlugin());
+  }
 
   return {
     entry: "./src/index.tsx",
@@ -90,11 +101,7 @@ module.exports = (env, argv) => {
         }
       ]
     },
-    plugins: [
-      new HtmlWebpackPlugin({
-        template: "./public/index.html"
-      })
-    ],
+    plugins,
     devServer: {
       static: {
         directory: path.join(__dirname, "public")
