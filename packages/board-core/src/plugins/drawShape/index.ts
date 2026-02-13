@@ -2,25 +2,17 @@ import { initContextAttrs } from "@e-board/board-utils";
 import { eBoardContainer } from "../../common/IocContainer";
 import { IModelService, IModeService, IEventService } from "../../services";
 import { IConfigService, IModel } from "../../services";
-import { IRenderService } from "../../services/renderService/type";
 import { ITransformService } from "../../services/transformService/type";
 import { IBoard, IPluginInitParams } from "../../types";
 import { IPlugin } from "../type";
 
 const CURRENT_MODE = "drawShape";
 
-
-type IShapeRectangle = {
-  width: number;
-  height: number;
-}
-
 class DrawShapePlugin implements IPlugin {
   private board!: IBoard;
   private disposeList: (() => void)[] = [];
   private configService = eBoardContainer.get<IConfigService>(IConfigService);
   private modelService = eBoardContainer.get<IModelService>(IModelService);
-  private renderService = eBoardContainer.get<IRenderService>(IRenderService);
   private transformService = eBoardContainer.get<ITransformService>(ITransformService);
   private lastPoint = { x: 0, y: 0 };
 
@@ -94,7 +86,6 @@ class DrawShapePlugin implements IPlugin {
   public init({ board }: IPluginInitParams) {
     this.board = board;
     this.initDrawMode();
-    this.registerShapeDrawHandler();
   }
 
   private initDrawMode() {
@@ -113,44 +104,6 @@ class DrawShapePlugin implements IPlugin {
     });
   }
 
-  private registerShapeDrawHandler() {
-    // 钜形
-    this.renderService.registerDrawModelHandler("rectangle", this.drawRectangleModelHandler);
-  }
-
-  private drawRectangleModelHandler = (
-    model: IModel<IShapeRectangle>,
-    _: any,
-    isViewChanged: boolean = false
-  ) => {
-    const context = this.board.getCtx();
-    if (!context) return;
-    const [point] = model.points!;
-    if (isViewChanged) {
-      context.rect(
-        point.x,
-        point.y,
-        model.width,
-        model.height
-      )
-    } else {
-      const transformedPoint = this.transformPoint({ x: point.x, y: point.y });
-      const zoom = this.transformService.getView().zoom;
-
-      // 绘制矩形
-      context.rect(
-        transformedPoint.x,
-        transformedPoint.y,
-        model.width * zoom,
-        model.height * zoom
-      );
-    }
-
-    if (model.options?.fillStyle) {
-      context.fillStyle = model.options.fillStyle;
-      context.fill();
-    }
-  };
 
   private getCanvasPoint(clientX: number, clientY: number) {
     const canvas = this.board.getCanvas();
@@ -208,7 +161,6 @@ class DrawShapePlugin implements IPlugin {
 
   public dispose() {
     this.disposeList.forEach(dispose => dispose());
-    this.renderService.unregisterDrawModelHandler("rectangle");
   }
 }
 

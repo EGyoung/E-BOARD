@@ -4,15 +4,16 @@ import { IModelService, ModelChangeType, BoundingBox, IModel } from '../modelSer
 import { ITransformService } from "../transformService/type";
 
 
-import { IDrawModelHandler, IRenderService, Range, View } from "./type";
+import { IRenderService, Range, View } from "./type";
 import { TileManager } from "./tileManager";
 import { Emitter, initContextAttrs } from '@e-board/board-utils';
+import { IElementService } from "../elementService/type";
 
 
 class RenderService implements IRenderService {
   private board!: IBoard;
   private modelService = eBoardContainer.get<IModelService>(IModelService);
-  private modelHandler = new Map<string, IDrawModelHandler>();
+  private elementService = eBoardContainer.get<IElementService>(IElementService);
   private readonly _renderStart = new Emitter<void>();
   private readonly _renderEnd = new Emitter<void>();
   public onRenderStart = this._renderStart.event;
@@ -178,16 +179,7 @@ class RenderService implements IRenderService {
   }
 
 
-  public registerDrawModelHandler(key: string, handler: IDrawModelHandler) {
-    this.modelHandler.set(key, handler);
-  }
-
-  public unregisterDrawModelHandler(key: string) {
-    this.modelHandler.delete(key);
-  }
-
   public dispose(): void {
-    this.modelHandler = new Map();
     this.disposeList.forEach(dispose => dispose());
     RenderService.transformService = null;
   }
@@ -244,8 +236,6 @@ class RenderService implements IRenderService {
       };
     }
 
-
-
     if (!this.currentRanges) {
       context.clearRect(0, 0, canvas.width, canvas.height);
       if (isViewChange) {
@@ -262,7 +252,6 @@ class RenderService implements IRenderService {
           -view.y * dpr * zoom
         );
       }
-
 
       // 同时清空交互画布，避免重叠
       if (interactionCtx) {
@@ -310,19 +299,16 @@ class RenderService implements IRenderService {
           continue;
         }
       }
-      const handler = this.modelHandler.get(model.type);
-      if (handler) {
+      const comp = this.elementService.getElement(model.type);
+      if (!comp) continue;
+      const renderHandler = new comp.render(this.board);
+      if (renderHandler) {
         context.beginPath();
         initContextAttrs(context, { zoom }, model.options);
-        handler(model, context as any, !!useWorldCoords);
+        renderHandler.render(model, context as any, !!useWorldCoords);
         context.stroke();
       }
-
-
     }
-
-
-
     context.restore();
     this.currentRanges = null;
     this._renderEnd.fire();

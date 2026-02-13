@@ -9,9 +9,6 @@ export type Range = {
     maxY: number
 }
 
-export interface IDrawModelHandler {
-    (model: any, ctx?: CanvasRenderingContext2D, useWorldCoords?: boolean): void;
-}
 export interface View {
     x: number;
     y: number;

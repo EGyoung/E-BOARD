@@ -1,6 +1,5 @@
 import { eBoardContainer } from "../../common/IocContainer";
 import { IConfigService, IModelService } from "../../services";
-import { IRenderService } from "../../services/renderService/type";
 import { ITransformService } from "../../services/transformService/type";
 import { IBoard, IPluginInitParams } from "../../types";
 import { IPlugin } from "../type";
@@ -17,7 +16,6 @@ class PicturePlugin implements IPlugin {
     private board!: IBoard;
     private disposeList: (() => void)[] = [];
     private modelService = eBoardContainer.get<IModelService>(IModelService);
-    private renderService = eBoardContainer.get<IRenderService>(IRenderService);
     private transformService = eBoardContainer.get<ITransformService>(ITransformService);
     private configService = eBoardContainer.get<IConfigService>(IConfigService);
     private imageCache = new Map<string, HTMLImageElement>();
@@ -27,7 +25,6 @@ class PicturePlugin implements IPlugin {
 
     public init({ board }: IPluginInitParams) {
         this.board = board;
-        this.registerPictureDrawHandler();
     }
 
     public insertImage = (
@@ -98,47 +95,8 @@ class PicturePlugin implements IPlugin {
         return this.transformService.transformPoint(point, inverse);
     }
 
-    private registerPictureDrawHandler() {
-        this.renderService.registerDrawModelHandler("picture", this.drawPictureModelHandler);
-    }
-
-    private drawPictureModelHandler = (model: PictureModel, _: any, useWorldCoords = false) => {
-        const context = this.board.getCtx();
-        if (!context || !model.imageData || !model.points) return;
-
-        context.save();
-
-        let img = this.imageCache.get(model.id);
-        if (!img) {
-            img = new Image();
-            img.src = model.imageData;
-            this.imageCache.set(model.id, img);
-        }
-
-        if (img.complete) {
-            const zoom = this.transformService.getView().zoom;
-            const transformedPos = useWorldCoords ? model.points[0] : this.transformPoint(model.points[0]);
-            const width = useWorldCoords ? (model.width || img.width) : (model.width || img.width) * zoom;
-            const height = useWorldCoords ? (model.height || img.height) : (model.height || img.height) * zoom;
-
-            // 将图片中心对齐到指定位置，而不是左上角
-            const drawX = transformedPos.x
-            const drawY = transformedPos.y
-
-            context.drawImage(img, drawX, drawY, width, height);
-        } else {
-            img.onload = () => {
-                this.renderService.reRender();
-            };
-        }
-
-        context.restore();
-    };
-
-
     public dispose() {
         this.disposeList.forEach(dispose => dispose());
-        this.renderService.unregisterDrawModelHandler("picture");
         this.imageCache.clear();
     }
 }

@@ -1,8 +1,7 @@
 import { initContextAttrs } from "@e-board/board-utils";
 import { eBoardContainer } from "../../common/IocContainer";
 import { IModelService, IModeService, IEventService } from "../../services";
-import { IConfigService, IModel } from "../../services";
-import { IRenderService } from "../../services/renderService/type";
+import { IConfigService } from "../../services";
 import { ITransformService } from "../../services/transformService/type";
 import { IBoard, IPluginInitParams } from "../../types";
 import { IPlugin } from "../type";
@@ -13,7 +12,6 @@ class DrawPlugin implements IPlugin {
   private disposeList: (() => void)[] = [];
   private configService = eBoardContainer.get<IConfigService>(IConfigService);
   private modelService = eBoardContainer.get<IModelService>(IModelService);
-  private renderService = eBoardContainer.get<IRenderService>(IRenderService);
   private transformService = eBoardContainer.get<ITransformService>(ITransformService);
 
 
@@ -90,7 +88,6 @@ class DrawPlugin implements IPlugin {
   public init({ board }: IPluginInitParams) {
     this.board = board;
     this.initDrawMode();
-    this.registerLineDrawHandler();
 
   }
 
@@ -110,33 +107,6 @@ class DrawPlugin implements IPlugin {
     });
   }
 
-  private registerLineDrawHandler() {
-    this.renderService.registerDrawModelHandler("line", this.drawLineModelHandler);
-  }
-
-  private drawLineModelHandler = (model: IModel, ctx?: CanvasRenderingContext2D, useWorldCoords = false) => {
-    const context = this.board.getCtx();
-    if (!context) return;
-    context.save()
-    const toScreenPoint = useWorldCoords
-      ? (point: { x: number; y: number }) => point
-      : (point: { x: number; y: number }) => this.transformPoint(point);
-    model.points?.forEach((point, index) => {
-      const transformedPoint = toScreenPoint(point);
-      if (index === 0) {
-        context.moveTo(transformedPoint.x, transformedPoint.y);
-      } else if (index < 2) {
-        context.lineTo(transformedPoint.x, transformedPoint.y);
-      } else {
-        const p1 = toScreenPoint(model.points![index - 1]);
-        const p2 = toScreenPoint(point);
-        const midPointX = (p1.x + p2.x) / 2;
-        const midPointY = (p1.y + p2.y) / 2;
-        context.quadraticCurveTo(p1.x, p1.y, midPointX, midPointY);
-      }
-    });
-    context.restore()
-  };
 
   private getCanvasPoint(clientX: number, clientY: number) {
     const canvas = this.board.getCanvas();
@@ -194,7 +164,6 @@ class DrawPlugin implements IPlugin {
 
   public dispose() {
     this.disposeList.forEach(dispose => dispose());
-    this.renderService.unregisterDrawModelHandler("line");
   }
 }
 
