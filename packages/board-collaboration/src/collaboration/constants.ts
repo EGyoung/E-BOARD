@@ -1,0 +1,8 @@
+export const DEFAULT_MAX_BATCH_OPS = 30;
+export const DEFAULT_FLUSH_INTERVAL_MS = 30;
+export const DEFAULT_MAX_MESSAGE_BYTES = 64 * 1024;
+export const DEFAULT_MAX_OP_BYTES = 16 * 1024;
+export const DEFAULT_MAX_INFLIGHT_BATCHES = 5;
+export const DEFAULT_RETRY_BASE_MS = 1000;
+export const DEFAULT_MAX_RETRIES = 5;
+export const DEFAULT_HOLDBACK_LIMIT = 2000;

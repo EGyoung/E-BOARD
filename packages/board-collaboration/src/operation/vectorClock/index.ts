@@ -9,16 +9,45 @@ class VectorClockAction {
     }
 
     public static merge(local: IVectorClock, remote: IVectorClock) {
-        const localKeys = Object.keys(local);
-        const remoteKeys = Object.keys(remote);
-        if (localKeys.length !== remoteKeys.length) {
-            throw new Error('can not be merged')
-        }
         const merged: IVectorClock = {};
-        for (const userId in remote) {
+        const keys = new Set([...Object.keys(local), ...Object.keys(remote)]);
+        keys.forEach((userId) => {
             merged[userId] = Math.max(local[userId] || 0, remote[userId] || 0);
-        }
+        });
         return merged;
+    }
+
+    public static compare(a: IVectorClock, b: IVectorClock) {
+        let aBigger = false;
+        let bBigger = false;
+        const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
+        keys.forEach((userId) => {
+            const aValue = a[userId] || 0;
+            const bValue = b[userId] || 0;
+            if (aValue < bValue) {
+                bBigger = true;
+            } else if (aValue > bValue) {
+                aBigger = true;
+            }
+        });
+        if (!aBigger && !bBigger) return 'equal';
+        if (aBigger && !bBigger) return 'after';
+        if (!aBigger && bBigger) return 'before';
+        return 'concurrent';
+    }
+
+    public static isCausallyReady(opClock: IVectorClock, localClock: IVectorClock, senderId: string) {
+        const keys = new Set([...Object.keys(opClock), ...Object.keys(localClock)]);
+        for (const userId of keys) {
+            const localValue = localClock[userId] || 0;
+            const opValue = opClock[userId] || 0;
+            if (userId === senderId) {
+                if (opValue !== localValue + 1) return false;
+            } else {
+                if (opValue > localValue) return false;
+            }
+        }
+        return true;
     }
 
     // 判断是否发成冲突

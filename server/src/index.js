@@ -4,6 +4,7 @@ const { WebSocketServer } = require("ws");
 const PORT = 3010;
 const PATH = "/collaboration";
 const MAX_HISTORY = 1000;
+const MAX_MESSAGE_BYTES = 64 * 1024;
 
 const server = http.createServer((req, res) => {
   res.writeHead(200, { "Content-Type": "text/plain" });
@@ -34,8 +35,13 @@ wss.on("connection", ws => {
 
   ws.on("message", data => {
     let message;
+    const raw = data.toString();
+    if (raw.length > MAX_MESSAGE_BYTES) {
+      safeSend(ws, { type: "error", data: { reason: "payload_too_large" } });
+      return;
+    }
     try {
-      message = JSON.parse(data.toString());
+      message = JSON.parse(raw);
     } catch {
       return;
     }
@@ -50,6 +56,15 @@ wss.on("connection", ws => {
           history.push(message.data);
           if (history.length > MAX_HISTORY) history.shift();
           broadcast({ type: "operation", data: message.data }, ws);
+          if (message.id) {
+            let payload;
+            try {
+              payload = typeof message.data === "string" ? JSON.parse(message.data) : message.data;
+            } catch {
+              payload = null;
+            }
+            safeSend(ws, { type: "ack", data: { batchId: payload?.batchId || message.id } });
+          }
         }
         break;
       case "command":
@@ -60,6 +75,11 @@ wss.on("connection", ws => {
         break;
       case "sync-request":
         safeSend(ws, { type: "sync", data: { operations: history } });
+        break;
+      case "snapshot":
+        if (message.data) {
+          broadcast({ type: "snapshot", data: message.data }, ws);
+        }
         break;
       default:
         break;

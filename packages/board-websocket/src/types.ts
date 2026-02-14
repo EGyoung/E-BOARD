@@ -5,6 +5,10 @@ export enum MsgType {
     OPERATION = 'operation',
     HEARTBEAT = 'heartbeat',
     ACK = 'ack', // 消息确认回执
+    SYNC_REQUEST = 'sync-request',
+    SYNC = 'sync',
+    SNAPSHOT = 'snapshot',
+    ERROR = 'error',
 }
 
 export enum MsgStatus {
