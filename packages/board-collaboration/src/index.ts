@@ -63,7 +63,6 @@ class BoardCollaboration {
                         type: MsgType.OPERATION,
                         id: `msg-${Date.now()}`,
                         senderId: this.currentUserid,
-                        timestamp: Date.now(),
                         data: JSON.stringify(payload)
                     }
                     this.websocketProvider?.send(body)

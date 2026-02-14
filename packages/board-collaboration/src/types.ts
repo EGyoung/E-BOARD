@@ -1,0 +1,1 @@
+export type IVectorClock = Record<string, number>;
