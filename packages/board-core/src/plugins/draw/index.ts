@@ -1,4 +1,4 @@
-import { initContextAttrs } from "@e-board/board-utils";
+import { Emitter, initContextAttrs } from "@e-board/board-utils";
 import { eBoardContainer } from "../../common/IocContainer";
 import { IModelService, IModeService, IEventService } from "../../services";
 import { IConfigService } from "../../services";
@@ -13,11 +13,17 @@ class DrawPlugin implements IPlugin {
   private configService = eBoardContainer.get<IConfigService>(IConfigService);
   private modelService = eBoardContainer.get<IModelService>(IModelService);
   private transformService = eBoardContainer.get<ITransformService>(ITransformService);
-
+  private readonly _onDraw = new Emitter<{ isEnd: boolean, points: { x: number; y: number }[], options: any, isBegin: boolean }>()
+  public onDraw = this._onDraw.event;
+  public emitOnDraw = this._onDraw.fire.bind(this._onDraw);
 
   public pluginName = "DrawPlugin";
 
   public dependencies = [];
+
+  public exports = {
+    onDraw: this.onDraw.bind(this),
+  }
 
   public transformPoint(point: { x: number; y: number }, inverse = false) {
     return this.transformService.transformPoint(point, inverse);
@@ -47,10 +53,12 @@ class DrawPlugin implements IPlugin {
       }
     }
     const transformedPoint = this.transformPoint(point, true);
+
     if (!this.currentLinePoints.length) {
       ctx.beginPath();
       ctx.moveTo(point.x, point.y);
       this.currentLinePoints = [transformedPoint];
+      this.emitOnDraw({ isBegin: true, isEnd, points: this.currentLinePoints, options: { ...this.configService.getCtxConfig() } });
       this.lastScreenPoint = { x: point.x, y: point.y };
       return;
     }
@@ -73,6 +81,7 @@ class DrawPlugin implements IPlugin {
       x: transformedPoint.x,
       y: transformedPoint.y
     });
+    this.emitOnDraw({ isBegin: false, isEnd, points: this.currentLinePoints, options: { ...this.configService.getCtxConfig() } });
     this.lastScreenPoint = { x: point.x, y: point.y };
 
     if (isEnd) {

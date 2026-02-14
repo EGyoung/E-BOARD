@@ -52,6 +52,12 @@ wss.on("connection", ws => {
           broadcast({ type: "operation", data: message.data }, ws);
         }
         break;
+      case "command":
+        // 转发 command 给其它客户端（不写入 history，command 通常为临时交互数据）
+        if (message.data) {
+          broadcast({ type: "command", data: message.data }, ws);
+        }
+        break;
       case "sync-request":
         safeSend(ws, { type: "sync", data: { operations: history } });
         break;

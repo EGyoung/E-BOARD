@@ -24,9 +24,12 @@ class SelectionPlugin implements IPlugin {
   private renderService = eBoardContainer.get<IRenderService>(IRenderService);
   private readonly _onSelectedElements = new Emitter<IModel>();
   private emitSelectedElement = this._onSelectedElements.fire.bind(this._onSelectedElements);
+  private readonly _onElementsMoving = new Emitter<IModel[]>()
+  private emitElementsMoving = this._onElementsMoving.fire.bind(this._onElementsMoving)
   /**
    * 是否选中元素 如果已经渲染的元素再次被选中则不会被触发
    */
+  public onElementMoving = this._onElementsMoving.event;
   public onSelectedElements = this._onSelectedElements.event;
 
   public pluginName = "SelectionPlugin";
@@ -34,7 +37,8 @@ class SelectionPlugin implements IPlugin {
   public exports = {
     getSelectedModelsId: this.getSelectedModelsId.bind(this),
     getSelectedModels: this.getSelectedModels.bind(this),
-    onSelectedElements: this.onSelectedElements.bind(this)
+    onSelectedElements: this.onSelectedElements.bind(this),
+    onElementsMoving: this.onElementMoving.bind(this)
   };
 
   public getSelectedModelsId() {
@@ -199,6 +203,8 @@ class SelectionPlugin implements IPlugin {
             });
             tempModel.ctrlElement?.onElementMove?.(e);
           });
+          const models = Array.from(this.selectModels).map(id => this.modelService.getModelById(id)!).filter(Boolean)
+          this.emitElementsMoving(models);
           return;
         }
 

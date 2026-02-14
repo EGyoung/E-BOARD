@@ -1,6 +1,7 @@
 // types.ts
 
 export enum MsgType {
+    COMMAND = 'command', // 指令 用户一些不用保存的操作，如 绘制过程中的路径数据，可以通过 COMMAND 类型发送，减少对消息存储和历史回放的压力
     OPERATION = 'operation',
     HEARTBEAT = 'heartbeat',
     ACK = 'ack', // 消息确认回执
