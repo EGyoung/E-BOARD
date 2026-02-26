@@ -35,6 +35,7 @@ class HistoryService implements IHistoryService {
 
     private handleModelOperation(event: ModelChangeEvent): void {
         if (this.isApplyingHistory) return; // 防止撤销时的数据变更 导致历史记录被重复添加
+        if (event.operationSource === 'remote') return; // Ignore remote operations for local history
 
         switch (event.type) {
             // 创建数据

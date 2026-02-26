@@ -19,13 +19,34 @@ export class DeleteHandler implements IOperationHandler {
     }
 
     handleRemote({ data, modelService, elementService }: any) {
-        // 修正之前代码里 data.data.deletedModels 的问题，统一使用 data.deletedModels
         const deletedModels = data.deletedModels || [];
         deletedModels.forEach((m: any) => {
             const element = elementService.getElement(m.type);
-            if (!element) throw new Error(`Unregistered element type: ${m.type}`);
-            const model = element.saveInfoProvider.importSaveInfo(m);
-            modelService.deleteModel(model.id, OperationSource.REMOTE);
+            if (!element) return;
+
+            const modelId = m.id;
+            const localModel = modelService.getModelById(modelId);
+
+            // If already deleted locally, do nothing
+            if (!localModel) return;
+
+            // LWW Check: If local modification is newer than delete op, keep local
+            const incomingTime = data.timestamp || 0;
+            const localTime = localModel._v || 0;
+
+            if (localTime > incomingTime) {
+                // Local version is newer, ignore delete
+                return;
+            }
+            if (localTime === incomingTime) {
+                // Tie break: prefer delete if from higher node? or keep? 
+                // Usually higher node wins.
+                const incomingNode = data.nodeId || '';
+                const localNode = localModel._by || '';
+                if (localNode > incomingNode) return;
+            }
+
+            modelService.deleteModel(modelId, OperationSource.REMOTE);
         });
     }
 }
