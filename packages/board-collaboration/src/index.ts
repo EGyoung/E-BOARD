@@ -194,30 +194,38 @@ class BoardCollaboration {
     private initLocalSubscription = () => {
         const { dispose } = this.modelService.onModelOperation(
             (operation: ModelChangeEvent) => {
-                if (operation.operationSource === 'remote') return; // 忽略远程操作，防止循环广播
-                const handler = operationManager.getHandler(operation.type);
-                if (handler) {
-                    const payload = handler.handleLocal({
-                        operation,
-                        board: this.board,
-                        modelService: this.modelService,
-                        elementService: this.elementService
-                    });
+                if (operation.operationSource !== 'remote') {
+                    const handler = operationManager.getHandler(operation.type);
+                    if (handler) {
+                        // Generate timestamp for this local operation
+                        const timestamp = this.clock.send();
+                        const nodeId = this.currentUserid;
 
-                    // Attach LWW Metadata
-                    const finalPayload = {
-                        ...payload,
-                        timestamp: this.clock.send(),
-                        nodeId: this.currentUserid
-                    };
+                        const payload = handler.handleLocal({
+                            operation,
+                            board: this.board,
+                            modelService: this.modelService,
+                            elementService: this.elementService,
+                            // Pass clock info so handler can update local _clockMap
+                            timestamp,
+                            nodeId
+                        } as any);
 
-                    const body: any = {
-                        type: MsgType.OPERATION,
-                        id: `msg-${Date.now()}`,
-                        senderId: this.currentUserid,
-                        data: JSON.stringify(finalPayload)
+                        // Attach LWW Metadata
+                        const finalPayload = {
+                            ...payload,
+                            timestamp,
+                            nodeId
+                        };
+
+                        const body: any = {
+                            type: MsgType.OPERATION,
+                            id: `msg-${Date.now()}`,
+                            senderId: this.currentUserid,
+                            data: JSON.stringify(finalPayload)
+                        }
+                        this.sendOrBuffer(body);
                     }
-                    this.sendOrBuffer(body);
                 }
             }
         )

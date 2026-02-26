@@ -4,7 +4,7 @@ import { IOperationHandler } from "./type";
 export class UpdateHandler implements IOperationHandler {
     type = 'update';
 
-    handleLocal({ operation, modelService, elementService }: any) {
+    handleLocal({ operation, modelService, elementService, timestamp, nodeId }: any) {
         const modelId = operation.modelId;
         const model = modelService.getModelById(modelId);
         const type = model?.type;
@@ -13,9 +13,30 @@ export class UpdateHandler implements IOperationHandler {
         const element = elementService.getElement(type);
         if (!element) throw new Error(`Unregistered element type: ${type}`);
 
+        const updates = element.saveInfoProvider.parse(operation.updates);
+
+        if (timestamp && nodeId && model) {
+             if (!model._clockMap) model._clockMap = {};
+             // Update local _clockMap to reflect this local mutation
+             const recurseSet = (obj: any, prefix = '') => {
+                Object.keys(obj).forEach(key => {
+                    const val = obj[key];
+                    const fullPath = prefix ? `${prefix}.${key}` : key;
+                    if (val && typeof val === 'object' && !Array.isArray(val)) {
+                        recurseSet(val, fullPath);
+                    } else {
+                        model._clockMap![fullPath] = { ts: timestamp, nodeId };
+                    }
+                });
+            };
+            recurseSet(updates);
+            model._v = Math.max(model._v || 0, timestamp);
+            model._by = nodeId;
+        }
+
         return {
             operation: this.type,
-            updates: element.saveInfoProvider.parse(operation.updates),
+            updates,
             previousState: element.saveInfoProvider.parse(operation.previousState),
             modelId: operation.modelId
         };
@@ -46,7 +67,10 @@ export class UpdateHandler implements IOperationHandler {
                 // If path is deeply nested inside arrays (not expected for IModel simple props), handle with care.
                 // Assuming standard atomic arrays.
 
-                const localTs = newClockMap[fullPath] || 0;
+                const incomingNode = data.nodeId || ''; // Assume incoming node ID is present
+                const localData = newClockMap[fullPath];
+                const localTs = localData?.ts || 0;
+                const localNode = localData?.nodeId || '';
 
                 // LWW Check
                 let applyUpdate = false;
@@ -54,15 +78,14 @@ export class UpdateHandler implements IOperationHandler {
                     applyUpdate = true;
                 } else if (incomingTime === localTs) {
                     // Tie-break: if timestamps are equal, compare nodeIds to ensure convergence.
-                    // We assume the incoming operation has a nodeId.
-                    // Note: This is an approximation since we don't store the nodeId of the writer 
-                    // for the *local* value. However, purely relying on timestamp usually works for LWW.
-                    // Strict consistency would require storing { val, ts, nodeId } per field.
+                    if (incomingNode > localNode) {
+                        applyUpdate = true;
+                    }
                 }
 
                 if (applyUpdate) {
                     setDeepValue(validUpdates, fullPath, value);
-                    newClockMap[fullPath] = incomingTime;
+                    newClockMap[fullPath] = { ts: incomingTime, nodeId: incomingNode };
                     hasChanges = true;
                 }
             });

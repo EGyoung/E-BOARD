@@ -3,7 +3,7 @@ export interface IModel {
     options: any,
     id: string,
     type: string,
-    _clockMap?: Record<string, number>,
+    _clockMap?: Record<string, { ts: number, nodeId: string }>,
     _v?: number,
     _by?: string
 }

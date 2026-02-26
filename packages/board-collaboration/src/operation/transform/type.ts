@@ -7,6 +7,8 @@ export interface IOperationHandler {
         board: EBoard;
         modelService: ModelService;
         elementService: ElementService;
+        timestamp?: number;
+        nodeId?: string;
     }): any;
     handleRemote(params: {
         data: any;

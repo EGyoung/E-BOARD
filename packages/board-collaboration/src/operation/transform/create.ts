@@ -43,7 +43,7 @@ export class CreateHandler implements IOperationHandler {
             // We should merge.
 
             // Let's just create a clockMap for the new data if not present
-            const newClockMap: Record<string, number> = {};
+            const newClockMap: Record<string, { ts: number, nodeId: string }> = {};
 
             // Populate clockMap for the incoming model fields (shallow or deep?)
             // For now, just object level or iterate keys.
@@ -65,7 +65,7 @@ export class CreateHandler implements IOperationHandler {
             // Initialize _clockMap for top-level keys
             Object.keys(model).forEach(k => {
                 if (k !== 'id' && k !== 'type') {
-                    model._clockMap![k] = incomingTime;
+                    model._clockMap![k] = { ts: incomingTime, nodeId: data.nodeId };
                 }
             });
             // Also special handling for nested 'options'?
@@ -73,7 +73,7 @@ export class CreateHandler implements IOperationHandler {
             // If we want field-level granularity, we'll expand on demand in update.ts logic.
             // But update.ts handles paths like "options.color".
             if (model.options) {
-                recurseKeys(model.options, 'options', model._clockMap, incomingTime);
+                recurseKeys(model.options, 'options', model._clockMap, incomingTime, data.nodeId);
             }
         }
 
@@ -90,13 +90,13 @@ export class CreateHandler implements IOperationHandler {
     }
 }
 
-function recurseKeys(obj: any, prefix: string, map: Record<string, number>, time: number) {
+function recurseKeys(obj: any, prefix: string, map: Record<string, { ts: number, nodeId: string }>, time: number, nodeId: string) {
     Object.keys(obj).forEach(key => {
         const val = obj[key];
         const path = `${prefix}.${key}`;
-        map[path] = time;
+        map[path] = { ts: time, nodeId: nodeId };
         if (val && typeof val === 'object' && !Array.isArray(val)) {
-            recurseKeys(val, path, map, time);
+            recurseKeys(val, path, map, time, nodeId);
         }
     });
 }
