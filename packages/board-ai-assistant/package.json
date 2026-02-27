@@ -1,0 +1,19 @@
+{
+  "name": "@e-board/board-ai-assistant",
+  "version": "1.0.0",
+  "private": true,
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/esm/index.d.ts",
+  "scripts": {
+    "dev": "father dev",
+    "build": "father build"
+  },
+  "dependencies": {
+    "@e-board/board-core": "workspace:*"
+  },
+  "devDependencies": {
+    "father": "^4.3.0",
+    "typescript": "^5.3.3"
+  }
+}

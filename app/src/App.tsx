@@ -3,11 +3,15 @@ import { DrawShapePlugin, EBoard, IConfigService, IModelService, ITransformServi
 import "./styles.css";
 import { RoamPlugin, SelectionPlugin, ClearPlugin, PicturePlugin, HotkeyPlugin } from "@e-board/board-core";
 import { BoardCollaboration } from '@e-board/board-collaboration';
+import BoardAIAssistantPlugin from "@e-board/board-ai-assistant";
 
 import { Panel, StageTool } from '@e-board/board-workbench';
 const App: React.FC = () => {
   const eboard = React.useRef<EBoard | null>(null);
   const [selectedElement, setSelectedElement] = useState<any>(null);
+  const [aiPrompt, setAiPrompt] = useState("帮我在画布正中间创建一个蓝色矩形");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiMessage, setAiMessage] = useState("");
 
   const getConfig = async () => {
     const config = await fetch('https://cdn.jsdelivr.net/gh/EGyoung/Juyoung-cdn@main/e-board-plugins-config/index.json').then(res => res.json())
@@ -62,14 +66,14 @@ const App: React.FC = () => {
     }
 
     const loadPlugins = async () => {
-      const plugins = [HotkeyPlugin, RoamPlugin, SelectionPlugin, DrawShapePlugin, ClearPlugin, PicturePlugin];
+      const plugins = [HotkeyPlugin, RoamPlugin, SelectionPlugin, DrawShapePlugin, ClearPlugin, PicturePlugin, BoardAIAssistantPlugin];
       const board = new EBoard({
         container: document.getElementById("board") as HTMLDivElement,
         id: "app-board",
         plugins
       });
       initRemotePlugins(board);
-      const cleanupCollaboration = initCollaboration(board);
+      // const cleanupCollaboration = initCollaboration(board);
       (window as any).board = board;
       eboard.current = board;
       const modeService = board.getService('modeService');
@@ -86,7 +90,7 @@ const App: React.FC = () => {
         disposed = true;
         board.dispose();
         dispose?.();
-        cleanupCollaboration();
+        // cleanupCollaboration();
       };
     };
 
@@ -198,6 +202,30 @@ const App: React.FC = () => {
     }
   };
 
+  const handleAIGenerate = async () => {
+    if (!eboard.current || !aiPrompt.trim()) return;
+
+    const plugin = eboard.current.getPlugin("BoardAIAssistantPlugin") as any;
+    if (!plugin?.exports?.generateAndRender) {
+      setAiMessage("AI 插件未加载");
+      return;
+    }
+
+    try {
+      setAiLoading(true);
+      setAiMessage("正在生成...");
+      const result = await plugin.exports.generateAndRender({
+        prompt: aiPrompt,
+        endpoint: "http://localhost:3010/ai/generate"
+      });
+      setAiMessage(`生成完成：已创建 ${result.created} 个图形`);
+    } catch (error: any) {
+      setAiMessage(`生成失败：${error?.message || "未知错误"}`);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   return (
     <div className="app-container">
       <div style={{ position: "absolute", zIndex: 10, top: 10, left: 10, display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -262,6 +290,45 @@ const App: React.FC = () => {
           >
             生成 10000 个矩形
           </button>
+        </div>
+
+        <div style={{
+          background: "rgba(0, 0, 0, 0.8)",
+          padding: "10px",
+          borderRadius: "8px",
+          color: "white",
+          fontSize: "12px",
+          width: "280px"
+        }}>
+          <div style={{ marginBottom: "8px", fontWeight: "bold" }}>🤖 AI Assistant</div>
+          <textarea
+            value={aiPrompt}
+            onChange={(e) => setAiPrompt(e.target.value)}
+            rows={3}
+            style={{ width: "100%", marginBottom: "8px", resize: "vertical" }}
+          />
+          <div style={{ display: "flex", gap: "6px", marginBottom: "8px" }}>
+            <button
+              onClick={() => setAiPrompt("帮我在画布正中间创建一个蓝色矩形")}
+              style={{ flex: 1, cursor: "pointer" }}
+            >
+              示例1
+            </button>
+            <button
+              onClick={() => setAiPrompt("帮我生成一个电商系统架构图")}
+              style={{ flex: 1, cursor: "pointer" }}
+            >
+              示例2
+            </button>
+          </div>
+          <button
+            onClick={handleAIGenerate}
+            disabled={aiLoading}
+            style={{ width: "100%", cursor: aiLoading ? "not-allowed" : "pointer" }}
+          >
+            {aiLoading ? "生成中..." : "AI 生成图形"}
+          </button>
+          {aiMessage && <div style={{ marginTop: "8px", color: "#9fe870" }}>{aiMessage}</div>}
         </div>
       </div>
 

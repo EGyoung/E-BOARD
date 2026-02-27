@@ -8,6 +8,7 @@
     "analyze": "ANALYZE=true webpack --mode production"
   },
   "dependencies": {
+    "@e-board/board-ai-assistant": "workspace:*",
     "@e-board/board-core": "workspace:*",
     "@e-board/board-utils": "workspace:*",
     "@e-board/board-workbench": "workspace:*",

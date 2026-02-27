@@ -35,7 +35,8 @@ module.exports = (env, argv) => {
         "@e-board/board-collaboration": path.resolve(
           __dirname,
           "../packages/board-collaboration/src"
-        )
+        ),
+        "@e-board/board-ai-assistant": path.resolve(__dirname, "../packages/board-ai-assistant/src")
       }
     },
     module: {

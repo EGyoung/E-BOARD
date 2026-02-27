@@ -19,6 +19,7 @@
     }
   },
   "references": [
+    { "path": "./packages/board-ai-assistant" },
     { "path": "./packages/board-core" },
     { "path": "./packages/board-ui" },
     { "path": "./packages/board-utils" },
