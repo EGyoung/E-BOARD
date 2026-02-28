@@ -1,4 +1,8 @@
 import type { EBoard, IModelService, ITransformService } from "@e-board/board-core";
+import type { TaskCallback, TaskContext } from "./schedule";
+import { createRafTaskScheduler, TaskPriority } from "./schedule";
+
+export * from "./schedule";
 
 type Point = { x: number; y: number };
 
@@ -51,17 +55,26 @@ type GenerateParams = {
 class BoardAIAssistantPlugin {
   public pluginName = "BoardAIAssistantPlugin";
   private board!: EBoard;
+  private schedule = createRafTaskScheduler({ frameBudget: 10, onError: (error) => console.error("scheduler task error:", error) });
 
   public exports = {
     generateAndRender: this.generateAndRender.bind(this),
-    renderFromJson: this.renderFromJson.bind(this)
+    renderFromJson: this.renderFromJson.bind(this),
+    renderFromJsonAsync: this.renderFromJsonAsync.bind(this)
   };
 
   public init({ board }: { board: EBoard }) {
     this.board = board;
   }
 
-  public dispose(): void { }
+  public dispose(): void {
+    this.schedule.dispose();
+  }
+
+  private requestRender() {
+    const renderService = this.board.getService("renderService") as { reRender?: () => void } | undefined;
+    renderService?.reRender?.();
+  }
 
   private getBoardCenterInWorld() {
     const canvas = this.board.getCanvas();
@@ -91,6 +104,37 @@ class BoardAIAssistantPlugin {
     });
   }
 
+  private updateView(params: UpdateViewAction["params"]): void {
+    const transformService = this.board.getService("transformService") as unknown as ITransformService;
+    const canvas = this.board.getCanvas();
+    const view = transformService.getView();
+    const nextZoom = params.zoom ?? view.zoom;
+
+    if (params.center && canvas) {
+      transformService.setView({
+        x: params.center.x - canvas.width / (2 * nextZoom),
+        y: params.center.y - canvas.height / (2 * nextZoom),
+        zoom: nextZoom
+      });
+      return;
+    }
+
+    if (typeof params.x === "number" && typeof params.y === "number" && canvas) {
+      transformService.setView({
+        x: params.x - canvas.width / (2 * nextZoom),
+        y: params.y - canvas.height / (2 * nextZoom),
+        zoom: nextZoom
+      });
+      return;
+    }
+
+    transformService.setView({
+      x: params.x,
+      y: params.y,
+      zoom: params.zoom
+    });
+  }
+
   private normalizePayload(payload: unknown): AIGeneratedPayload {
     if (!payload || typeof payload !== "object") {
       return { actions: [] };
@@ -114,13 +158,28 @@ class BoardAIAssistantPlugin {
 
   private createElement(shape: AIGeneratedShape): boolean {
     const modelService = this.board.getService("modelService") as unknown as IModelService;
+    const transformService = this.board.getService("transformService") as unknown as ITransformService;
+    const currentView = transformService.getView();
+    const zoom = currentView.zoom || 1;
 
     if (shape.type === "rectangle") {
-      const width = typeof shape.width === "number" ? shape.width : 160;
-      const height = typeof shape.height === "number" ? shape.height : 100;
-      const center = this.getBoardCenterInWorld();
-      const x = shape.x === "center" ? center.x - width / 2 : shape.x;
-      const y = shape.y === "center" ? center.y - height / 2 : shape.y;
+      const rawWidth = typeof shape.width === "number" ? shape.width : 160;
+      const rawHeight = typeof shape.height === "number" ? shape.height : 100;
+      const width = rawWidth / zoom;
+      const height = rawHeight / zoom;
+
+      let x: number;
+      let y: number;
+
+      if (shape.x === "center" || shape.y === "center") {
+        const center = this.getBoardCenterInWorld();
+        x = shape.x === "center" ? center.x - width / 2 : this.toWorldPoint({ x: shape.x, y: 0 }).x;
+        y = shape.y === "center" ? center.y - height / 2 : this.toWorldPoint({ x: 0, y: shape.y }).y;
+      } else {
+        const worldPoint = this.toWorldPoint({ x: shape.x, y: shape.y });
+        x = worldPoint.x;
+        y = worldPoint.y;
+      }
 
       modelService.createModel("rectangle", {
         type: "rectangle",
@@ -128,9 +187,11 @@ class BoardAIAssistantPlugin {
         width,
         height,
         options: {
+          ...this.board.getService('configService').getCtxConfig(),
           fillStyle: shape.fillStyle,
           strokeStyle: shape.strokeStyle,
-          lineWidth: shape.lineWidth
+          lineWidth: shape.lineWidth,
+
         }
       } as any);
 
@@ -160,18 +221,8 @@ class BoardAIAssistantPlugin {
 
   private runAction(action: AIGeneratedAction): boolean {
     if (action.type === "updateView") {
-      const transformService = this.board.getService("transformService") as unknown as ITransformService;
       const params = action.params || {};
-      if (params.center) {
-        this.moveViewportToWorldPoint(params.center);
-        return false;
-      }
-
-      transformService.setView({
-        x: params.x,
-        y: params.y,
-        zoom: params.zoom
-      });
+      this.updateView(params);
       return false;
     }
 
@@ -182,17 +233,75 @@ class BoardAIAssistantPlugin {
     return false;
   }
 
+  private shouldYieldBetweenStages(actions: AIGeneratedAction[], index: number): boolean {
+    if (index < 0 || index >= actions.length - 1) {
+      return false;
+    }
+    return actions[index].type === "updateView" && actions[index + 1].type === "createElement";
+  }
+
+  private renderActionsWithScheduler(actions: AIGeneratedAction[]): Promise<number> {
+    return new Promise<number>((resolve, reject) => {
+      let cursor = 0;
+      let created = 0;
+
+      const runChunk: TaskCallback = (context: TaskContext) => {
+        while (cursor < actions.length) {
+          const currentIndex = cursor;
+          const action = actions[cursor];
+          cursor += 1;
+
+          if (this.runAction(action)) {
+            created += 1;
+          }
+
+          if (this.shouldYieldBetweenStages(actions, currentIndex)) {
+            this.requestRender();
+            return runChunk;
+          }
+
+          if (context.timeRemaining() <= 0) {
+            return runChunk;
+          }
+        }
+
+        this.requestRender();
+        resolve(created);
+      };
+
+      try {
+        this.schedule.schedule(runChunk, {
+          priority: TaskPriority.HIGH,
+          timeout: 100
+        });
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
   public renderFromJson(payload: unknown): number {
     const data = this.normalizePayload(payload);
     let created = 0;
 
-    data.actions.forEach(action => {
+    data.actions.forEach((action, index) => {
       if (this.runAction(action)) {
         created += 1;
       }
+
+      if (this.shouldYieldBetweenStages(data.actions, index)) {
+        this.requestRender();
+      }
     });
 
+    this.requestRender();
+
     return created;
+  }
+
+  public async renderFromJsonAsync(payload: unknown): Promise<number> {
+    const data = this.normalizePayload(payload);
+    return this.renderActionsWithScheduler(data.actions);
   }
 
   public async generateAndRender(params: GenerateParams): Promise<{ created: number; data: AIGeneratedPayload }> {
@@ -221,7 +330,7 @@ class BoardAIAssistantPlugin {
 
     const result = await response.json();
     const data = this.normalizePayload(result?.data || result);
-    const created = this.renderFromJson(data);
+    const created = await this.renderFromJsonAsync(data);
     return { created, data };
   }
 }
