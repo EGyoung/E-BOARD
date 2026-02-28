@@ -15,6 +15,9 @@ type RectangleShape = {
   fillStyle?: string;
   strokeStyle?: string;
   lineWidth?: number;
+  text?: string;
+  textColor?: string;
+  textFontSize?: number;
 };
 
 type LineShape = {
@@ -109,6 +112,7 @@ class BoardAIAssistantPlugin {
   private layoutViewSnapshot: ViewSnapshot | null = null;
   private readonly nodeGapX = 40;
   private readonly nodeGapY = 28;
+  private readonly orthogonalStubLength = 24;
   private labelSeed = 1;
 
   public exports = {
@@ -400,6 +404,47 @@ class BoardAIAssistantPlugin {
     ];
   }
 
+  private getNodeCenter(box: NodeBox): Point {
+    return {
+      x: box.x + box.width / 2,
+      y: box.y + box.height / 2
+    };
+  }
+
+  private getPortDirection(node: NodeBox, point: Point): "left" | "right" | "top" | "bottom" {
+    const center = this.getNodeCenter(node);
+    const deltaX = point.x - center.x;
+    const deltaY = point.y - center.y;
+
+    if (Math.abs(deltaX) >= Math.abs(deltaY)) {
+      return deltaX >= 0 ? "right" : "left";
+    }
+    return deltaY >= 0 ? "bottom" : "top";
+  }
+
+  private offsetByDirection(point: Point, direction: "left" | "right" | "top" | "bottom", distance: number): Point {
+    if (direction === "left") {
+      return { x: point.x - distance, y: point.y };
+    }
+    if (direction === "right") {
+      return { x: point.x + distance, y: point.y };
+    }
+    if (direction === "top") {
+      return { x: point.x, y: point.y - distance };
+    }
+    return { x: point.x, y: point.y + distance };
+  }
+
+  private areSamePoint(a: Point, b: Point): boolean {
+    return a.x === b.x && a.y === b.y;
+  }
+
+  private appendPoint(path: Point[], point: Point): void {
+    if (path.length === 0 || !this.areSamePoint(path[path.length - 1], point)) {
+      path.push(point);
+    }
+  }
+
   private getDistance(a: Point, b: Point): number {
     const dx = a.x - b.x;
     const dy = a.y - b.y;
@@ -518,24 +563,46 @@ class BoardAIAssistantPlugin {
     return intersections;
   }
 
-  private buildOrthogonalPath(from: Point, to: Point, sourceNodeId?: string, targetNodeId?: string): Point[] {
-    if (from.x === to.x || from.y === to.y) {
-      return [from, to];
+  private buildOrthogonalPath(
+    from: Point,
+    to: Point,
+    sourceNodeId?: string,
+    targetNodeId?: string,
+    sourceNode?: NodeBox,
+    targetNode?: NodeBox
+  ): Point[] {
+    const sourceDirection = sourceNode ? this.getPortDirection(sourceNode, from) : null;
+    const targetDirection = targetNode ? this.getPortDirection(targetNode, to) : null;
+    const fromAnchor = sourceDirection ? this.offsetByDirection(from, sourceDirection, this.orthogonalStubLength) : from;
+    const toAnchor = targetDirection ? this.offsetByDirection(to, targetDirection, this.orthogonalStubLength) : to;
+
+    if (fromAnchor.x === toAnchor.x || fromAnchor.y === toAnchor.y) {
+      const directPath: Point[] = [];
+      this.appendPoint(directPath, from);
+      this.appendPoint(directPath, fromAnchor);
+      this.appendPoint(directPath, toAnchor);
+      this.appendPoint(directPath, to);
+      return directPath;
     }
 
-    const bendA: Point = { x: from.x, y: to.y };
-    const bendB: Point = { x: to.x, y: from.y };
+    const bendA: Point = { x: fromAnchor.x, y: toAnchor.y };
+    const bendB: Point = { x: toAnchor.x, y: fromAnchor.y };
 
-    const pathA = [from, bendA, to];
-    const pathB = [from, bendB, to];
+    const pathA = [fromAnchor, bendA, toAnchor];
+    const pathB = [fromAnchor, bendB, toAnchor];
 
     const scorePath = (path: Point[]) => {
       const intersections = this.countPathIntersections(path, sourceNodeId, targetNodeId);
-      const manhattanLength = Math.abs(to.x - from.x) + Math.abs(to.y - from.y);
+      const manhattanLength = Math.abs(toAnchor.x - fromAnchor.x) + Math.abs(toAnchor.y - fromAnchor.y);
       return intersections * 10000 + manhattanLength;
     };
 
-    return scorePath(pathA) <= scorePath(pathB) ? pathA : pathB;
+    const middlePath = scorePath(pathA) <= scorePath(pathB) ? pathA : pathB;
+    const finalPath: Point[] = [];
+    this.appendPoint(finalPath, from);
+    middlePath.forEach(point => this.appendPoint(finalPath, point));
+    this.appendPoint(finalPath, to);
+    return finalPath;
   }
 
   private snapPointToNearestNodeEdge(
@@ -596,7 +663,9 @@ class BoardAIAssistantPlugin {
         shortestPair.from,
         shortestPair.to,
         sourceNode.id,
-        targetNode.id
+        targetNode.id,
+        sourceNode,
+        targetNode
       );
     }
 
@@ -661,50 +730,197 @@ class BoardAIAssistantPlugin {
   }
 
   private injectMissingNodeLabels(actions: AIGeneratedAction[]): AIGeneratedAction[] {
-    const rectangleActions = actions.filter(this.isRectangleCreateAction.bind(this));
-    const textActions = actions.filter(this.isTextCreateAction.bind(this));
-    const synthesizedTexts: AIGeneratedAction[] = [];
+    const rectangleEntries: Array<{ index: number; bounds: ScreenRect; shape: RectangleShape }> = [];
 
-    rectangleActions.forEach((rectAction) => {
-      const rectShape = rectAction.params;
+    actions.forEach((action, index) => {
+      if (!this.isRectangleCreateAction(action)) {
+        return;
+      }
+      const rectShape = action.params;
       if (rectShape.type !== "rectangle") {
         return;
       }
-      const rectBounds = this.getShapeBounds(rectShape);
-      if (!rectBounds) {
+      const bounds = this.getShapeBounds(rectShape);
+      if (!bounds) {
+        return;
+      }
+      rectangleEntries.push({
+        index,
+        bounds,
+        shape: rectShape
+      });
+    });
+
+    const rectangleLabelPatch = new Map<number, { text: string; textColor?: string; textFontSize?: number }>();
+    const textActionIndexesToDrop = new Set<number>();
+
+    actions.forEach((action, index) => {
+      if (!this.isTextCreateAction(action)) {
         return;
       }
 
-      const hasLabel = textActions.some((textAction) => {
-        const textShape = textAction.params;
-        return textShape.type === "text" && this.isTextMappedToRectangle(rectBounds, textShape);
+      const textShape = action.params;
+      if (textShape.type !== "text") {
+        return;
+      }
+      if (typeof textShape.x !== "number" || typeof textShape.y !== "number") {
+        return;
+      }
+
+      let matchedRectangleIndex: number | null = null;
+      let bestDistance = Number.POSITIVE_INFINITY;
+
+      rectangleEntries.forEach((entry) => {
+        if (!this.isTextMappedToRectangle(entry.bounds, textShape)) {
+          return;
+        }
+        const center = {
+          x: entry.bounds.x + entry.bounds.width / 2,
+          y: entry.bounds.y + entry.bounds.height / 2
+        };
+        const distance = this.getDistance({ x: textShape.x as number, y: textShape.y as number }, center);
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          matchedRectangleIndex = entry.index;
+        }
       });
 
-      if (hasLabel) {
+      if (matchedRectangleIndex === null) {
         return;
       }
 
-      synthesizedTexts.push({
+      rectangleLabelPatch.set(matchedRectangleIndex, {
+        text: textShape.text,
+        textColor: textShape.color ?? textShape.fillStyle,
+        textFontSize: textShape.fontSize
+      });
+      textActionIndexesToDrop.add(index);
+    });
+
+    const mergedActions: AIGeneratedAction[] = [];
+
+    actions.forEach((action, index) => {
+      if (textActionIndexesToDrop.has(index)) {
+        return;
+      }
+
+      if (!this.isRectangleCreateAction(action)) {
+        mergedActions.push(action);
+        return;
+      }
+
+      const patch = rectangleLabelPatch.get(index);
+      if (!patch) {
+        mergedActions.push(action);
+        return;
+      }
+
+      const rectShape = action.params;
+      if (rectShape.type !== "rectangle") {
+        mergedActions.push(action);
+        return;
+      }
+
+      mergedActions.push({
         type: "createElement",
         params: {
-          type: "text",
-          x: rectBounds.x,
-          y: rectBounds.y,
-          width: rectBounds.width,
-          height: rectBounds.height,
-          text: `节点${this.labelSeed++}`,
-          color: "#000000",
-          backgroundColor: "transparent",
-          fontSize: 16
+          ...rectShape,
+          text: patch.text,
+          textColor: patch.textColor,
+          textFontSize: patch.textFontSize
         }
       });
     });
 
-    if (synthesizedTexts.length > 0) {
-      console.warn(`BoardAIAssistantPlugin: synthesized ${synthesizedTexts.length} missing node label(s).`);
+    let synthesizedCount = 0;
+    const finalActions = mergedActions.map((action) => {
+      if (!this.isRectangleCreateAction(action)) {
+        return action;
+      }
+
+      const rectShape = action.params;
+      if (rectShape.type !== "rectangle") {
+        return action;
+      }
+
+      if (rectShape.text && rectShape.text.trim()) {
+        return action;
+      }
+
+      synthesizedCount += 1;
+      return {
+        type: "createElement",
+        params: {
+          ...rectShape,
+          text: `节点${this.labelSeed++}`,
+          textColor: "#000000",
+          textFontSize: 16
+        }
+      } as CreateElementAction;
+    });
+
+    if (synthesizedCount > 0) {
+      console.warn(`BoardAIAssistantPlugin: synthesized ${synthesizedCount} missing node label(s).`);
     }
 
-    return [...actions, ...synthesizedTexts];
+    return finalActions;
+  }
+
+  private injectMissingArrows(actions: AIGeneratedAction[]): AIGeneratedAction[] {
+    const hasArrow = actions.some(action => this.isArrowCreateAction(action));
+    if (hasArrow) {
+      return actions;
+    }
+
+    const rectangleActions = actions.filter(this.isRectangleCreateAction.bind(this));
+    if (rectangleActions.length < 2) {
+      return actions;
+    }
+
+    const synthesizedArrows: AIGeneratedAction[] = [];
+    for (let i = 0; i < rectangleActions.length - 1; i += 1) {
+      const fromShape = rectangleActions[i].params;
+      const toShape = rectangleActions[i + 1].params;
+      if (fromShape.type !== "rectangle" || toShape.type !== "rectangle") {
+        continue;
+      }
+      if (typeof fromShape.x !== "number" || typeof fromShape.y !== "number") {
+        continue;
+      }
+      if (typeof toShape.x !== "number" || typeof toShape.y !== "number") {
+        continue;
+      }
+
+      const fromWidth = typeof fromShape.width === "number" ? fromShape.width : 160;
+      const fromHeight = typeof fromShape.height === "number" ? fromShape.height : 100;
+      const toWidth = typeof toShape.width === "number" ? toShape.width : 160;
+      const toHeight = typeof toShape.height === "number" ? toShape.height : 100;
+
+      const fromCenter = {
+        x: fromShape.x + fromWidth / 2,
+        y: fromShape.y + fromHeight / 2
+      };
+      const toCenter = {
+        x: toShape.x + toWidth / 2,
+        y: toShape.y + toHeight / 2
+      };
+
+      synthesizedArrows.push({
+        type: "createElement",
+        params: {
+          type: "arrow",
+          points: [fromCenter, toCenter],
+          strokeStyle: "#222222",
+          lineWidth: 2
+        }
+      });
+    }
+
+    if (synthesizedArrows.length > 0) {
+      console.warn(`BoardAIAssistantPlugin: synthesized ${synthesizedArrows.length} missing arrow(s).`);
+    }
+
+    return [...actions, ...synthesizedArrows];
   }
 
   private getHistoryService() {
@@ -784,6 +1000,18 @@ class BoardAIAssistantPlugin {
       return null;
     }
 
+    if (typeof value.text !== "undefined" && typeof value.text !== "string") {
+      return null;
+    }
+
+    if (typeof value.textColor !== "undefined" && typeof value.textColor !== "string") {
+      return null;
+    }
+
+    if (typeof value.textFontSize !== "undefined" && (!this.isFiniteNumber(value.textFontSize) || value.textFontSize <= 0)) {
+      return null;
+    }
+
     return {
       type: "rectangle",
       x: value.x,
@@ -792,7 +1020,10 @@ class BoardAIAssistantPlugin {
       height: value.height,
       fillStyle: value.fillStyle,
       strokeStyle: value.strokeStyle,
-      lineWidth: value.lineWidth
+      lineWidth: value.lineWidth,
+      text: value.text,
+      textColor: value.textColor,
+      textFontSize: value.textFontSize
     };
   }
 
@@ -1063,6 +1294,9 @@ class BoardAIAssistantPlugin {
           fillStyle: shape.fillStyle,
           strokeStyle: shape.strokeStyle,
           lineWidth: shape.lineWidth,
+          label: shape.text,
+          labelColor: shape.textColor,
+          labelFontSize: typeof shape.textFontSize === "number" ? shape.textFontSize / zoom : undefined,
 
         }
       } as any);
@@ -1203,7 +1437,7 @@ class BoardAIAssistantPlugin {
         return;
       }
 
-      const normalizedSegment = this.injectMissingNodeLabels(segment);
+      const normalizedSegment = this.injectMissingArrows(this.injectMissingNodeLabels(segment));
 
       const nonArrowActions = normalizedSegment.filter(action => !this.isArrowCreateAction(action));
       const arrowActions = normalizedSegment.filter(action => this.isArrowCreateAction(action));
@@ -1456,6 +1690,16 @@ class BoardAIAssistantPlugin {
         }
 
         tryRunPendingArrows();
+
+        const withFallbackArrows = this.injectMissingArrows(actions);
+        const fallbackArrowActions = withFallbackArrows.slice(actions.length);
+        fallbackArrowActions.forEach((action) => {
+          actions.push(action);
+          if (this.runAction(action)) {
+            created += 1;
+          }
+        });
+
         this.requestRender();
 
         return {

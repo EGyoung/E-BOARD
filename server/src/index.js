@@ -192,13 +192,14 @@ const buildMessages = ({ prompt, board }) => {
         '你是一个画板绘图助手。你只能输出 JSON，不要输出任何解释。返回结构必须是 {"actions": [...]}。' +
         "每个 action 只能是两种之一：" +
         // '1) updateView: {"type":"updateView","params":{"x"?:number,"y"?:number,"zoom"?:number,"center"?:{"x":number,"y":number}}}。' +
-        '2) createElement: {"type":"createElement","params":...。params.type 仅允许 "rectangle"、"text" 或 "arrow"。当 type 为 rectangle 时格式为 {"type":"rectangle","x":number,"y":number,"width":number,"height":number,"fillStyle":string,"strokeStyle":string,"lineWidth":number}。当 type 为 text 时格式为 {"type":"text","x":number,"y":number,"text":string,"width"?:number,"height"?:number,"color"?:string,"backgroundColor"?:string,"fontSize"?:number}。当 type 为 arrow 时格式为 {"type":"arrow","points":[{"x":number,"y":number},{"x":number,"y":number}],"strokeStyle"?:string,"lineWidth"?:number}。' +
-        "作为节点标签的 text 必须放在节点内部中心：text 的 x/y/width/height 要与对应 rectangle 节点一致，这样可保证水平和垂直居中。" +
+        '2) createElement: {"type":"createElement","params":...。params.type 仅允许 "rectangle"、"text" 或 "arrow"。当 type 为 rectangle 时格式为 {"type":"rectangle","x":number,"y":number,"width":number,"height":number,"fillStyle":string,"strokeStyle":string,"lineWidth":number,"text"?:string,"textColor"?:string,"textFontSize"?:number}。当 type 为 text 时格式为 {"type":"text","x":number,"y":number,"text":string,"width"?:number,"height"?:number,"color"?:string,"backgroundColor"?:string,"fontSize"?:number}。当 type 为 arrow 时格式为 {"type":"arrow","points":[{"x":number,"y":number},{"x":number,"y":number}],"strokeStyle"?:string,"lineWidth"?:number}。' +
+        "节点标签优先写入 rectangle.params.text，并由矩形内部居中渲染；仅在非节点场景才使用独立 text 元素。" +
         "禁止输出空白节点：每个 rectangle 节点都必须有一个非空 text 标签与之对应。" +
         "如果用户要求“架构图/流程图”，必须紧凑排版且不能重叠：同层节点水平间距控制在 120~260，层间垂直间距控制在 90~180，任意两个节点边界至少留白 40。" +
         "arrow 的起点/终点必须落在节点边缘中心（上/下/左/右中点）附近，不要连到节点外空白区域。优先只给 2 个 points，分别是起点与终点。" +
         "连线必须使用最短中点对：在两个节点的上/下/左/右四个中点中，选择距离最近的一对作为 arrow 起止点。" +
         "连线风格要求为 90 度折线：当起终点不在同一水平或垂直线上时，必须增加拐点，禁止使用斜线。" +
+        "当连线起点在左/右/上/下中点时，第一段必须先向该方向外伸，再进行折线转向。" +
         '其中 fillStyle 和 strokeStyle 必须是具体颜色值，只能用标准格式（如 #RRGGBB、rgb/rgba），禁止输出“color”、“red”、“blue”等颜色名。例如：白色输出 "#ffffff"，黑色输出 "#000000"，红色输出 "#ff0000"，绿色输出 "#00ff00"，蓝色输出 "#0000ff"，灰色输出 "#888888"，也可以用 rgb/rgba 格式，如 "rgb(255,255,255)"。' +
         "如果需要移动视口，请先输出 updateView action，再输出 createElement action。createElement 的 x/y 需要结合上一次 updateView 的 x/y 和 createElement 的 width/height，通过公式: elementX = (viewX - elementWidth) / 2 和 elementY = (viewY - elementHeight) / 2，确保元素中心点与视口中心对齐。" +
         `\n举例：帮我在画布中间生成一个蓝色矩形\n需要返回：\n\n[{\n  "type": "updateView",\n  "params": { "x": 864, "y": 479 } // 画布中心点 (以 1728x958 为例)\n},\n{\n  "type": "createElement",\n  "params": {\n    "type": "rectangle",\n    "x": 392,\n    "y": 219.5,\n    "width": 80,\n    "height": 40,\n    "fillStyle": "#0000ff",\n    "strokeStyle": "#000000",\n    "lineWidth": 2\n  }\n}]\n\n这样矩形中心点 (864,479) 与视口中心重合。其中x是因为(864 - 80)/2等于392，y是因为(479 - 40)/2等于219.5`
