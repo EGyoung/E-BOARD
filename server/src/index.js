@@ -93,6 +93,95 @@ const normalizeResult = data => {
   return { actions: [] };
 };
 
+const createSseWriter = res => {
+  res.writeHead(200, {
+    ...CORS_HEADERS,
+    "Content-Type": "text/event-stream; charset=utf-8",
+    "Cache-Control": "no-cache, no-transform",
+    Connection: "keep-alive"
+  });
+
+  return {
+    send(event, payload) {
+      const data = typeof payload === "string" ? payload : JSON.stringify(payload);
+      res.write(`event: ${event}\n`);
+      res.write(`data: ${data}\n\n`);
+    },
+    end() {
+      res.end();
+    }
+  };
+};
+
+const createStreamActionExtractor = onAction => {
+  let started = false;
+  let ended = false;
+  let cursor = 0;
+  let inString = false;
+  let escaped = false;
+  let objectDepth = 0;
+  let objectStart = -1;
+  let buffer = "";
+
+  return {
+    push(chunk) {
+      if (!chunk) return;
+      buffer += chunk;
+
+      while (cursor < buffer.length) {
+        const ch = buffer[cursor];
+
+        if (!started) {
+          if (ch === "[") {
+            started = true;
+          }
+          cursor += 1;
+          continue;
+        }
+
+        if (ended) {
+          break;
+        }
+
+        if (inString) {
+          if (escaped) {
+            escaped = false;
+          } else if (ch === "\\") {
+            escaped = true;
+          } else if (ch === '"') {
+            inString = false;
+          }
+          cursor += 1;
+          continue;
+        }
+
+        if (ch === '"') {
+          inString = true;
+        } else if (ch === "{") {
+          if (objectDepth === 0) {
+            objectStart = cursor;
+          }
+          objectDepth += 1;
+        } else if (ch === "}") {
+          objectDepth = Math.max(0, objectDepth - 1);
+          if (objectDepth === 0 && objectStart >= 0) {
+            const actionText = buffer.slice(objectStart, cursor + 1);
+            const action = safeJsonParse(actionText);
+            if (action && typeof action === "object") {
+              onAction(action);
+            }
+            objectStart = -1;
+          }
+        } else if (ch === "]" && objectDepth === 0) {
+          ended = true;
+        }
+
+        cursor += 1;
+      }
+    }
+  };
+};
+
 const buildMessages = ({ prompt, board }) => {
   const width = Number(board?.width) || 1728;
   const height = Number(board?.height) || 958;
@@ -150,6 +239,66 @@ const callModel = async ({ prompt, board }) => {
   return normalizeResult(parsed);
 };
 
+const callModelStream = async ({ prompt, board, onDelta }) => {
+  if (!MODELSCOPE_API_KEY || !MODELSCOPE_BASE_URL || !MODEL) {
+    throw new Error("Missing model configuration in .env");
+  }
+
+  const response = await fetch(`${MODELSCOPE_BASE_URL}/chat/completions`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${MODELSCOPE_API_KEY}`
+    },
+    body: JSON.stringify({
+      model: MODEL,
+      temperature: 0.2,
+      stream: true,
+      messages: buildMessages({ prompt, board })
+    })
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Model stream request failed (${response.status}): ${text}`);
+  }
+
+  if (!response.body) {
+    throw new Error("Model stream body is empty");
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      break;
+    }
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() || "";
+
+    for (const rawLine of lines) {
+      const line = rawLine.trim();
+      if (!line || !line.startsWith("data:")) {
+        continue;
+      }
+      const data = line.slice(5).trim();
+      if (data === "[DONE]") {
+        continue;
+      }
+      const payload = safeJsonParse(data);
+      const delta = payload?.choices?.[0]?.delta?.content;
+      if (typeof delta === "string" && delta.length > 0) {
+        onDelta(delta);
+      }
+    }
+  }
+};
+
 const server = http.createServer((req, res) => {
   if (req.method === "OPTIONS") {
     res.writeHead(204, CORS_HEADERS);
@@ -174,6 +323,45 @@ const server = http.createServer((req, res) => {
       .catch(error => {
         res.writeHead(500, { ...CORS_HEADERS, "Content-Type": "application/json" });
         res.end(JSON.stringify({ error: error.message || "AI generation failed" }));
+      });
+    return;
+  }
+
+  if (req.method === "POST" && req.url === "/ai/generate/stream") {
+    readJsonBody(req)
+      .then(async body => {
+        const prompt = `${body?.prompt || ""}`.trim();
+        if (!prompt) {
+          res.writeHead(400, { ...CORS_HEADERS, "Content-Type": "application/json" });
+          res.end(JSON.stringify({ error: "prompt is required" }));
+          return;
+        }
+
+        const sse = createSseWriter(res);
+        const extractor = createStreamActionExtractor(action => {
+          sse.send("action", action);
+        });
+
+        try {
+          await callModelStream({
+            prompt,
+            board: body?.board || {},
+            onDelta: delta => {
+              extractor.push(delta);
+              sse.send("delta", { content: delta });
+            }
+          });
+
+          sse.send("done", { ok: true });
+          sse.end();
+        } catch (error) {
+          sse.send("error", { message: error.message || "AI stream generation failed" });
+          sse.end();
+        }
+      })
+      .catch(error => {
+        res.writeHead(500, { ...CORS_HEADERS, "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: error.message || "AI stream generation failed" }));
       });
     return;
   }

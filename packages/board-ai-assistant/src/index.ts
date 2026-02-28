@@ -74,6 +74,17 @@ type GenerateParams = {
   prompt: string;
 };
 
+type StreamGenerateResult = {
+  created: number;
+  data: AIGeneratedPayload;
+};
+
+type ViewSnapshot = {
+  x: number;
+  y: number;
+  zoom: number;
+};
+
 type NodeBox = {
   id: string;
   kind: "rectangle" | "text";
@@ -95,12 +106,14 @@ class BoardAIAssistantPlugin {
   private board!: EBoard;
   private schedule = createRafTaskScheduler({ frameBudget: 10, onError: (error) => console.error("scheduler task error:", error) });
   private recentNodeBoxes: NodeBox[] = [];
+  private layoutViewSnapshot: ViewSnapshot | null = null;
   private readonly nodeGapX = 40;
   private readonly nodeGapY = 28;
   private labelSeed = 1;
 
   public exports = {
     generateAndRender: this.generateAndRender.bind(this),
+    generateAndRenderStream: this.generateAndRenderStream.bind(this),
     renderFromJson: this.renderFromJson.bind(this),
     renderFromJsonAsync: this.renderFromJsonAsync.bind(this)
   };
@@ -129,7 +142,28 @@ class BoardAIAssistantPlugin {
     return transformService.transformPoint(centerInScreen, true);
   }
 
+  private getViewSnapshot(): ViewSnapshot {
+    const transformService = this.board.getService("transformService") as unknown as ITransformService;
+    const view = transformService.getView();
+    return {
+      x: view.x || 0,
+      y: view.y || 0,
+      zoom: view.zoom || 1
+    };
+  }
+
+  private screenToWorldByView(point: Point, view: ViewSnapshot): Point {
+    const zoom = view.zoom || 1;
+    return {
+      x: point.x / zoom + view.x,
+      y: point.y / zoom + view.y
+    };
+  }
+
   private toWorldPoint(point: Point) {
+    if (this.layoutViewSnapshot) {
+      return this.screenToWorldByView(point, this.layoutViewSnapshot);
+    }
     const transformService = this.board.getService("transformService") as unknown as ITransformService;
     return transformService.transformPoint(point, true);
   }
@@ -180,7 +214,12 @@ class BoardAIAssistantPlugin {
   private resetLayoutSession(): void {
     this.recentNodeBoxes = [];
     this.labelSeed = 1;
+    this.layoutViewSnapshot = this.getViewSnapshot();
     this.collectNodeBoxesFromBoard();
+  }
+
+  private endLayoutSession(): void {
+    this.layoutViewSnapshot = null;
   }
 
   private collectNodeBoxesFromBoard(): void {
@@ -1159,32 +1198,40 @@ class BoardAIAssistantPlugin {
   public renderFromJson(payload: unknown): number {
     return this.withHistoryBatch(() => {
       this.resetLayoutSession();
-      const data = this.normalizePayload(payload);
-      const orderedActions = this.reorderActionsForConnection(data.actions);
-      let created = 0;
+      try {
+        const data = this.normalizePayload(payload);
+        const orderedActions = this.reorderActionsForConnection(data.actions);
+        let created = 0;
 
-      orderedActions.forEach((action, index) => {
-        if (this.runAction(action)) {
-          created += 1;
-        }
+        orderedActions.forEach((action, index) => {
+          if (this.runAction(action)) {
+            created += 1;
+          }
 
-        if (this.shouldYieldBetweenStages(orderedActions, index)) {
-          this.requestRender();
-        }
-      });
+          if (this.shouldYieldBetweenStages(orderedActions, index)) {
+            this.requestRender();
+          }
+        });
 
-      this.requestRender();
+        this.requestRender();
 
-      return created;
+        return created;
+      } finally {
+        this.endLayoutSession();
+      }
     });
   }
 
   public async renderFromJsonAsync(payload: unknown): Promise<number> {
     return this.withHistoryBatchAsync(async () => {
       this.resetLayoutSession();
-      const data = this.normalizePayload(payload);
-      const orderedActions = this.reorderActionsForConnection(data.actions);
-      return this.renderActionsWithScheduler(orderedActions);
+      try {
+        const data = this.normalizePayload(payload);
+        const orderedActions = this.reorderActionsForConnection(data.actions);
+        return this.renderActionsWithScheduler(orderedActions);
+      } finally {
+        this.endLayoutSession();
+      }
     });
   }
 
@@ -1217,6 +1264,139 @@ class BoardAIAssistantPlugin {
     const created = await this.renderFromJsonAsync(data);
     return { created, data };
   }
+
+  public async generateAndRenderStream(params: GenerateParams): Promise<StreamGenerateResult> {
+    const endpoint = params.endpoint || "http://localhost:3010/ai/generate/stream";
+    const canvas = this.board.getCanvas();
+    const body = {
+      prompt: params.prompt,
+      board: {
+        width: canvas?.width || 1200,
+        height: canvas?.height || 800
+      }
+    };
+
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+      const message = await response.text();
+      throw new Error(message || `AI stream request failed with status ${response.status}`);
+    }
+
+    if (!response.body) {
+      throw new Error("Stream response body is empty");
+    }
+
+    return this.withHistoryBatchAsync(async () => {
+      this.resetLayoutSession();
+      try {
+        const reader = response.body!.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let created = 0;
+        const actions: AIGeneratedAction[] = [];
+        const pendingArrows: AIGeneratedAction[] = [];
+
+        const tryRunPendingArrows = () => {
+        if (pendingArrows.length === 0) {
+          return;
+        }
+        let cursor = 0;
+        while (cursor < pendingArrows.length) {
+          const arrowAction = pendingArrows[cursor];
+          if (this.runAction(arrowAction)) {
+            created += 1;
+          }
+          cursor += 1;
+        }
+        pendingArrows.length = 0;
+      };
+
+        const applyAction = (action: AIGeneratedAction) => {
+        actions.push(action);
+
+        if (this.isArrowCreateAction(action) && this.recentNodeBoxes.length < 2) {
+          pendingArrows.push(action);
+          return;
+        }
+
+        if (this.runAction(action)) {
+          created += 1;
+        }
+
+        if (action.type === "createElement" && action.params.type !== "arrow") {
+          tryRunPendingArrows();
+        }
+
+        this.requestRender();
+      };
+
+        while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          break;
+        }
+
+        buffer += decoder.decode(value, { stream: true });
+
+          let eventEnd = buffer.indexOf("\n\n");
+          while (eventEnd >= 0) {
+          const rawEvent = buffer.slice(0, eventEnd);
+          buffer = buffer.slice(eventEnd + 2);
+
+          let eventName = "message";
+          const dataLines: string[] = [];
+          rawEvent.split("\n").forEach((line) => {
+            if (line.startsWith("event:")) {
+              eventName = line.slice(6).trim();
+            } else if (line.startsWith("data:")) {
+              dataLines.push(line.slice(5).trim());
+            }
+          });
+
+          if (dataLines.length > 0) {
+            const dataText = dataLines.join("\n");
+            if (dataText !== "[DONE]") {
+              const parsed = safeJsonParseInternal(dataText);
+              if (eventName === "action" && this.isRecord(parsed)) {
+                const action = this.parseAction(parsed);
+                if (action) {
+                  applyAction(action);
+                }
+              }
+            }
+          }
+
+            eventEnd = buffer.indexOf("\n\n");
+          }
+        }
+
+        tryRunPendingArrows();
+        this.requestRender();
+
+        return {
+          created,
+          data: { actions }
+        };
+      } finally {
+        this.endLayoutSession();
+      }
+    });
+  }
 }
+
+const safeJsonParseInternal = (text: string): unknown => {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+};
 
 export default BoardAIAssistantPlugin;

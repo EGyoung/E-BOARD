@@ -206,7 +206,7 @@ const App: React.FC = () => {
     if (!eboard.current || !aiPrompt.trim()) return;
 
     const plugin = eboard.current.getPlugin("BoardAIAssistantPlugin") as any;
-    if (!plugin?.exports?.generateAndRender) {
+    if (!plugin?.exports?.generateAndRender && !plugin?.exports?.generateAndRenderStream) {
       setAiMessage("AI 插件未加载");
       return;
     }
@@ -214,10 +214,15 @@ const App: React.FC = () => {
     try {
       setAiLoading(true);
       setAiMessage("正在生成...");
-      const result = await plugin.exports.generateAndRender({
-        prompt: aiPrompt,
-        endpoint: "http://localhost:3010/ai/generate"
-      });
+      const result = plugin?.exports?.generateAndRenderStream
+        ? await plugin.exports.generateAndRenderStream({
+          prompt: aiPrompt,
+          endpoint: "http://localhost:3010/ai/generate/stream"
+        })
+        : await plugin.exports.generateAndRender({
+          prompt: aiPrompt,
+          endpoint: "http://localhost:3010/ai/generate"
+        });
       setAiMessage(`生成完成：已创建 ${result.created} 个图形`);
     } catch (error: any) {
       setAiMessage(`生成失败：${error?.message || "未知错误"}`);
