@@ -463,6 +463,81 @@ class BoardAIAssistantPlugin {
     };
   }
 
+  private isPointInsideBox(point: Point, box: NodeBox, padding = 2): boolean {
+    return (
+      point.x >= box.x - padding &&
+      point.x <= box.x + box.width + padding &&
+      point.y >= box.y - padding &&
+      point.y <= box.y + box.height + padding
+    );
+  }
+
+  private isSegmentNearNodeBox(start: Point, end: Point, box: NodeBox, padding = 6): boolean {
+    const minX = box.x - padding;
+    const maxX = box.x + box.width + padding;
+    const minY = box.y - padding;
+    const maxY = box.y + box.height + padding;
+
+    if (start.x === end.x) {
+      const x = start.x;
+      if (x < minX || x > maxX) {
+        return false;
+      }
+      const segMinY = Math.min(start.y, end.y);
+      const segMaxY = Math.max(start.y, end.y);
+      return !(segMaxY < minY || segMinY > maxY);
+    }
+
+    if (start.y === end.y) {
+      const y = start.y;
+      if (y < minY || y > maxY) {
+        return false;
+      }
+      const segMinX = Math.min(start.x, end.x);
+      const segMaxX = Math.max(start.x, end.x);
+      return !(segMaxX < minX || segMinX > maxX);
+    }
+
+    return false;
+  }
+
+  private countPathIntersections(path: Point[], sourceNodeId?: string, targetNodeId?: string): number {
+    let intersections = 0;
+    for (let i = 0; i < path.length - 1; i += 1) {
+      const start = path[i];
+      const end = path[i + 1];
+      this.recentNodeBoxes.forEach((nodeBox) => {
+        if (nodeBox.id === sourceNodeId || nodeBox.id === targetNodeId) {
+          return;
+        }
+        if (this.isSegmentNearNodeBox(start, end, nodeBox)) {
+          intersections += 1;
+        }
+      });
+    }
+    return intersections;
+  }
+
+  private buildOrthogonalPath(from: Point, to: Point, sourceNodeId?: string, targetNodeId?: string): Point[] {
+    if (from.x === to.x || from.y === to.y) {
+      return [from, to];
+    }
+
+    const bendA: Point = { x: from.x, y: to.y };
+    const bendB: Point = { x: to.x, y: from.y };
+
+    const pathA = [from, bendA, to];
+    const pathB = [from, bendB, to];
+
+    const scorePath = (path: Point[]) => {
+      const intersections = this.countPathIntersections(path, sourceNodeId, targetNodeId);
+      const manhattanLength = Math.abs(to.x - from.x) + Math.abs(to.y - from.y);
+      return intersections * 10000 + manhattanLength;
+    };
+
+    return scorePath(pathA) <= scorePath(pathB) ? pathA : pathB;
+  }
+
   private snapPointToNearestNodeEdge(
     point: Point,
     maxSnapDistance = 140,
@@ -517,9 +592,12 @@ class BoardAIAssistantPlugin {
 
     if (sourceNode && targetNode && sourceNode.id !== targetNode.id) {
       const shortestPair = this.getShortestEdgePair(sourceNode, targetNode);
-      nextPoints[startIndex] = shortestPair.from;
-      nextPoints[endIndex] = shortestPair.to;
-      return nextPoints;
+      return this.buildOrthogonalPath(
+        shortestPair.from,
+        shortestPair.to,
+        sourceNode.id,
+        targetNode.id
+      );
     }
 
     const startSnapped =
@@ -538,7 +616,7 @@ class BoardAIAssistantPlugin {
       nextPoints[endIndex] = endSnapped.point;
     }
 
-    return nextPoints;
+    return this.buildOrthogonalPath(nextPoints[startIndex], nextPoints[endIndex]);
   }
 
   private isRectangleCreateAction(action: AIGeneratedAction): action is CreateElementAction {
@@ -1304,74 +1382,74 @@ class BoardAIAssistantPlugin {
         const pendingArrows: AIGeneratedAction[] = [];
 
         const tryRunPendingArrows = () => {
-        if (pendingArrows.length === 0) {
-          return;
-        }
-        let cursor = 0;
-        while (cursor < pendingArrows.length) {
-          const arrowAction = pendingArrows[cursor];
-          if (this.runAction(arrowAction)) {
-            created += 1;
+          if (pendingArrows.length === 0) {
+            return;
           }
-          cursor += 1;
-        }
-        pendingArrows.length = 0;
-      };
+          let cursor = 0;
+          while (cursor < pendingArrows.length) {
+            const arrowAction = pendingArrows[cursor];
+            if (this.runAction(arrowAction)) {
+              created += 1;
+            }
+            cursor += 1;
+          }
+          pendingArrows.length = 0;
+        };
 
         const applyAction = (action: AIGeneratedAction) => {
-        actions.push(action);
+          actions.push(action);
 
-        if (this.isArrowCreateAction(action) && this.recentNodeBoxes.length < 2) {
-          pendingArrows.push(action);
-          return;
-        }
+          if (this.isArrowCreateAction(action) && this.recentNodeBoxes.length < 2) {
+            pendingArrows.push(action);
+            return;
+          }
 
-        if (this.runAction(action)) {
-          created += 1;
-        }
+          if (this.runAction(action)) {
+            created += 1;
+          }
 
-        if (action.type === "createElement" && action.params.type !== "arrow") {
-          tryRunPendingArrows();
-        }
+          if (action.type === "createElement" && action.params.type !== "arrow") {
+            tryRunPendingArrows();
+          }
 
-        this.requestRender();
-      };
+          this.requestRender();
+        };
 
         while (true) {
-        const { done, value } = await reader.read();
-        if (done) {
-          break;
-        }
+          const { done, value } = await reader.read();
+          if (done) {
+            break;
+          }
 
-        buffer += decoder.decode(value, { stream: true });
+          buffer += decoder.decode(value, { stream: true });
 
           let eventEnd = buffer.indexOf("\n\n");
           while (eventEnd >= 0) {
-          const rawEvent = buffer.slice(0, eventEnd);
-          buffer = buffer.slice(eventEnd + 2);
+            const rawEvent = buffer.slice(0, eventEnd);
+            buffer = buffer.slice(eventEnd + 2);
 
-          let eventName = "message";
-          const dataLines: string[] = [];
-          rawEvent.split("\n").forEach((line) => {
-            if (line.startsWith("event:")) {
-              eventName = line.slice(6).trim();
-            } else if (line.startsWith("data:")) {
-              dataLines.push(line.slice(5).trim());
-            }
-          });
+            let eventName = "message";
+            const dataLines: string[] = [];
+            rawEvent.split("\n").forEach((line) => {
+              if (line.startsWith("event:")) {
+                eventName = line.slice(6).trim();
+              } else if (line.startsWith("data:")) {
+                dataLines.push(line.slice(5).trim());
+              }
+            });
 
-          if (dataLines.length > 0) {
-            const dataText = dataLines.join("\n");
-            if (dataText !== "[DONE]") {
-              const parsed = safeJsonParseInternal(dataText);
-              if (eventName === "action" && this.isRecord(parsed)) {
-                const action = this.parseAction(parsed);
-                if (action) {
-                  applyAction(action);
+            if (dataLines.length > 0) {
+              const dataText = dataLines.join("\n");
+              if (dataText !== "[DONE]") {
+                const parsed = safeJsonParseInternal(dataText);
+                if (eventName === "action" && this.isRecord(parsed)) {
+                  const action = this.parseAction(parsed);
+                  if (action) {
+                    applyAction(action);
+                  }
                 }
               }
             }
-          }
 
             eventEnd = buffer.indexOf("\n\n");
           }

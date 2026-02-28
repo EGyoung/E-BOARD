@@ -47,14 +47,8 @@ class Render extends BaseRender<IArrowModel> {
             const transformedPoint = toScreenPoint(point);
             if (index === 0) {
                 context.moveTo(transformedPoint.x, transformedPoint.y);
-            } else if (index < 2) {
-                context.lineTo(transformedPoint.x, transformedPoint.y);
             } else {
-                const p1 = toScreenPoint(model.points![index - 1]);
-                const p2 = toScreenPoint(point);
-                const midPointX = (p1.x + p2.x) / 2;
-                const midPointY = (p1.y + p2.y) / 2;
-                context.quadraticCurveTo(p1.x, p1.y, midPointX, midPointY);
+                context.lineTo(transformedPoint.x, transformedPoint.y);
             }
         });
 
