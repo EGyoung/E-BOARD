@@ -6,17 +6,30 @@ import { IModeService, IRenderService } from "../../services";
 import { ITransformService } from "../../services/transformService/type";
 import { Emitter } from "@e-board/board-utils";
 
+type ResizeHandle =
+  | "nw" | "n" | "ne"
+  | "w" | "e"
+  | "sw" | "s" | "se";
+
+const HANDLE_SIZE = 8;
+const MIN_ELEMENT_SIZE = 10;
+
+const HANDLE_CURSORS: Record<ResizeHandle, string> = {
+  nw: "nwse-resize", n: "ns-resize", ne: "nesw-resize",
+  w: "ew-resize", e: "ew-resize",
+  sw: "nesw-resize", s: "ns-resize", se: "nwse-resize",
+};
+
 const CURRENT_MODE = "selection";
-/**
- * TODO: 修改为selectionService
- */
+
 class SelectionPlugin implements IPlugin {
   private board!: IBoard;
   private disposeList: (() => void)[] = [];
-  private AABbBox: { x: number; y: number; width: number; height: number } | null = null; // 所有的笔画的aabb盒子
+  private AABbBox: { x: number; y: number; width: number; height: number } | null = null;
   private pointerDownPoint: { x: number; y: number } | null = null;
   private selectModels = new Set<string>();
   private initialModelPositions = new Map<string, { x: number; y: number }[]>();
+  private initialModelSizes = new Map<string, { width?: number; height?: number }>();
   private currentSelectRange: { x: number; y: number; width: number; height: number } | null = null;
   private rafId: number | null = null;
   private modelService = eBoardContainer.get<IModelService>(IModelService);
@@ -26,6 +39,11 @@ class SelectionPlugin implements IPlugin {
   private emitSelectedElement = this._onSelectedElements.fire.bind(this._onSelectedElements);
   private readonly _onElementsMoving = new Emitter<IModel[]>()
   private emitElementsMoving = this._onElementsMoving.fire.bind(this._onElementsMoving)
+
+  private activeHandle: ResizeHandle | null = null;
+  private resizeStartAABB: { x: number; y: number; width: number; height: number } | null = null;
+  private savedCursor: string = "";
+  private handleElements = new Map<ResizeHandle, HTMLDivElement>();
   /**
    * 是否选中元素 如果已经渲染的元素再次被选中则不会被触发
    */
@@ -97,6 +115,33 @@ class SelectionPlugin implements IPlugin {
     if (!ctx) return;
     const handlePointerDown = (e: PointerEvent) => {
       if (e.button !== 0) return;
+
+      // 先检测是否点击了缩放控制点
+      const handle = this.hitTestHandles({ x: e.clientX, y: e.clientY });
+      if (handle && this.AABbBox && this.selectModels.size > 0) {
+        this.activeHandle = handle;
+        this.resizeStartAABB = { ...this.AABbBox };
+        this.pointerDownPoint = { x: e.clientX, y: e.clientY };
+        this.savedCursor = container.style.cursor;
+        container.style.cursor = HANDLE_CURSORS[handle];
+
+        this.initialModelPositions.clear();
+        this.initialModelSizes.clear();
+        this.selectModels.forEach(id => {
+          const model = this.modelService.getModelById(id);
+          if (model?.points) {
+            this.initialModelPositions.set(id, [...model.points]);
+          }
+          if ((model as any)?.width !== undefined) {
+            this.initialModelSizes.set(id, { width: (model as any).width, height: (model as any).height });
+          }
+        });
+
+        container.addEventListener("pointermove", handlePointerMove);
+        container.addEventListener("pointerup", handlePointerUp);
+        return;
+      }
+
       // 判断点是否在AABB盒子内
       if (this.AABbBox) {
         // AABB盒子的坐标已经是经过transform的屏幕坐标，可以直接与clientX/Y比较
@@ -184,6 +229,25 @@ class SelectionPlugin implements IPlugin {
       this.rafId = requestAnimationFrame(() => {
         if (!this.pointerDownPoint) return;
 
+        // 缩放模式
+        if (this.activeHandle && this.resizeStartAABB) {
+          const deltaX = e.clientX - this.pointerDownPoint.x;
+          const deltaY = e.clientY - this.pointerDownPoint.y;
+          const orig = this.resizeStartAABB;
+          let newX = orig.x, newY = orig.y, newW = orig.width, newH = orig.height;
+
+          if (this.activeHandle.includes("e")) { newW = orig.width + deltaX; }
+          if (this.activeHandle.includes("w")) { newX = orig.x + deltaX; newW = orig.width - deltaX; }
+          if (this.activeHandle.includes("s")) { newH = orig.height + deltaY; }
+          if (this.activeHandle.includes("n")) { newY = orig.y + deltaY; newH = orig.height - deltaY; }
+
+          if (newW < MIN_ELEMENT_SIZE) { newW = MIN_ELEMENT_SIZE; if (this.activeHandle.includes("w")) newX = orig.x + orig.width - MIN_ELEMENT_SIZE; }
+          if (newH < MIN_ELEMENT_SIZE) { newH = MIN_ELEMENT_SIZE; if (this.activeHandle.includes("n")) newY = orig.y + orig.height - MIN_ELEMENT_SIZE; }
+
+          this.applyResizeToModels({ x: newX, y: newY, width: newW, height: newH });
+          this.renderSelectionOverlay();
+          return;
+        }
 
         if (this.selectModels.size > 0) {
           const deltaX = e.clientX - this.pointerDownPoint.x;
@@ -231,11 +295,24 @@ class SelectionPlugin implements IPlugin {
     const handlePointerUp = (e: PointerEvent) => {
       if (!this.pointerDownPoint) return;
 
-      // 清理 requestAnimationFrame
       if (this.rafId !== null) {
         cancelAnimationFrame(this.rafId);
         this.rafId = null;
       }
+
+      // 结束缩放
+      if (this.activeHandle) {
+        container.style.cursor = this.savedCursor;
+        this.activeHandle = null;
+        this.resizeStartAABB = null;
+        this.initialModelSizes.clear();
+        container.removeEventListener("pointermove", handlePointerMove);
+        container.removeEventListener("pointerup", handlePointerUp);
+        this.pointerDownPoint = null;
+        requestAnimationFrame(this.renderSelectionOverlay);
+        return;
+      }
+
       if (this.selectModels.size > 0) {
         container.removeEventListener("pointermove", handlePointerMove);
         container.removeEventListener("pointerup", handlePointerUp);
@@ -292,8 +369,16 @@ class SelectionPlugin implements IPlugin {
 
     container.addEventListener("pointerdown", handlePointerDown);
 
+    const handleHoverCursor = (e: PointerEvent) => {
+      if (this.activeHandle) return;
+      const handle = this.hitTestHandles({ x: e.clientX, y: e.clientY });
+      container.style.cursor = handle ? HANDLE_CURSORS[handle] : "";
+    };
+    container.addEventListener("pointermove", handleHoverCursor);
+
     this.disposeList.push(() => {
       container.removeEventListener("pointerdown", handlePointerDown);
+      container.removeEventListener("pointermove", handleHoverCursor);
     });
 
 
@@ -344,6 +429,7 @@ class SelectionPlugin implements IPlugin {
 
     if (this.selectModels.size === 0) {
       this.AABbBox = null;
+      this.removeHandles();
       return;
     }
 
@@ -363,7 +449,115 @@ class SelectionPlugin implements IPlugin {
     });
 
     this.updateAABbBox(boxes, ctx);
+
+    if (this.AABbBox) {
+      this.drawHandles(ctx, this.AABbBox);
+    }
   };
+
+  private getHandlePositions(box: { x: number; y: number; width: number; height: number }): Record<ResizeHandle, { x: number; y: number }> {
+    const { x, y, width, height } = box;
+    const mx = x + width / 2;
+    const my = y + height / 2;
+    return {
+      nw: { x, y },
+      n: { x: mx, y },
+      ne: { x: x + width, y },
+      w: { x, y: my },
+      e: { x: x + width, y: my },
+      sw: { x, y: y + height },
+      s: { x: mx, y: y + height },
+      se: { x: x + width, y: y + height },
+    };
+  }
+
+  private hitTestHandles(point: { x: number; y: number }): ResizeHandle | null {
+    if (!this.AABbBox) return null;
+    const handles = this.getHandlePositions(this.AABbBox);
+    const half = HANDLE_SIZE / 2 + 2;
+    for (const [key, pos] of Object.entries(handles)) {
+      if (Math.abs(point.x - pos.x) <= half && Math.abs(point.y - pos.y) <= half) {
+        return key as ResizeHandle;
+      }
+    }
+    return null;
+  }
+
+  private drawHandles(_ctx: CanvasRenderingContext2D, box: { x: number; y: number; width: number; height: number }) {
+    const handles = this.getHandlePositions(box);
+    const half = HANDLE_SIZE / 2;
+    const container = this.board.getContainer();
+    if (!container) return;
+
+    for (const [key, pos] of Object.entries(handles) as [ResizeHandle, { x: number; y: number }][]) {
+      let el = this.handleElements.get(key);
+      if (!el) {
+        el = document.createElement("div");
+        el.style.position = "absolute";
+        el.style.width = `${HANDLE_SIZE}px`;
+        el.style.height = `${HANDLE_SIZE}px`;
+        el.style.background = "white";
+        el.style.border = "1.5px solid rgba(14, 87, 75, 1)";
+        el.style.boxSizing = "border-box";
+        el.style.pointerEvents = "none";
+        el.style.zIndex = "999";
+        container.appendChild(el);
+        this.handleElements.set(key, el);
+      }
+      el.style.left = `${pos.x - half}px`;
+      el.style.top = `${pos.y - half}px`;
+      el.style.display = "block";
+    }
+  }
+
+  private removeHandles() {
+    this.handleElements.forEach(el => el.remove());
+    this.handleElements.clear();
+  }
+
+  private applyResizeToModels(newAABB: { x: number; y: number; width: number; height: number }) {
+    if (!this.resizeStartAABB) return;
+    const orig = this.resizeStartAABB;
+
+    const scaleX = orig.width !== 0 ? newAABB.width / orig.width : 1;
+    const scaleY = orig.height !== 0 ? newAABB.height / orig.height : 1;
+
+    this.selectModels.forEach(id => {
+      const initialPoints = this.initialModelPositions.get(id);
+      if (!initialPoints) return;
+
+      const model = this.modelService.getModelById(id);
+      if (!model) return;
+
+      const initialSize = this.initialModelSizes.get(id);
+      const hasSize = initialSize && initialSize.width !== undefined && initialSize.height !== undefined;
+
+      if (hasSize) {
+        const anchor = initialPoints[0];
+        const screenAnchor = this.transformService.transformPoint(anchor);
+        const newScreenX = newAABB.x + (screenAnchor.x - orig.x) * scaleX;
+        const newScreenY = newAABB.y + (screenAnchor.y - orig.y) * scaleY;
+        const newWorldAnchor = this.transformService.transformPoint({ x: newScreenX, y: newScreenY }, true);
+
+        const newWidth = Math.max(MIN_ELEMENT_SIZE, initialSize.width! * scaleX);
+        const newHeight = Math.max(MIN_ELEMENT_SIZE, initialSize.height! * scaleY);
+
+        this.modelService.updateModel(id, {
+          points: [newWorldAnchor],
+          width: newWidth,
+          height: newHeight,
+        } as any);
+      } else {
+        const newPoints = initialPoints.map(p => {
+          const sp = this.transformService.transformPoint(p);
+          const newSx = newAABB.x + (sp.x - orig.x) * scaleX;
+          const newSy = newAABB.y + (sp.y - orig.y) * scaleY;
+          return this.transformService.transformPoint({ x: newSx, y: newSy }, true);
+        });
+        this.modelService.updateModel(id, { points: newPoints });
+      }
+    });
+  }
 
   private updateAABbBox(boxes?: any[], ctx?: CanvasRenderingContext2D) {
     const normalizedBoxes = (boxes ?? Array.from(this.selectModels)
@@ -407,6 +601,7 @@ class SelectionPlugin implements IPlugin {
       cancelAnimationFrame(this.rafId);
       this.rafId = null;
     }
+    this.removeHandles();
     this.disposeList.forEach(dispose => dispose());
     this.disposeList = [];
   }
