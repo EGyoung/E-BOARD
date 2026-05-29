@@ -10,15 +10,19 @@ body {
 .app-container {
   width: 100vw;
   height: 100vh;
-  background-color: #1a1a1a;
+  background:
+    radial-gradient(circle at top left, rgba(0, 113, 227, 0.08), transparent 22%),
+    linear-gradient(180deg, #fbfbfd 0%, #eef1f5 100%);
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
 .board-container {
-  background-color: #1e1e1e;
-  border-radius: 0;
+  background: linear-gradient(180deg, #f7f8fa 0%, #edf1f5 100%);
+  border-radius: 22px;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.72);
 }

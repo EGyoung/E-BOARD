@@ -4,7 +4,7 @@ type Range = { x: number; y: number; width: number; height: number };
 
 export function drawMarquee(ctx: CanvasRenderingContext2D, range: Range) {
   ctx.save();
-  ctx.strokeStyle = "rgba(14, 87, 75, 1)";
+  ctx.strokeStyle = "rgba(0, 113, 227, 0.72)";
   ctx.setLineDash([5, 5]);
   ctx.lineWidth = 2;
   ctx.strokeRect(range.x, range.y, range.width, range.height);

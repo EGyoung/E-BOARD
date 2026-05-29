@@ -1,4 +1,3 @@
-/* Stage Tool - CapCut Style */
 .stage-tool-container {
   position: fixed;
   bottom: 20px;
@@ -11,21 +10,23 @@
 
 /* Collapsed: small pill button */
 .stage-tool-container.collapsed {
-  background: #252525;
-  border: 1px solid #333;
+  background: var(--apple-bg-elevated);
+  backdrop-filter: var(--apple-blur);
+  -webkit-backdrop-filter: var(--apple-blur);
+  border: 1px solid rgba(255, 255, 255, 0.72);
   border-radius: 50%;
   width: 44px;
   height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--apple-shadow-soft);
 }
 
 .stage-tool-expand {
   background: none;
   border: none;
-  color: #aaa;
+  color: var(--apple-text-secondary);
   cursor: pointer;
   padding: 0;
   display: flex;
@@ -35,7 +36,7 @@
 }
 
 .stage-tool-expand:hover {
-  color: #fff;
+  color: var(--apple-blue);
 }
 
 /* Expanded */
@@ -44,10 +45,12 @@
   gap: 0;
   padding: 6px 8px;
   align-items: center;
-  background: #252525;
-  border: 1px solid #333;
-  border-radius: 10px;
-  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.4);
+  background: var(--apple-bg-elevated);
+  backdrop-filter: var(--apple-blur);
+  -webkit-backdrop-filter: var(--apple-blur);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 18px;
+  box-shadow: var(--apple-shadow);
 }
 
 /* Tool groups */
@@ -65,7 +68,7 @@
   top: 6px;
   bottom: 6px;
   width: 1px;
-  background: #333;
+  background: var(--apple-border);
 }
 
 .tool-group:last-of-type::after {
@@ -89,18 +92,18 @@
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.12s ease;
-  color: #999;
+  color: var(--apple-text-tertiary);
   position: relative;
 }
 
 .tool-button:hover {
-  background: #2e2e2e;
-  color: #e0e0e0;
+  background: rgba(0, 113, 227, 0.08);
+  color: var(--apple-blue);
 }
 
 .tool-button.active {
-  color: #fff;
-  background: #333;
+  color: var(--apple-blue);
+  background: rgba(0, 113, 227, 0.12);
 }
 
 .tool-button.active::after {
@@ -111,7 +114,7 @@
   transform: translateX(-50%);
   width: 14px;
   height: 2px;
-  background: #fe2c55;
+  background: var(--apple-blue);
   border-radius: 1px;
 }
 
@@ -142,16 +145,16 @@
   height: 32px;
   background: none;
   border: none;
-  border-left: 1px solid #333;
+  border-left: 1px solid var(--apple-border);
   margin-left: 6px;
   padding-left: 8px;
-  color: #666;
+  color: var(--apple-text-tertiary);
   cursor: pointer;
   transition: color 0.15s ease;
 }
 
 .stage-tool-collapse:hover {
-  color: #ccc;
+  color: var(--apple-blue);
 }
 
 /* Tooltip */
@@ -162,15 +165,16 @@
   left: 50%;
   transform: translateX(-50%);
   padding: 4px 8px;
-  background: #1a1a1a;
-  color: #ccc;
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--apple-text);
   font-size: 11px;
   border-radius: 4px;
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.12s ease;
-  border: 1px solid #333;
+  border: 1px solid var(--apple-border);
+  box-shadow: var(--apple-shadow-soft);
 }
 
 .tool-button:hover::before {

@@ -35,7 +35,7 @@ class CanvasService implements ICanvasService {
         const existing = document.querySelector(`#${this.boardId}`) as HTMLCanvasElement;
         this.canvas = existing || this.createCanvas(this.boardId, {
             zIndex: "1",
-            backgroundColor: "#1e1e1e"
+            backgroundColor: "#f5f5f7"
         });
 
         const { clientWidth = 800, clientHeight = 600 } = this.container;

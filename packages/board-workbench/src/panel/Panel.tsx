@@ -16,12 +16,18 @@ interface PanelWithBoardProps {
 
 // 预设颜色
 const presetColors = [
-    '#ffffff', // 白色
-    '#000000', // 黑色
-    '#ff0000', // 红色
-    '#0000ff', // 蓝色
-    '#ffff00', // 黄色
-    '#00ff00', // 绿色
+    '#ffffff',
+    '#1d1d1f',
+    '#0071e3',
+    '#34c759',
+    '#ff9f0a',
+    '#ff375f',
+    '#af52de',
+    '#5ac8fa',
+    '#8e8e93',
+    '#ffd60a',
+    '#bf5af2',
+    '#30b0c7',
 ];
 
 // 预设粗细
@@ -32,7 +38,7 @@ const Panel: React.FC<PanelWithBoardProps> = ({
     onColorChange,
     onFillColorChange,
     onThicknessChange,
-    defaultColor = '#ffffff',
+    defaultColor = '#1d1d1f',
     defaultFillColor = '#ffffff',
     defaultThickness = 4,
 }) => {

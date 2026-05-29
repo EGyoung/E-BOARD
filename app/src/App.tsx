@@ -179,8 +179,8 @@ const App: React.FC = () => {
     const maxRectSize = 80 / zoom;
 
     const colors = [
-      "#e74c3c", "#3498db", "#2ecc71", "#9b59b6",
-      "#f1c40f", "#e67e22", "#1abc9c", "#34495e"
+      "#0071e3", "#34c759", "#ff9f0a", "#ff375f",
+      "#af52de", "#5ac8fa", "#ffd60a", "#8e8e93"
     ];
 
     const transformPoint = (point: { x: number; y: number }, inverse = false) => {
@@ -244,24 +244,29 @@ const App: React.FC = () => {
 
         {/* Debug Tools */}
         <div style={{
-          background: "rgba(0, 0, 0, 0.8)",
-          padding: "10px",
-          borderRadius: "8px",
-          color: "white",
+          background: "rgba(255, 255, 255, 0.74)",
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
+          padding: "12px",
+          borderRadius: "18px",
+          color: "#1d1d1f",
+          border: "1px solid rgba(255, 255, 255, 0.72)",
+          boxShadow: "0 18px 48px rgba(15, 23, 42, 0.12)",
           fontSize: "12px"
         }}>
-          <div style={{ marginBottom: "8px", fontWeight: "bold" }}>🔧 Debug Tools</div>
+          <div style={{ marginBottom: "10px", fontWeight: 600, color: "#1d1d1f" }}>Debug Tools</div>
           <button
             onClick={() => handleGenerateRandomShapes(100)}
             style={{
-              padding: "6px 12px",
-              marginBottom: "4px",
+              padding: "8px 12px",
+              marginBottom: "6px",
               width: "100%",
               cursor: "pointer",
-              borderRadius: "4px",
-              border: "none",
-              background: "#3498db",
-              color: "white"
+              borderRadius: "10px",
+              border: "1px solid rgba(0, 113, 227, 0.12)",
+              background: "rgba(0, 113, 227, 0.1)",
+              color: "#0071e3",
+              fontWeight: 600
             }}
           >
             生成 100 个矩形
@@ -269,14 +274,15 @@ const App: React.FC = () => {
           <button
             onClick={() => handleGenerateRandomShapes(1000)}
             style={{
-              padding: "6px 12px",
-              marginBottom: "4px",
+              padding: "8px 12px",
+              marginBottom: "6px",
               width: "100%",
               cursor: "pointer",
-              borderRadius: "4px",
-              border: "none",
-              background: "#e67e22",
-              color: "white"
+              borderRadius: "10px",
+              border: "1px solid rgba(255, 159, 10, 0.12)",
+              background: "rgba(255, 159, 10, 0.1)",
+              color: "#b95a00",
+              fontWeight: 600
             }}
           >
             生成 1000 个矩形
@@ -284,13 +290,14 @@ const App: React.FC = () => {
           <button
             onClick={() => handleGenerateRandomShapes(10000)}
             style={{
-              padding: "6px 12px",
+              padding: "8px 12px",
               width: "100%",
               cursor: "pointer",
-              borderRadius: "4px",
-              border: "none",
-              background: "#e74c3c",
-              color: "white"
+              borderRadius: "10px",
+              border: "1px solid rgba(255, 55, 95, 0.12)",
+              background: "rgba(255, 55, 95, 0.1)",
+              color: "#c21f45",
+              fontWeight: 600
             }}
           >
             生成 10000 个矩形
@@ -298,30 +305,60 @@ const App: React.FC = () => {
         </div>
 
         <div style={{
-          background: "rgba(0, 0, 0, 0.8)",
-          padding: "10px",
-          borderRadius: "8px",
-          color: "white",
+          background: "rgba(255, 255, 255, 0.74)",
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
+          padding: "12px",
+          borderRadius: "18px",
+          color: "#1d1d1f",
+          border: "1px solid rgba(255, 255, 255, 0.72)",
+          boxShadow: "0 18px 48px rgba(15, 23, 42, 0.12)",
           fontSize: "12px",
           width: "280px"
         }}>
-          <div style={{ marginBottom: "8px", fontWeight: "bold" }}>🤖 AI Assistant</div>
+          <div style={{ marginBottom: "10px", fontWeight: 600, color: "#1d1d1f" }}>AI Assistant</div>
           <textarea
             value={aiPrompt}
             onChange={(e) => setAiPrompt(e.target.value)}
             rows={3}
-            style={{ width: "100%", marginBottom: "8px", resize: "vertical" }}
+            style={{
+              width: "100%",
+              marginBottom: "8px",
+              resize: "vertical",
+              borderRadius: "12px",
+              border: "1px solid rgba(29, 29, 31, 0.12)",
+              background: "rgba(255, 255, 255, 0.88)",
+              color: "#1d1d1f",
+              padding: "10px 12px",
+              boxSizing: "border-box"
+            }}
           />
           <div style={{ display: "flex", gap: "6px", marginBottom: "8px" }}>
             <button
               onClick={() => setAiPrompt("帮我在画布正中间创建一个蓝色矩形")}
-              style={{ flex: 1, cursor: "pointer" }}
+              style={{
+                flex: 1,
+                cursor: "pointer",
+                borderRadius: "10px",
+                border: "1px solid rgba(29, 29, 31, 0.1)",
+                background: "rgba(255, 255, 255, 0.76)",
+                color: "#1d1d1f",
+                padding: "8px 10px"
+              }}
             >
               示例1
             </button>
             <button
               onClick={() => setAiPrompt("帮我生成一个电商系统架构图")}
-              style={{ flex: 1, cursor: "pointer" }}
+              style={{
+                flex: 1,
+                cursor: "pointer",
+                borderRadius: "10px",
+                border: "1px solid rgba(29, 29, 31, 0.1)",
+                background: "rgba(255, 255, 255, 0.76)",
+                color: "#1d1d1f",
+                padding: "8px 10px"
+              }}
             >
               示例2
             </button>
@@ -329,11 +366,20 @@ const App: React.FC = () => {
           <button
             onClick={handleAIGenerate}
             disabled={aiLoading}
-            style={{ width: "100%", cursor: aiLoading ? "not-allowed" : "pointer" }}
+            style={{
+              width: "100%",
+              cursor: aiLoading ? "not-allowed" : "pointer",
+              borderRadius: "12px",
+              border: "1px solid rgba(0, 113, 227, 0.16)",
+              background: aiLoading ? "rgba(0, 113, 227, 0.08)" : "#0071e3",
+              color: aiLoading ? "#6e6e73" : "#ffffff",
+              padding: "10px 12px",
+              fontWeight: 600
+            }}
           >
             {aiLoading ? "生成中..." : "AI 生成图形"}
           </button>
-          {aiMessage && <div style={{ marginTop: "8px", color: "#9fe870" }}>{aiMessage}</div>}
+          {aiMessage && <div style={{ marginTop: "8px", color: "#0071e3" }}>{aiMessage}</div>}
         </div>
       </div>
 

@@ -70,7 +70,7 @@ export function renderSelectionOverlay(
 
     boxes.push(bounding);
     ctx.save();
-    ctx.strokeStyle = "white";
+    ctx.strokeStyle = "rgba(0, 113, 227, 0.62)";
     ctx.setLineDash([5, 5]);
     ctx.lineWidth = 2;
     ctx.strokeRect(bounding.x, bounding.y, bounding.width, bounding.height);
@@ -81,7 +81,7 @@ export function renderSelectionOverlay(
 
   if (aabb) {
     ctx.save();
-    ctx.strokeStyle = "pink";
+    ctx.strokeStyle = "rgba(0, 113, 227, 0.88)";
     ctx.setLineDash([10, 5]);
     ctx.lineWidth = 2;
     ctx.strokeRect(aabb.x, aabb.y, aabb.width, aabb.height);

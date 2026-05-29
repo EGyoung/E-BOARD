@@ -16,7 +16,7 @@ import { injectable } from "inversify";
 const defaultCtxConfig = {
   lineCap: "round" as CanvasLineCap,
   lineJoin: "round" as CanvasLineJoin,
-  strokeStyle: "white",
+  strokeStyle: "#1d1d1f",
   lineWidth: 4,
   globalCompositeOperation: "source-over" as GlobalCompositeOperation,
   globalAlpha: 1.0,
