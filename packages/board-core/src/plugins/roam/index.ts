@@ -29,7 +29,7 @@ class RoamPlugin implements IPlugin {
     // 同步初始视图状态
     this.view = transformService.getView();
 
-    canvas.addEventListener("wheel", e => {
+    const wheelHandler = (e: WheelEvent) => {
       e.preventDefault();
       // Mac触摸板 "捏合" 手势会触发带有 ctrlKey 的 wheel 事件
       if (e.ctrlKey) {
@@ -68,7 +68,10 @@ class RoamPlugin implements IPlugin {
         this.view.y += deltaY / this.view.zoom;
       }
       transformService.setView(this.view);
-    });
+    };
+
+    canvas.addEventListener("wheel", wheelHandler);
+    this.disposeList.push(() => canvas.removeEventListener("wheel", wheelHandler));
   };
 
   public dispose() {

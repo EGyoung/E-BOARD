@@ -30,10 +30,10 @@ class Render extends BaseRender<IArrowModel> {
 
     public render = (
         model: IModel<IArrowModel>,
-        _: any,
+        ctx: any,
         isViewChanged: boolean = false
     ) => {
-        const context = this.board.getCtx();
+        const context: CanvasRenderingContext2D = ctx || this.board.getCtx();
         if (!context || !model.points || model.points.length < 2) return;
 
         context.save();

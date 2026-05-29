@@ -34,6 +34,15 @@ type ArrowShape = {
   lineWidth?: number;
 };
 
+type PictureShape = {
+  type: "picture";
+  x: number | "center";
+  y: number | "center";
+  width?: number;
+  height?: number;
+  imageUrl: string;
+};
+
 type TextShape = {
   type: "text";
   x: number | "center";
@@ -49,7 +58,7 @@ type TextShape = {
   backgroundColor?: string;
 };
 
-type AIGeneratedShape = RectangleShape | LineShape | TextShape | ArrowShape;
+type AIGeneratedShape = RectangleShape | LineShape | TextShape | ArrowShape | PictureShape;
 
 type UpdateViewAction = {
   type: "updateView";
@@ -80,6 +89,17 @@ type GenerateParams = {
 type StreamGenerateResult = {
   created: number;
   data: AIGeneratedPayload;
+};
+
+type ImageSearchResult = {
+  id: number;
+  alt: string;
+  width: number;
+  height: number;
+  url: string;
+  originalUrl: string;
+  smallUrl: string;
+  photographer: string;
 };
 
 type ViewSnapshot = {
@@ -118,6 +138,8 @@ class BoardAIAssistantPlugin {
   public exports = {
     generateAndRender: this.generateAndRender.bind(this),
     generateAndRenderStream: this.generateAndRenderStream.bind(this),
+    generateWithImages: this.generateWithImages.bind(this),
+    searchImage: this.searchImage.bind(this),
     renderFromJson: this.renderFromJson.bind(this),
     renderFromJsonAsync: this.renderFromJsonAsync.bind(this)
   };
@@ -1146,6 +1168,29 @@ class BoardAIAssistantPlugin {
     };
   }
 
+  private parsePictureShape(value: unknown): PictureShape | null {
+    if (!this.isRecord(value)) {
+      return null;
+    }
+
+    if (!this.isCoordinate(value.x) || !this.isCoordinate(value.y)) {
+      return null;
+    }
+
+    if (typeof value.imageUrl !== "string" || !value.imageUrl.trim()) {
+      return null;
+    }
+
+    return {
+      type: "picture",
+      x: value.x as number | "center",
+      y: value.y as number | "center",
+      width: this.isFiniteNumber(value.width) ? value.width : undefined,
+      height: this.isFiniteNumber(value.height) ? value.height : undefined,
+      imageUrl: value.imageUrl
+    };
+  }
+
   private parseShape(value: unknown): AIGeneratedShape | null {
     if (!this.isRecord(value) || typeof value.type !== "string") {
       return null;
@@ -1165,6 +1210,10 @@ class BoardAIAssistantPlugin {
 
     if (value.type === "text") {
       return this.parseTextShape(value);
+    }
+
+    if (value.type === "picture") {
+      return this.parsePictureShape(value);
     }
 
     return null;
@@ -1398,6 +1447,30 @@ class BoardAIAssistantPlugin {
 
       this.pushNodeBox({
         kind: "text",
+        x: placement.screenX,
+        y: placement.screenY,
+        width: placement.screenWidth,
+        height: placement.screenHeight
+      });
+
+      return true;
+    }
+
+    if (shape.type === "picture") {
+      const rawWidth = typeof shape.width === "number" ? shape.width : 300;
+      const rawHeight = typeof shape.height === "number" ? shape.height : 200;
+      const placement = this.resolveNodePosition(shape.x, shape.y, rawWidth, rawHeight, zoom);
+
+      modelService.createModel("picture", {
+        type: "picture",
+        points: [{ x: placement.x, y: placement.y }],
+        width: placement.width,
+        height: placement.height,
+        imageData: shape.imageUrl,
+      } as any);
+
+      this.pushNodeBox({
+        kind: "rectangle",
         x: placement.screenX,
         y: placement.screenY,
         width: placement.screenWidth,
@@ -1710,6 +1783,50 @@ class BoardAIAssistantPlugin {
         this.endLayoutSession();
       }
     });
+  }
+  public async searchImage(params: { query: string; count?: number; endpoint?: string }): Promise<ImageSearchResult[]> {
+    const endpoint = params.endpoint || "http://localhost:3010/ai/search-image";
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: params.query, count: params.count || 5 })
+    });
+
+    if (!response.ok) {
+      const message = await response.text();
+      throw new Error(message || `Image search failed with status ${response.status}`);
+    }
+
+    const result = await response.json();
+    return result?.data || [];
+  }
+
+  public async generateWithImages(params: GenerateParams): Promise<{ created: number; data: AIGeneratedPayload }> {
+    const endpoint = params.endpoint || "http://localhost:3010/ai/generate-with-images";
+    const canvas = this.board.getCanvas();
+    const body = {
+      prompt: params.prompt,
+      board: {
+        width: canvas?.width || 1200,
+        height: canvas?.height || 800
+      }
+    };
+
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+      const message = await response.text();
+      throw new Error(message || `AI request failed with status ${response.status}`);
+    }
+
+    const result = await response.json();
+    const data = this.normalizePayload(result?.data || result);
+    const created = await this.renderFromJsonAsync(data);
+    return { created, data };
   }
 }
 

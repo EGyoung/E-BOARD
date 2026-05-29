@@ -10,10 +10,10 @@ class Render extends BaseRender<IShapeRectangle> {
   }
   public render = (
     model: IModel<IShapeRectangle>,
-    _: any,
+    ctx: any,
     isViewChanged: boolean = false
   ) => {
-    const context = this.board.getCtx();
+    const context: CanvasRenderingContext2D = ctx || this.board.getCtx();
     if (!context) return;
     const [point] = model.points!;
     if (isViewChanged) {

@@ -5,7 +5,7 @@ class BaseRender<T extends Record<string, any>> {
     constructor(board: EBoard) {
         this.board = board
     }
-    public render = (model: IModel<T>, _: any, isViewChanged: boolean = false): void => {
+    public render = (model: IModel<T>, ctx: any, isViewChanged: boolean = false): void => {
         throw new Error('render method not implemented')
     }
 }

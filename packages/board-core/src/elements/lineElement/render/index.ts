@@ -15,10 +15,10 @@ class Render extends BaseRender<ILineModel> {
     }
     public render = (
         model: IModel<ILineModel>,
-        _: any,
+        ctx: any,
         isViewChanged: boolean = false
     ) => {
-        const context = this.board.getCtx();
+        const context: CanvasRenderingContext2D = ctx || this.board.getCtx();
         if (!context) return;
         context.save()
         const toScreenPoint = isViewChanged

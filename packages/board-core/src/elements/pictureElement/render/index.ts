@@ -9,8 +9,8 @@ class Render extends BaseRender<IPictureModel> {
     public transformPoint(point: { x: number; y: number }, inverse = false) {
         return this.transformService.transformPoint(point, inverse);
     }
-    public render = (model: IModel<IPictureModel>, _: any, useWorldCoords = false) => {
-        const context = this.board.getCtx();
+    public render = (model: IModel<IPictureModel>, ctx: any, useWorldCoords = false) => {
+        const context: CanvasRenderingContext2D = ctx || this.board.getCtx();
         if (!context || !model.imageData || !model.points) return;
 
         context.save();

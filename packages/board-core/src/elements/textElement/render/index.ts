@@ -12,10 +12,10 @@ class Render extends BaseRender<ITextModel> {
 
     public render = (
         model: IModel<ITextModel>,
-        _: any,
+        ctx: any,
         isViewChanged: boolean = false
     ) => {
-        const context = this.board.getCtx();
+        const context: CanvasRenderingContext2D = ctx || this.board.getCtx();
         if (!context || !model.points || model.points.length === 0) return;
 
         const [anchor] = model.points;
