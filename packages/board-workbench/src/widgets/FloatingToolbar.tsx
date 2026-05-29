@@ -37,8 +37,8 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
     const [textAlign, setTextAlign] = useState<'left' | 'center' | 'right'>('left');
     const [lineDash, setLineDash] = useState<number[]>([]);
 
-    const recalcPosition = useCallback(() => {
-        const els = selectedElementsRef.current;
+    const recalcPosition = useCallback((elements?: any[]) => {
+        const els = elements ?? selectedElementsRef.current;
         if (!els || els.length === 0 || !toolbarRef.current) {
             setPosition({ x: 0, y: 0, show: false });
             return;
@@ -94,7 +94,7 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
 
         const { dispose: upDispose } = eventService.onPointerUp(() => {
             setIsInteracting(false);
-            requestAnimationFrame(recalcPosition);
+            requestAnimationFrame(() => recalcPosition());
         });
         disposers.push(upDispose);
 
@@ -105,6 +105,15 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
             disposers.push(transformDispose);
         }
 
+        const selectionPlugin = board.getPlugin?.('SelectionPlugin');
+        const movingDispose = selectionPlugin?.exports?.onElementsMoving?.((models: any[]) => {
+            selectedElementsRef.current = models || [];
+            requestAnimationFrame(() => recalcPosition(models || []));
+        });
+        if (movingDispose?.dispose) {
+            disposers.push(movingDispose.dispose);
+        }
+
         return () => disposers.forEach(d => d());
     }, [board, recalcPosition]);
 
@@ -113,7 +122,7 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
             setPosition({ x: 0, y: 0, show: false });
             return;
         }
-        requestAnimationFrame(recalcPosition);
+        requestAnimationFrame(() => recalcPosition());
     }, [selectedElements, recalcPosition]);
 
     useEffect(() => {

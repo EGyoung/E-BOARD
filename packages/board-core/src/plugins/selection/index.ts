@@ -6,11 +6,11 @@ import { IModeService, IRenderService } from "../../services";
 import { ITransformService } from "../../services/transformService/type";
 import { Emitter } from "@e-board/board-utils";
 
-import { ResizeHandle, HANDLE_CURSORS, MIN_ELEMENT_SIZE, HandleManager, hitTestHandles } from "./handles";
+import { ResizeHandle, HANDLE_CURSORS, MIN_ELEMENT_SIZE, hitTestHandles } from "./handles";
 import { applyResizeToModels } from "./resize";
 import { applyDragToModels } from "./drag";
 import { drawMarquee, computeSelectedByMarquee } from "./marquee";
-import { renderSelectionOverlay } from "./renderer";
+import { computeAABB } from "./renderer";
 
 const CURRENT_MODE = "selection";
 
@@ -28,12 +28,13 @@ class SelectionPlugin implements IPlugin {
   private modelService = eBoardContainer.get<IModelService>(IModelService);
   private transformService = eBoardContainer.get<ITransformService>(ITransformService);
   private renderService = eBoardContainer.get<IRenderService>(IRenderService);
-  private handleManager = new HandleManager();
+
 
   private readonly _onSelectedElements = new Emitter<IModel[]>();
   private emitSelectedElement = this._onSelectedElements.fire.bind(this._onSelectedElements);
   private readonly _onElementsMoving = new Emitter<IModel[]>();
   private emitElementsMoving = this._onElementsMoving.fire.bind(this._onElementsMoving);
+  private readonly _onDraggingChange = new Emitter<boolean>();
 
   private activeHandle: ResizeHandle | null = null;
   private resizeStartAABB: { x: number; y: number; width: number; height: number } | null = null;
@@ -41,6 +42,7 @@ class SelectionPlugin implements IPlugin {
 
   public onElementMoving = this._onElementsMoving.event;
   public onSelectedElements = this._onSelectedElements.event;
+  public onDraggingChange = this._onDraggingChange.event;
   public pluginName = "SelectionPlugin";
 
   public exports = {
@@ -48,6 +50,7 @@ class SelectionPlugin implements IPlugin {
     getSelectedModels: this.getSelectedModels.bind(this),
     onSelectedElements: this.onSelectedElements.bind(this),
     onElementsMoving: this.onElementMoving.bind(this),
+    onDraggingChange: this.onDraggingChange.bind(this),
   };
 
   public getSelectedModelsId() {
@@ -94,21 +97,28 @@ class SelectionPlugin implements IPlugin {
     if (this.isDragging) return;
     const canvas = this.board.getInteractionCanvas();
     const ctx = this.board.getInteractionCtx();
-    const container = this.board.getContainer();
-    if (!canvas || !ctx || !container) return;
+    if (!canvas || !ctx) return;
 
-    this.AABbBox = renderSelectionOverlay(
-      canvas, ctx, this.selectModels, this.modelService,
-      this.handleManager, container, this.currentSelectRange,
-    );
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (this.currentSelectRange) {
+      drawMarquee(ctx, this.currentSelectRange);
+    }
+
+    this.AABbBox = computeAABB(this.selectModels, this.modelService);
   };
+
+  private getCurrentSelectedModels(): IModel[] {
+    return Array.from(this.selectModels)
+      .map(id => this.modelService.getModelById(id))
+      .filter(Boolean) as IModel[];
+  }
 
   private resetAllState() {
     const canvas = this.board.getInteractionCanvas();
     const ctx = this.board.getInteractionCtx();
     if (!canvas || !ctx) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    this.handleManager.removeHandles();
     this.initialModelPositions.clear();
     this.currentSelectRange = null;
   }
@@ -146,7 +156,7 @@ class SelectionPlugin implements IPlugin {
           if (this.selectModels.size > 0) {
             this.saveInitialState(false);
             this.isDragging = true;
-            this.handleManager.removeHandles();
+            this._onDraggingChange.fire(true);
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             container.addEventListener("pointermove", handlePointerMove);
             container.addEventListener("pointerup", handlePointerUp);
@@ -183,7 +193,7 @@ class SelectionPlugin implements IPlugin {
       if (this.selectModels.size > 0) {
         this.saveInitialState(false);
         this.isDragging = true;
-        this.handleManager.removeHandles();
+        this._onDraggingChange.fire(true);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
       }
 
@@ -218,6 +228,7 @@ class SelectionPlugin implements IPlugin {
             this.initialModelPositions, this.initialModelSizes,
             this.modelService, this.transformService,
           );
+          this.emitElementsMoving(this.getCurrentSelectedModels());
           this.doRenderOverlay();
           return;
         }
@@ -230,10 +241,7 @@ class SelectionPlugin implements IPlugin {
             this.initialModelPositions, this.modelService,
             this.transformService, undefined, e,
           );
-          const models = Array.from(this.selectModels)
-            .map(id => this.modelService.getModelById(id)!)
-            .filter(Boolean);
-          this.emitElementsMoving(models);
+          this.emitElementsMoving(this.getCurrentSelectedModels());
           return;
         }
 
@@ -272,6 +280,7 @@ class SelectionPlugin implements IPlugin {
 
       if (this.selectModels.size > 0) {
         this.isDragging = false;
+        this._onDraggingChange.fire(false);
         container.removeEventListener("pointermove", handlePointerMove);
         container.removeEventListener("pointerup", handlePointerUp);
         this.currentSelectRange = null;
@@ -342,7 +351,6 @@ class SelectionPlugin implements IPlugin {
       cancelAnimationFrame(this.rafId);
       this.rafId = null;
     }
-    this.handleManager.removeHandles();
     this.disposeList.forEach(d => d());
     this.disposeList = [];
   }

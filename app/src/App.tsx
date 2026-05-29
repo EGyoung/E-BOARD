@@ -5,10 +5,11 @@ import { RoamPlugin, SelectionPlugin, ClearPlugin, PicturePlugin, HotkeyPlugin }
 import { BoardCollaboration } from '@e-board/board-collaboration';
 import BoardAIAssistantPlugin from "@e-board/board-ai-assistant";
 
-import { StageTool, FloatingToolbar } from '@e-board/board-workbench';
+import { StageTool, FloatingToolbar, SelectionOverlay } from '@e-board/board-workbench';
 const App: React.FC = () => {
   const eboard = React.useRef<EBoard | null>(null);
   const [selectedElement, setSelectedElement] = useState<any[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("帮我在画布正中间创建一个蓝色矩形");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiMessage, setAiMessage] = useState("");
@@ -87,10 +88,17 @@ const App: React.FC = () => {
           console.log('[FloatingToolbar] selectedElements:', models);
           setSelectedElement(models || []);
         }) ?? {};
+
+      const { dispose: draggingDispose } =
+        eboard.current.getPlugin("SelectionPlugin")?.exports.onDraggingChange((dragging: boolean) => {
+          setIsDragging(dragging);
+        }) ?? {};
+
       return () => {
         disposed = true;
         board.dispose();
         dispose?.();
+        draggingDispose?.();
         // cleanupCollaboration();
       };
     };
@@ -337,7 +345,13 @@ const App: React.FC = () => {
         board={eboard.current}
       />
 
-      <div id="board" className="board-container" />
+      <div id="board" className="board-container">
+        <SelectionOverlay
+          selectedElements={selectedElement}
+          board={eboard.current}
+          isDragging={isDragging}
+        />
+      </div>
     </div>
   );
 };

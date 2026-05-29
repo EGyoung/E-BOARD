@@ -329,3 +329,29 @@
     display: none;
   }
 }
+
+/* Selection Overlay */
+.selection-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 999;
+}
+
+.selection-box {
+  position: absolute;
+  border: 1px solid #2680eb;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.selection-handle {
+  position: absolute;
+  background: #fff;
+  border: 1px solid #2680eb;
+  pointer-events: none;
+  box-sizing: border-box;
+}
