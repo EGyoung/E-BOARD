@@ -104,29 +104,36 @@ const App: React.FC = () => {
   }, []);
 
   const handleFloatingToolbarUpdate = (updates: any) => {
-    if (!eboard.current) return;
+    if (!eboard.current || !selectedElement) return;
     const board = eboard.current;
+    const modelService = board.getService('modelService') as unknown as IModelService;
 
-    const configService = board.getService('configService') as unknown as IConfigService;
-    configService.setCtxConfig(updates);
-
-    // 如果有选中的元素，也更新元素本身的样式
-    if (selectedElement && selectedElement.updateStyle) {
-      selectedElement.updateStyle(updates);
-    }
+    const currentOptions = selectedElement.options || {};
+    modelService.updateModel(selectedElement.id, {
+      options: { ...currentOptions, ...updates }
+    });
   };
 
   const handleDelete = () => {
-    if (!selectedElement) return;
-    // 实现删除逻辑
-    console.log('删除元素', selectedElement);
+    if (!selectedElement || !eboard.current) return;
+    const board = eboard.current;
+    const modelService = board.getService('modelService') as unknown as IModelService;
+    modelService.deleteModel(selectedElement.id);
     setSelectedElement(null);
   };
 
   const handleDuplicate = () => {
-    if (!selectedElement) return;
-    // 实现复制逻辑
-    console.log('复制元素', selectedElement);
+    if (!selectedElement || !eboard.current) return;
+    const board = eboard.current;
+    const modelService = board.getService('modelService') as unknown as IModelService;
+
+    const offset = 20;
+    modelService.createModel(selectedElement.type, {
+      points: selectedElement.points?.map((p: any) => ({ x: p.x + offset, y: p.y + offset })),
+      width: selectedElement.width,
+      height: selectedElement.height,
+      options: { ...selectedElement.options },
+    });
   };
 
   const handleGenerateRandomShapes = (count: number = 1000) => {

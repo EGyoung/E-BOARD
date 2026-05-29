@@ -103,6 +103,7 @@ class SelectionPlugin implements IPlugin {
     const ctx = this.board.getInteractionCtx();
     if (!canvas || !ctx) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    this.handleManager.removeHandles();
     this.initialModelPositions.clear();
     this.currentSelectRange = null;
   }
