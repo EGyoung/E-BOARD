@@ -129,7 +129,6 @@ const ToolButton: React.FC<ToolButtonProps> = ({ id, name, icon, isActive, onCli
             <span className="tool-icon">
                 {svgIcon || icon || '●'}
             </span>
-            <span className="tool-name">{name}</span>
         </button>
     );
 };

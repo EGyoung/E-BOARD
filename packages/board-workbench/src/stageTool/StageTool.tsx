@@ -49,48 +49,67 @@ const StageTool: React.FC<StageToolProps> = (props: any) => {
 
     return (
         <div className={`stage-tool-container ${isCollapsed ? 'collapsed' : ''}`}>
-            <button
-                className="stage-tool-toggle"
-                onClick={() => setIsCollapsed(!isCollapsed)}
-                title={isCollapsed ? '展开工具栏' : '收起工具栏'}
-            >
-                {isCollapsed ? '▲' : '▼'}
-            </button>
-
-            <div className="stage-tool-content">
-                {(drawTools.length > 0 || selectTools.length > 0) && (
-                    <ToolGroup
-                        title="工具"
-                        tools={[...drawTools, ...selectTools]}
-                        activeTool={activeTool}
-                        onToolClick={handleToolClick}
-                    />
-                )}
-                {shapeTools.length > 0 && (
-                    <ToolGroup
-                        title="形状"
-                        tools={shapeTools}
-                        activeTool={activeTool}
-                        onToolClick={handleToolClick}
-                    />
-                )}
-                {specialTools.length > 0 && (
-                    <ToolGroup
-                        title="特殊工具"
-                        tools={specialTools}
-                        activeTool={activeTool}
-                        onToolClick={handleToolClick}
-                    />
-                )}
-                {actionTools.length > 0 && (
-                    <ToolGroup
-                        title="操作"
-                        tools={actionTools}
-                        activeTool={activeTool}
-                        onToolClick={handleToolClick}
-                    />
-                )}
-            </div>
+            {isCollapsed ? (
+                <button
+                    className="stage-tool-expand"
+                    onClick={() => setIsCollapsed(false)}
+                    title="展开工具栏"
+                >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                    </svg>
+                </button>
+            ) : (
+                <div className="stage-tool-content">
+                    {(drawTools.length > 0 || selectTools.length > 0) && (
+                        <ToolGroup
+                            title=""
+                            tools={[...drawTools, ...selectTools]}
+                            activeTool={activeTool}
+                            onToolClick={handleToolClick}
+                        />
+                    )}
+                    {shapeTools.length > 0 && (
+                        <ToolGroup
+                            title=""
+                            tools={shapeTools}
+                            activeTool={activeTool}
+                            onToolClick={handleToolClick}
+                        />
+                    )}
+                    {specialTools.length > 0 && (
+                        <ToolGroup
+                            title=""
+                            tools={specialTools}
+                            activeTool={activeTool}
+                            onToolClick={handleToolClick}
+                        />
+                    )}
+                    {actionTools.length > 0 && (
+                        <ToolGroup
+                            title=""
+                            tools={actionTools}
+                            activeTool={activeTool}
+                            onToolClick={handleToolClick}
+                        />
+                    )}
+                    <button
+                        className="stage-tool-collapse"
+                        onClick={() => setIsCollapsed(true)}
+                        title="收起工具栏"
+                    >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="4 14 10 14 10 20"></polyline>
+                            <polyline points="20 10 14 10 14 4"></polyline>
+                            <line x1="14" y1="10" x2="21" y2="3"></line>
+                            <line x1="3" y1="21" x2="10" y2="14"></line>
+                        </svg>
+                    </button>
+                </div>
+            )}
         </div>
     );
 };

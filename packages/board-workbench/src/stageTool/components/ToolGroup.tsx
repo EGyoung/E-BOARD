@@ -14,7 +14,6 @@ const ToolGroup: React.FC<ToolGroupProps> = ({ title, tools, activeTool, onToolC
 
     return (
         <div className="tool-group">
-            <div className="tool-group-title">{title}</div>
             <div className="tool-group-buttons">
                 {tools.map((tool) => (
                     <ToolButton

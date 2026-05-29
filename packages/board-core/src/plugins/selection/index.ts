@@ -19,6 +19,7 @@ class SelectionPlugin implements IPlugin {
   private disposeList: (() => void)[] = [];
   private AABbBox: { x: number; y: number; width: number; height: number } | null = null;
   private pointerDownPoint: { x: number; y: number } | null = null;
+  private isDragging = false;
   private selectModels = new Set<string>();
   private initialModelPositions = new Map<string, { x: number; y: number }[]>();
   private initialModelSizes = new Map<string, { width?: number; height?: number }>();
@@ -76,6 +77,9 @@ class SelectionPlugin implements IPlugin {
       beforeSwitchMode: ({ currentMode }) => {
         if (currentMode === CURRENT_MODE) {
           this.disposeList.forEach(d => d());
+          this.selectModels.clear();
+          this.resetAllState();
+          this.emitSelectedElement([]);
         }
       },
       afterSwitchMode: ({ currentMode }) => {
@@ -87,6 +91,7 @@ class SelectionPlugin implements IPlugin {
   }
 
   private doRenderOverlay = () => {
+    if (this.isDragging) return;
     const canvas = this.board.getInteractionCanvas();
     const ctx = this.board.getInteractionCtx();
     const container = this.board.getContainer();
@@ -140,6 +145,9 @@ class SelectionPlugin implements IPlugin {
           this.pointerDownPoint = { x: e.clientX, y: e.clientY };
           if (this.selectModels.size > 0) {
             this.saveInitialState(false);
+            this.isDragging = true;
+            this.handleManager.removeHandles();
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             container.addEventListener("pointermove", handlePointerMove);
             container.addEventListener("pointerup", handlePointerUp);
             return;
@@ -174,6 +182,9 @@ class SelectionPlugin implements IPlugin {
 
       if (this.selectModels.size > 0) {
         this.saveInitialState(false);
+        this.isDragging = true;
+        this.handleManager.removeHandles();
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
       }
 
       container.addEventListener("pointermove", handlePointerMove);
@@ -260,6 +271,7 @@ class SelectionPlugin implements IPlugin {
       }
 
       if (this.selectModels.size > 0) {
+        this.isDragging = false;
         container.removeEventListener("pointermove", handlePointerMove);
         container.removeEventListener("pointerup", handlePointerUp);
         this.currentSelectRange = null;
