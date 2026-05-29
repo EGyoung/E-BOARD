@@ -5,7 +5,7 @@ import { RoamPlugin, SelectionPlugin, ClearPlugin, PicturePlugin, HotkeyPlugin }
 import { BoardCollaboration } from '@e-board/board-collaboration';
 import BoardAIAssistantPlugin from "@e-board/board-ai-assistant";
 
-import { Panel, StageTool } from '@e-board/board-workbench';
+import { StageTool, FloatingToolbar } from '@e-board/board-workbench';
 const App: React.FC = () => {
   const eboard = React.useRef<EBoard | null>(null);
   const [selectedElement, setSelectedElement] = useState<any>(null);
@@ -84,7 +84,8 @@ const App: React.FC = () => {
 
       const { dispose } =
         eboard.current.getPlugin("SelectionPlugin")?.exports.onSelectedElements((model: any) => {
-          setSelectedElement(model && model.length > 0 ? model[0] : null);
+          console.log('[FloatingToolbar] selectedElement:', model);
+          setSelectedElement(model || null);
         }) ?? {};
       return () => {
         disposed = true;
@@ -101,31 +102,6 @@ const App: React.FC = () => {
       disposed = true;
     };
   }, []);
-
-  const handleColorChange = (color: string) => {
-    if (!eboard.current) return;
-    const board = eboard.current;
-
-    const configService = board.getService('configService') as unknown as IConfigService;
-    configService.setCtxConfig({ strokeStyle: color });
-
-  };
-
-  const handleFillColorChange = (color: string) => {
-    if (!eboard.current) return;
-    const board = eboard.current;
-
-    const configService = board.getService('configService') as unknown as IConfigService;
-    configService.setCtxConfig({ fillStyle: color });
-  };
-
-  const handleThicknessChange = (thickness: number) => {
-    if (!eboard.current) return;
-    const board = eboard.current;
-
-    const configService = board.getService('configService') as unknown as IConfigService;
-    configService.setCtxConfig({ lineWidth: thickness });
-  }
 
   const handleFloatingToolbarUpdate = (updates: any) => {
     if (!eboard.current) return;
@@ -234,12 +210,6 @@ const App: React.FC = () => {
   return (
     <div className="app-container">
       <div style={{ position: "absolute", zIndex: 10, top: 10, left: 10, display: "flex", flexDirection: "column", gap: "10px" }}>
-        <Panel
-          onThicknessChange={handleThicknessChange}
-          onColorChange={handleColorChange}
-          onFillColorChange={handleFillColorChange}
-          board={eboard.current}
-        />
         <StageTool board={eboard} />
 
         {/* Debug Tools */}
@@ -337,14 +307,13 @@ const App: React.FC = () => {
         </div>
       </div>
 
-      {/* 浮动工具栏 - 跟随选中元素 */}
-      {/* <FloatingToolbar
+      <FloatingToolbar
         selectedElement={selectedElement}
         onUpdate={handleFloatingToolbarUpdate}
         onDelete={handleDelete}
         onDuplicate={handleDuplicate}
         board={eboard.current}
-      /> */}
+      />
 
       <div id="board" className="board-container" />
     </div>

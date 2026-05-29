@@ -148,6 +148,7 @@ class SelectionPlugin implements IPlugin {
 
       this.resetAllState();
       this.selectModels.clear();
+      this.emitSelectedElement(null as any);
       this.pointerDownPoint = { x: e.clientX, y: e.clientY };
 
       const models = this.modelService.getAllModels().reverse();

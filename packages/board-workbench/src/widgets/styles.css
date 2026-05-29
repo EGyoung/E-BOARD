@@ -13,7 +13,20 @@
   pointer-events: auto;
   user-select: none;
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
-  animation: toolbarFadeIn 0.15s ease;
+}
+
+.floating-toolbar-visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.floating-toolbar-hidden {
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+  transition: none;
 }
 
 @keyframes toolbarFadeIn {

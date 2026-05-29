@@ -24,8 +24,10 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
 }) => {
     const toolbarRef = useRef<HTMLDivElement>(null);
     const [position, setPosition] = useState<ToolbarPosition>({ x: 0, y: 0, show: false });
+    const [isInteracting, setIsInteracting] = useState(false);
+    const selectedElementRef = useRef(selectedElement);
+    selectedElementRef.current = selectedElement;
 
-    // 样式状态
     const [strokeColor, setStrokeColor] = useState('#000000');
     const [fillColor, setFillColor] = useState('#ffffff');
     const [strokeWidth, setStrokeWidth] = useState(2);
@@ -35,21 +37,15 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
     const [textAlign, setTextAlign] = useState<'left' | 'center' | 'right'>('left');
     const [lineDash, setLineDash] = useState<number[]>([]);
 
-    // 计算工具栏位置
-    const calculatePosition = useCallback(() => {
-        console.log('calculatePosition called, selectedElement:', selectedElement);
-
-        if (!selectedElement || !toolbarRef.current) {
-            console.log('No selectedElement or toolbarRef');
+    const recalcPosition = useCallback(() => {
+        const el = selectedElementRef.current;
+        if (!el || !toolbarRef.current) {
             setPosition({ x: 0, y: 0, show: false });
             return;
         }
 
-        const bounds = selectedElement.bounds || selectedElement.getBounds?.();
-        console.log('Element bounds:', bounds);
-
-        if (!bounds) {
-            console.log('No bounds found');
+        const box = el.ctrlElement?.getBoundingBox?.();
+        if (!box) {
             setPosition({ x: 0, y: 0, show: false });
             return;
         }
@@ -58,13 +54,9 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
         const toolbarHeight = toolbarRef.current.offsetHeight;
         const margin = 10;
 
-        // 计算 X 位置（元素中心）
-        let x = bounds.x + bounds.width / 2 - toolbarWidth / 2;
+        let x = box.x + box.width / 2 - toolbarWidth / 2;
+        let y = box.y + box.height + margin;
 
-        // 计算 Y 位置（元素下方）
-        let y = bounds.y + bounds.height + margin;
-
-        // 边界检查
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
 
@@ -72,25 +64,50 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
         if (x + toolbarWidth > viewportWidth - 10) {
             x = viewportWidth - toolbarWidth - 10;
         }
-
-        // 如果下方空间不足，显示在上方
         if (y + toolbarHeight > viewportHeight - 10) {
-            y = bounds.y - toolbarHeight - margin;
+            y = box.y - toolbarHeight - margin;
         }
 
-        console.log('Setting position:', { x, y, show: true });
         setPosition({ x, y, show: true });
-    }, [selectedElement]);
+    }, [board]);
 
     useEffect(() => {
-        calculatePosition();
-        const interval = setInterval(calculatePosition, 100);
-        return () => clearInterval(interval);
-    }, [calculatePosition]);
+        if (!board) return;
+        const eventService = board.getService?.('eventService');
+        const transformService = board.getService?.('transformService');
+        if (!eventService) return;
 
-    console.log('FloatingToolbar render, position:', position, 'selectedElement:', selectedElement);
+        const disposers: (() => void)[] = [];
 
-    // 从选中元素读取样式
+        const { dispose: downDispose } = eventService.onPointerDown(() => {
+            setIsInteracting(true);
+        });
+        disposers.push(downDispose);
+
+        const { dispose: upDispose } = eventService.onPointerUp(() => {
+            setIsInteracting(false);
+            requestAnimationFrame(recalcPosition);
+        });
+        disposers.push(upDispose);
+
+        if (transformService?.onTransformChange) {
+            const { dispose: transformDispose } = transformService.onTransformChange(() => {
+                setIsInteracting(true);
+            });
+            disposers.push(transformDispose);
+        }
+
+        return () => disposers.forEach(d => d());
+    }, [board, recalcPosition]);
+
+    useEffect(() => {
+        if (!selectedElement) {
+            setPosition({ x: 0, y: 0, show: false });
+            return;
+        }
+        requestAnimationFrame(recalcPosition);
+    }, [selectedElement, recalcPosition]);
+
     useEffect(() => {
         if (!selectedElement) return;
 
@@ -108,12 +125,14 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
         onUpdate?.(updates);
     };
 
-    if (!position.show) return null;
+    if (!selectedElement) return null;
+
+    const visible = position.show && !isInteracting;
 
     return (
         <div
             ref={toolbarRef}
-            className="floating-toolbar"
+            className={`floating-toolbar ${visible ? 'floating-toolbar-visible' : 'floating-toolbar-hidden'}`}
             style={{
                 left: `${position.x}px`,
                 top: `${position.y}px`,
