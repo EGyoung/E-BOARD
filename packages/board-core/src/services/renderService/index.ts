@@ -36,11 +36,15 @@ class RenderService implements IRenderService {
   private pendingAnimationFrameId: number | null = null;
   private pendingDirtyRange: Range | null = null;
   private tileManager!: TileManager;
+  private tileIndexView: View | null = null;
   private renderHandlerRegistry!: RenderHandlerRegistry;
   private offscreenCache!: OffscreenRenderCache;
   private transformServiceInstance: ITransformService | null = null;
   private lastRenderMode: RenderMode = 'direct';
+  private zoomSettleTimerId: number | null = null;
+  private forceOffscreenScaleRebuild = false;
   private static readonly DIRTY_PADDING = 2;
+  private static readonly ZOOM_SETTLE_DELAY = 80;
 
   private static readonly TILE_ROWS = 32;
   private static readonly TILE_COLS = 32;
@@ -62,7 +66,7 @@ class RenderService implements IRenderService {
     this.offscreenCache = new OffscreenRenderCache(this.renderHandlerRegistry);
     this.initModelChange();
     this.tileManager = new TileManager(RenderService.TILE_ROWS, RenderService.TILE_COLS, this.getCanvasSize())
-    this.ensureTileIndex()
+    this.rebuildTileIndex(this.transformService.getView())
   };
 
   private initModelChange() {
@@ -79,30 +83,65 @@ class RenderService implements IRenderService {
     return box ? expandDirtyRange(normalizeBoundingBox(box), RenderService.DIRTY_PADDING) : null;
   }
 
-  private ensureTileIndex() {
+  private copyView(view: View): View {
+    return {
+      x: view.x,
+      y: view.y,
+      zoom: view.zoom,
+    };
+  }
+
+  private isSameView(current: View | null, next: View) {
+    return !!current
+      && current.x === next.x
+      && current.y === next.y
+      && current.zoom === next.zoom;
+  }
+
+  private rebuildTileIndex(view: View) {
+    this.tileManager.clear();
+
+    const models = this.modelService.getAllModels();
+    if (models.length) {
+      models.forEach((model) => {
+        const box = model.ctrlElement?.getBoundingBox?.(model);
+        if (box) {
+          this.tileManager.addModelId(
+            model.id,
+            normalizeBoundingBox(box as Range)
+          );
+        }
+      });
+    }
+
+    this.tileIndexView = this.copyView(view);
+  }
+
+  private ensureTileIndex(view: View) {
     if (!this.tileManager.tailsSize()) {
-      const models = this.modelService.getAllModels();
-      if (models.length) {
-        models.forEach((model) => {
-          const box = model.ctrlElement?.getBoundingBox?.(model);
-          if (box) {
-            this.tileManager.addModelId(
-              model.id,
-              normalizeBoundingBox(box as Range)
-            );
-          }
-        });
-      }
+      this.rebuildTileIndex(view);
     }
   }
 
+  private syncTileIndexView(view: View) {
+    if (!this.isSameView(this.tileIndexView, view)) {
+      this.rebuildTileIndex(view);
+      return;
+    }
+
+    this.ensureTileIndex(view);
+  }
+
   private handleModelOperationChange: Parameters<typeof this.modelService.onModelOperation>[0] = (event) => {
+    const view = this.transformService.getView();
+
     this.offscreenCache.markDirty();
+    this.syncTileIndexView(view);
     applyModelChange({
       event,
       modelService: this.modelService,
       tileManager: this.tileManager,
-      ensureTileIndex: () => this.ensureTileIndex(),
+      ensureTileIndex: () => this.ensureTileIndex(view),
       accumulateRange: (range) => this.accumulateRange(range),
       resetDirtyRange: () => {
         this.pendingDirtyRange = null;
@@ -122,8 +161,15 @@ class RenderService implements IRenderService {
       this.pendingAnimationFrameId = null;
     }
 
+    if (this.zoomSettleTimerId !== null) {
+      window.clearTimeout(this.zoomSettleTimerId);
+      this.zoomSettleTimerId = null;
+    }
+
     this.pendingDirtyRange = null;
+    this.tileIndexView = null;
     this.lastRenderMode = 'direct';
+    this.forceOffscreenScaleRebuild = false;
     this.transformServiceInstance = null;
 
     if (this.renderHandlerRegistry) {
@@ -151,6 +197,18 @@ class RenderService implements IRenderService {
     return this.transformServiceInstance;
   }
 
+  private scheduleZoomSettledRender() {
+    if (this.zoomSettleTimerId !== null) {
+      window.clearTimeout(this.zoomSettleTimerId);
+    }
+
+    this.zoomSettleTimerId = window.setTimeout(() => {
+      this.zoomSettleTimerId = null;
+      this.forceOffscreenScaleRebuild = true;
+      this.reRender();
+    }, RenderService.ZOOM_SETTLE_DELAY);
+  }
+
   private clearContexts(
     frame: RenderFrame
   ) {
@@ -164,8 +222,7 @@ class RenderService implements IRenderService {
     this.pendingDirtyRange = null;
     this.clearContexts(frame);
     this.renderDirectFrame(frame);
-    this.tileManager.clear();
-    this.ensureTileIndex();
+    this.rebuildTileIndex(frame.view);
   }
 
   private renderDirectFrame(frame: RenderFrame) {
@@ -205,7 +262,20 @@ class RenderService implements IRenderService {
   }
 
   private renderFromOffscreenOrDirect(frame: RenderFrame) {
-    this.offscreenCache.ensureUpdated(frame.models);
+    const shouldDeferScaleRebuild = this.offscreenCache.canDraw()
+      && !this.offscreenCache.isDirty()
+      && !this.offscreenCache.isScaleSynced(frame.view)
+      && !this.forceOffscreenScaleRebuild;
+
+    this.offscreenCache.ensureUpdated(frame.models, frame.view, {
+      allowScaleRebuild: !shouldDeferScaleRebuild,
+    });
+
+    if (shouldDeferScaleRebuild) {
+      this.scheduleZoomSettledRender();
+    }
+
+    this.forceOffscreenScaleRebuild = false;
 
     if (!this.offscreenCache.draw(frame.context, frame.view)) {
       this.renderDirectFrame(frame);
