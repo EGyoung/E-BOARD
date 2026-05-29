@@ -1,4 +1,4 @@
-import { eBoardContainer } from "../../common/IocContainer";
+import { injectable, inject } from "inversify";
 import { IBoard, IServiceInitParams } from "../../types";
 import { IModelService, IModel } from '../modelService/type';
 import { ITransformService } from "../transformService/type";
@@ -24,10 +24,11 @@ type RenderFrame = {
 
 type RenderMode = 'direct' | 'dirty' | 'offscreen';
 
+@injectable()
 class RenderService implements IRenderService {
   private board!: IBoard;
-  private modelService = eBoardContainer.get<IModelService>(IModelService);
-  private elementService = eBoardContainer.get<IElementService>(IElementService);
+  private modelService: IModelService;
+  private elementService: IElementService;
   private readonly _renderStart = new Emitter<void>();
   private readonly _renderEnd = new Emitter<void>();
   public onRenderStart = this._renderStart.event;
@@ -39,10 +40,20 @@ class RenderService implements IRenderService {
   private tileIndexView: View | null = null;
   private renderHandlerRegistry!: RenderHandlerRegistry;
   private offscreenCache!: OffscreenRenderCache;
-  private transformServiceInstance: ITransformService | null = null;
+  private transformService!: ITransformService;
   private lastRenderMode: RenderMode = 'direct';
   private zoomSettleTimerId: number | null = null;
   private forceOffscreenScaleRebuild = false;
+
+  constructor(
+    @inject(IModelService) modelService: IModelService,
+    @inject(IElementService) elementService: IElementService,
+    @inject(ITransformService) transformService: ITransformService
+  ) {
+    this.modelService = modelService;
+    this.elementService = elementService;
+    this.transformService = transformService;
+  }
   private static readonly DIRTY_PADDING = 2;
   private static readonly ZOOM_SETTLE_DELAY = 80;
 
@@ -170,7 +181,6 @@ class RenderService implements IRenderService {
     this.tileIndexView = null;
     this.lastRenderMode = 'direct';
     this.forceOffscreenScaleRebuild = false;
-    this.transformServiceInstance = null;
 
     if (this.renderHandlerRegistry) {
       this.renderHandlerRegistry.clear();
@@ -190,12 +200,6 @@ class RenderService implements IRenderService {
     }
   };
 
-  private get transformService() {
-    if (!this.transformServiceInstance) {
-      this.transformServiceInstance = eBoardContainer.get<ITransformService>(ITransformService);
-    }
-    return this.transformServiceInstance;
-  }
 
   private scheduleZoomSettledRender() {
     if (this.zoomSettleTimerId !== null) {

@@ -1,4 +1,4 @@
-import { eBoardContainer } from "../../common/IocContainer";
+import { injectable } from "inversify";
 import { IBoard, IServiceInitParams } from "../../types";
 import { IEventService } from "../eventService/type";
 import { ISelectionService } from "./type";
@@ -7,6 +7,7 @@ interface Point {
   y: number;
 }
 
+@injectable()
 class SelectionService implements ISelectionService {
   private board!: IBoard;
   private disposeList: (() => void)[] = [];

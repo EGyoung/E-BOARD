@@ -1,9 +1,11 @@
 import { ICanvasService } from "./type";
 import { IServiceInitParams } from "../../types";
 import { Emitter } from "@e-board/board-utils";
+import { injectable } from "inversify";
 
 const INTERACTION_CANVAS_ID = "interaction-canvas";
 
+@injectable()
 class CanvasService implements ICanvasService {
     private canvas: HTMLCanvasElement | null = null;
     private ctx: CanvasRenderingContext2D | null = null;

@@ -1,5 +1,6 @@
 import { merge } from "@e-board/board-utils";
 import { IConfigService } from "./type";
+import { injectable } from "inversify";
 
 /**
  *   context.lineCap = "round"; // 设置线条端点样式
@@ -23,6 +24,7 @@ const defaultCtxConfig = {
   imageSmoothingQuality: "high" as ImageSmoothingQuality,
 };
 
+@injectable()
 class ConfigService implements IConfigService {
   private ctxConfig = defaultCtxConfig;
   getCtxConfig() {

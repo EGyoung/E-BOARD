@@ -2,11 +2,13 @@ import { getDefaultPlugins } from "../../common/getDefaultPlugins";
 import { CorePlugins, IBoard, IServiceInitParams } from "../../types";
 import { IPluginService } from "./type";
 import { IPlugin, IPluginInitParams } from "../../plugins/type";
+import { injectable } from "inversify";
 
 interface IPluginConstructor {
   new(p: IPluginInitParams): IPlugin;
 }
 
+@injectable()
 export class PluginService implements IPluginService {
   private plugins: Map<string, IPlugin> = new Map();
   private board!: IBoard;

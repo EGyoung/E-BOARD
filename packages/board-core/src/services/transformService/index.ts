@@ -1,9 +1,10 @@
 import { Emitter } from "@e-board/board-utils";
 import type EBoard from "../../board";
 import { IServiceInitParams } from "../../types";
-
+import { injectable } from "inversify";
 import { ITransformService } from "./type";
 
+@injectable()
 class TransformService implements ITransformService {
   private board!: EBoard;
 

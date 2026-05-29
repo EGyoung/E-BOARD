@@ -5,14 +5,14 @@ export default defineConfig({
     input: "src",
     output: "dist/esm",
     platform: "browser",
-    transformer: "babel",
+    transformer: "swc",
     sourcemap: true
   },
   cjs: {
     input: "src",
     output: "dist/cjs",
     platform: "node",
-    transformer: "babel",
+    transformer: "swc",
     sourcemap: true
   },
   prebundle: {

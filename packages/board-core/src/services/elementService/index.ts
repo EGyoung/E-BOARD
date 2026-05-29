@@ -1,7 +1,9 @@
 import { IBoard, IServiceInitParams } from "../../types";
 import { commonElements } from "./commonElements";
 import { IElement, IElementService } from "./type";
+import { injectable } from "inversify";
 
+@injectable()
 class ElementService implements IElementService {
   private board!: IBoard;
   private elementMap: Map<string, IElement<any>> = new Map();

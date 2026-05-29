@@ -1,20 +1,22 @@
 import { Emitter, uuid } from "@e-board/board-utils";
 import { IModelService, IModel, ModelChangeType, ModelChangeEvent, OperationSource } from "./type";
 import { IServiceInitParams } from "../../types";
-import { eBoardContainer } from "../../common/IocContainer";
+import { injectable, inject } from "inversify";
 import { IElementService } from "../elementService/type";
 
 type Model = IModel;
 
 
 
+@injectable()
 export class ModelService implements IModelService {
   private models: Map<string, Model>;
   private _modelOperation = new Emitter<ModelChangeEvent>();
   public onModelOperation = this._modelOperation.event;
-  private elementService = eBoardContainer.get<IElementService>(IElementService);
-  constructor() {
+  private elementService!: IElementService;
+  constructor(@inject(IElementService) elementService: IElementService) {
     this.models = new Map<string, Model>();
+    this.elementService = elementService;
   }
 
   init(p: IServiceInitParams): void {

@@ -3,7 +3,9 @@ import { IHistoryService, Operation, OperationType, BatchOperation } from "./typ
 import { IServiceInitParams, IBoard } from "../../types";
 import { IModelService, IModel, ModelChangeType, ModelChangeEvent } from "../modelService/type";
 import type { EBoard } from "../../board";
+import { injectable } from "inversify";
 
+@injectable()
 class HistoryService implements IHistoryService {
     private undoStack: Operation[] = [];
     private redoStack: Operation[] = [];

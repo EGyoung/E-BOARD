@@ -45,24 +45,23 @@ module.exports = (env, argv) => {
           test: /\.(ts|tsx)$/,
           exclude: /node_modules/,
           use: {
-            loader: "babel-loader",
+            loader: "swc-loader",
             options: {
-              presets: [
-                "@babel/preset-env",
-                [
-                  "@babel/preset-react",
-                  {
+              jsc: {
+                parser: {
+                  syntax: "typescript",
+                  tsx: true,
+                  decorators: true
+                },
+                transform: {
+                  legacyDecorator: true,
+                  decoratorMetadata: true,
+                  react: {
                     runtime: "automatic"
                   }
-                ],
-                [
-                  "@babel/preset-typescript",
-                  {
-                    isTSX: true,
-                    allExtensions: true
-                  }
-                ]
-              ],
+                },
+                target: "es2015"
+              },
               sourceMaps: true
             }
           }

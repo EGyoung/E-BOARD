@@ -5,7 +5,9 @@ import {
   IModeServiceOptions,
   Mode
 } from "./type";
+import { injectable } from "inversify";
 
+@injectable()
 class ModeService implements IModeService {
   private board!: IBoard;
   private currentMode: Mode = null;

@@ -2,8 +2,9 @@ import { IServiceInitParams } from 'src/types';
 import type EBoard from '../../board';
 import { ISaveInfoService } from './type'
 import { OperationSource } from '../modelService/type';
+import { injectable } from "inversify";
 
-
+@injectable()
 class SaveInfoService implements ISaveInfoService {
     private board!: EBoard
     public init({ board }: IServiceInitParams) {

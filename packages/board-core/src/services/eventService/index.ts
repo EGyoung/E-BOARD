@@ -1,8 +1,9 @@
 import { IBoard, IServiceInitParams } from "../../types";
 import { Emitter } from "@e-board/board-utils";
 import { IEventService } from "./type";
-import { injectable, decorate } from "inversify";
+import { injectable } from "inversify";
 
+@injectable()
 class EventService implements IEventService {
   private board!: IBoard;
   private _pointerDownEvent = new Emitter<PointerEvent>();
@@ -75,7 +76,5 @@ class EventService implements IEventService {
   }
 }
 
-// 使用 decorate 替代装饰器语法
-decorate(injectable(), EventService);
 
 export default EventService;
