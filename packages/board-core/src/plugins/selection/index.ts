@@ -29,7 +29,7 @@ class SelectionPlugin implements IPlugin {
   private renderService = eBoardContainer.get<IRenderService>(IRenderService);
   private handleManager = new HandleManager();
 
-  private readonly _onSelectedElements = new Emitter<IModel>();
+  private readonly _onSelectedElements = new Emitter<IModel[]>();
   private emitSelectedElement = this._onSelectedElements.fire.bind(this._onSelectedElements);
   private readonly _onElementsMoving = new Emitter<IModel[]>();
   private emitElementsMoving = this._onElementsMoving.fire.bind(this._onElementsMoving);
@@ -149,7 +149,7 @@ class SelectionPlugin implements IPlugin {
 
       this.resetAllState();
       this.selectModels.clear();
-      this.emitSelectedElement(null as any);
+      this.emitSelectedElement([]);
       this.pointerDownPoint = { x: e.clientX, y: e.clientY };
 
       const models = this.modelService.getAllModels().reverse();
@@ -311,13 +311,17 @@ class SelectionPlugin implements IPlugin {
     });
   }
 
+  private emitAllSelected() {
+    const models = Array.from(this.selectModels)
+      .map(id => this.modelService.getModelById(id))
+      .filter(Boolean) as IModel[];
+    this.emitSelectedElement(models);
+  }
+
   public addSelectedModels(id: string) {
     if (!this.selectModels.has(id)) {
       this.selectModels.add(id);
-      const model = this.modelService.getModelById(id);
-      if (model) {
-        this.emitSelectedElement(model);
-      }
+      this.emitAllSelected();
     }
   }
 

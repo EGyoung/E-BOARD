@@ -8,7 +8,7 @@ import BoardAIAssistantPlugin from "@e-board/board-ai-assistant";
 import { StageTool, FloatingToolbar } from '@e-board/board-workbench';
 const App: React.FC = () => {
   const eboard = React.useRef<EBoard | null>(null);
-  const [selectedElement, setSelectedElement] = useState<any>(null);
+  const [selectedElement, setSelectedElement] = useState<any[]>([]);
   const [aiPrompt, setAiPrompt] = useState("帮我在画布正中间创建一个蓝色矩形");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiMessage, setAiMessage] = useState("");
@@ -83,9 +83,9 @@ const App: React.FC = () => {
 
 
       const { dispose } =
-        eboard.current.getPlugin("SelectionPlugin")?.exports.onSelectedElements((model: any) => {
-          console.log('[FloatingToolbar] selectedElement:', model);
-          setSelectedElement(model || null);
+        eboard.current.getPlugin("SelectionPlugin")?.exports.onSelectedElements((models: any) => {
+          console.log('[FloatingToolbar] selectedElements:', models);
+          setSelectedElement(models || []);
         }) ?? {};
       return () => {
         disposed = true;
@@ -104,35 +104,50 @@ const App: React.FC = () => {
   }, []);
 
   const handleFloatingToolbarUpdate = (updates: any) => {
-    if (!eboard.current || !selectedElement) return;
+    if (!eboard.current || selectedElement.length === 0) return;
     const board = eboard.current;
     const modelService = board.getService('modelService') as unknown as IModelService;
 
-    const currentOptions = selectedElement.options || {};
-    modelService.updateModel(selectedElement.id, {
-      options: { ...currentOptions, ...updates }
+    selectedElement.forEach((el: any) => {
+      const currentModel = modelService.getModelById(el.id);
+      if (!currentModel) return;
+      const currentOptions = currentModel.options || {};
+      modelService.updateModel(el.id, {
+        options: { ...currentOptions, ...updates }
+      });
     });
   };
 
   const handleDelete = () => {
-    if (!selectedElement || !eboard.current) return;
+    if (selectedElement.length === 0 || !eboard.current) return;
     const board = eboard.current;
     const modelService = board.getService('modelService') as unknown as IModelService;
-    modelService.deleteModel(selectedElement.id);
-    setSelectedElement(null);
+
+    selectedElement.forEach((el: any) => {
+      modelService.deleteModel(el.id);
+    });
+
+    const interactionCtx = board.getInteractionCtx();
+    const interactionCanvas = board.getInteractionCanvas();
+    if (interactionCtx && interactionCanvas) {
+      interactionCtx.clearRect(0, 0, interactionCanvas.width, interactionCanvas.height);
+    }
+    setSelectedElement([]);
   };
 
   const handleDuplicate = () => {
-    if (!selectedElement || !eboard.current) return;
+    if (selectedElement.length === 0 || !eboard.current) return;
     const board = eboard.current;
     const modelService = board.getService('modelService') as unknown as IModelService;
 
     const offset = 20;
-    modelService.createModel(selectedElement.type, {
-      points: selectedElement.points?.map((p: any) => ({ x: p.x + offset, y: p.y + offset })),
-      width: selectedElement.width,
-      height: selectedElement.height,
-      options: { ...selectedElement.options },
+    selectedElement.forEach((el: any) => {
+      modelService.createModel(el.type, {
+        points: el.points?.map((p: any) => ({ x: p.x + offset, y: p.y + offset })),
+        width: el.width,
+        height: el.height,
+        options: { ...el.options },
+      });
     });
   };
 
@@ -315,7 +330,7 @@ const App: React.FC = () => {
       </div>
 
       <FloatingToolbar
-        selectedElement={selectedElement}
+        selectedElements={selectedElement}
         onUpdate={handleFloatingToolbarUpdate}
         onDelete={handleDelete}
         onDuplicate={handleDuplicate}
