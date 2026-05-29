@@ -1,27 +1,25 @@
-/* 浮动工具栏 - Notion/Figma 风格 */
+/* Floating Toolbar - CapCut Style */
 .floating-toolbar {
   position: absolute;
   display: flex;
   align-items: center;
   gap: 2px;
   padding: 6px;
-  background: #ffffff;
+  background: #2a2a2a;
   border-radius: 8px;
-  box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.05),
-    0 8px 16px rgba(0, 0, 0, 0.1),
-    0 2px 4px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  border: 1px solid #3a3a3a;
   z-index: 10000;
   pointer-events: auto;
   user-select: none;
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+  animation: toolbarFadeIn 0.15s ease;
 }
 
 @keyframes toolbarFadeIn {
   from {
     opacity: 0;
-    transform: translateY(-8px);
+    transform: translateY(-6px);
   }
   to {
     opacity: 1;
@@ -29,7 +27,6 @@
   }
 }
 
-/* 工具栏分区 */
 .toolbar-section {
   display: flex;
   flex-direction: column;
@@ -39,7 +36,7 @@
 
 .toolbar-label {
   font-size: 10px;
-  color: #6b7280;
+  color: #666;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -47,15 +44,14 @@
   white-space: nowrap;
 }
 
-/* 分割线 */
 .toolbar-divider {
   width: 1px;
-  height: 32px;
-  background: #e5e7eb;
+  height: 28px;
+  background: #3a3a3a;
   margin: 0 2px;
 }
 
-/* 颜色选择器组 */
+/* Color Input */
 .color-picker-group {
   display: flex;
   align-items: center;
@@ -64,51 +60,46 @@
 }
 
 .color-input {
-  width: 32px;
-  height: 32px;
-  border: 1.5px solid #e5e7eb;
-  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  border: 1px solid #444;
+  border-radius: 4px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: border-color 0.15s ease;
   padding: 0;
   background: transparent;
 }
 
 .color-input:hover {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.color-input:active {
-  transform: scale(0.95);
+  border-color: #888;
 }
 
 .color-hex {
   font-size: 11px;
-  color: #6b7280;
-  font-family: "SF Mono", "Monaco", "Courier New", monospace;
-  min-width: 60px;
+  color: #888;
+  font-family: "SF Mono", "Monaco", monospace;
+  min-width: 56px;
   font-weight: 500;
 }
 
-/* 按钮组 */
+/* Button Group */
 .button-group {
   display: flex;
-  gap: 2px;
+  gap: 1px;
   padding: 2px;
-  background: #f3f4f6;
+  background: #1e1e1e;
   border-radius: 6px;
 }
 
-/* 图标按钮 */
+/* Icon Button */
 .icon-btn {
-  min-width: 32px;
-  height: 32px;
+  min-width: 30px;
+  height: 30px;
   padding: 6px;
   border: none;
   border-radius: 4px;
   background: transparent;
-  color: #374151;
+  color: #aaa;
   cursor: pointer;
   transition: all 0.15s ease;
   display: flex;
@@ -118,7 +109,8 @@
 }
 
 .icon-btn:hover {
-  background: #e5e7eb;
+  background: #383838;
+  color: #ddd;
 }
 
 .icon-btn:active {
@@ -126,12 +118,10 @@
 }
 
 .icon-btn.active {
-  background: #3b82f6;
-  color: #ffffff;
-  box-shadow: 0 1px 3px rgba(59, 130, 246, 0.3);
+  background: #fe2c55;
+  color: #fff;
 }
 
-/* 描边预览圆点 */
 .stroke-preview {
   border-radius: 50%;
   background: currentColor;
@@ -139,18 +129,18 @@
 }
 
 .icon-btn.active .stroke-preview {
-  background: #ffffff;
+  background: #fff;
 }
 
-/* 文本按钮 */
+/* Text Button */
 .text-btn {
-  min-width: 32px;
-  height: 32px;
+  min-width: 30px;
+  height: 30px;
   padding: 0 8px;
   border: none;
   border-radius: 4px;
   background: transparent;
-  color: #374151;
+  color: #aaa;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -158,7 +148,8 @@
 }
 
 .text-btn:hover {
-  background: #e5e7eb;
+  background: #383838;
+  color: #ddd;
 }
 
 .text-btn:active {
@@ -166,12 +157,11 @@
 }
 
 .text-btn.active {
-  background: #3b82f6;
-  color: #ffffff;
-  box-shadow: 0 1px 3px rgba(59, 130, 246, 0.3);
+  background: #fe2c55;
+  color: #fff;
 }
 
-/* 滑块组 */
+/* Slider */
 .slider-group {
   display: flex;
   align-items: center;
@@ -186,7 +176,7 @@
   outline: none;
   appearance: none;
   -webkit-appearance: none;
-  background: #e5e7eb;
+  background: #333;
   cursor: pointer;
 }
 
@@ -195,50 +185,44 @@
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #3b82f6;
+  background: #fff;
   cursor: pointer;
-  border: 2px solid #ffffff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  transition: all 0.15s ease;
+  border: none;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  transition: transform 0.15s ease;
 }
 
 .slider::-webkit-slider-thumb:hover {
-  background: #2563eb;
   transform: scale(1.15);
-}
-
-.slider::-webkit-slider-thumb:active {
-  transform: scale(1.05);
 }
 
 .slider::-moz-range-thumb {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #3b82f6;
+  background: #fff;
   cursor: pointer;
-  border: 2px solid #ffffff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  transition: all 0.15s ease;
+  border: none;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
 }
 
 .value-display {
   font-size: 12px;
-  color: #374151;
+  color: #ccc;
   font-weight: 600;
-  min-width: 36px;
+  min-width: 32px;
   text-align: right;
 }
 
-/* 操作按钮 */
+/* Action Button */
 .action-btn {
-  min-width: 32px;
-  height: 32px;
+  min-width: 30px;
+  height: 30px;
   padding: 6px;
   border: none;
   border-radius: 4px;
   background: transparent;
-  color: #374151;
+  color: #aaa;
   cursor: pointer;
   transition: all 0.15s ease;
   display: flex;
@@ -247,7 +231,8 @@
 }
 
 .action-btn:hover {
-  background: #e5e7eb;
+  background: #383838;
+  color: #ddd;
 }
 
 .action-btn:active {
@@ -255,11 +240,11 @@
 }
 
 .action-btn.delete:hover {
-  background: #fee2e2;
-  color: #dc2626;
+  background: rgba(254, 44, 85, 0.15);
+  color: #fe2c55;
 }
 
-/* SVG 图标样式 */
+/* SVG Icons */
 .icon-btn svg,
 .action-btn svg {
   width: 16px;
@@ -268,117 +253,36 @@
   stroke-linejoin: round;
 }
 
-/* 响应式调整 */
-@media (max-width: 1024px) {
-  .floating-toolbar {
-    flex-wrap: wrap;
-    max-width: 90vw;
-  }
-
-  .toolbar-section {
-    min-width: auto;
-  }
-
-  .color-hex {
-    display: none;
-  }
-}
-
-/* 暗黑模式 */
-@media (prefers-color-scheme: dark) {
-  .floating-toolbar {
-    background: #1f2937;
-    box-shadow:
-      0 0 0 1px rgba(255, 255, 255, 0.1),
-      0 8px 16px rgba(0, 0, 0, 0.4),
-      0 2px 4px rgba(0, 0, 0, 0.3);
-  }
-
-  .toolbar-label {
-    color: #9ca3af;
-  }
-
-  .toolbar-divider {
-    background: #374151;
-  }
-
-  .color-input {
-    border-color: #374151;
-  }
-
-  .color-input:hover {
-    border-color: #3b82f6;
-  }
-
-  .color-hex {
-    color: #9ca3af;
-  }
-
-  .button-group {
-    background: #374151;
-  }
-
-  .icon-btn,
-  .text-btn,
-  .action-btn {
-    color: #e5e7eb;
-  }
-
-  .icon-btn:hover,
-  .text-btn:hover,
-  .action-btn:hover {
-    background: #4b5563;
-  }
-
-  .icon-btn.active,
-  .text-btn.active {
-    background: #3b82f6;
-    color: #ffffff;
-  }
-
-  .action-btn.delete:hover {
-    background: #7f1d1d;
-    color: #fca5a5;
-  }
-
-  .slider {
-    background: #4b5563;
-  }
-
-  .value-display {
-    color: #e5e7eb;
-  }
-}
-
-/* 工具提示 */
+/* Tooltip */
 .icon-btn::after,
 .action-btn::after,
 .text-btn::after {
   content: attr(title);
   position: absolute;
-  bottom: -30px;
+  bottom: -28px;
   left: 50%;
   transform: translateX(-50%);
-  padding: 4px 8px;
-  background: #1f2937;
-  color: #ffffff;
+  padding: 3px 8px;
+  background: #1a1a1a;
+  color: #ccc;
   font-size: 11px;
   border-radius: 4px;
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.15s ease;
   z-index: 10001;
+  border: 1px solid #333;
 }
 
 .icon-btn:hover::after,
 .action-btn:hover::after,
 .text-btn:hover::after {
   opacity: 1;
-  transition-delay: 0.5s;
+  transition-delay: 0.4s;
 }
 
-/* 紧凑模式 */
+/* Compact Mode */
 .floating-toolbar.compact {
   padding: 4px;
   gap: 1px;
@@ -389,20 +293,26 @@
   gap: 2px;
 }
 
-.floating-toolbar.compact .button-group {
-  gap: 1px;
-}
-
 .floating-toolbar.compact .icon-btn,
 .floating-toolbar.compact .text-btn,
 .floating-toolbar.compact .action-btn {
-  min-width: 28px;
-  height: 28px;
+  min-width: 26px;
+  height: 26px;
   padding: 4px;
 }
 
 .floating-toolbar.compact .toolbar-divider {
-  height: 28px;
+  height: 24px;
 }
 
-/* 动画优化 */
+/* Responsive */
+@media (max-width: 1024px) {
+  .floating-toolbar {
+    flex-wrap: wrap;
+    max-width: 90vw;
+  }
+
+  .color-hex {
+    display: none;
+  }
+}

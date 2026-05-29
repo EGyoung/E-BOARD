@@ -10,18 +10,15 @@ body {
 .app-container {
   width: 100vw;
   height: 100vh;
-  background-color: #282c34;
+  background-color: #1a1a1a;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
 .board-container {
-  /* width: 90%;
-  height: 90%; */
-  background-color: #1a1a1a;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background-color: #1e1e1e;
+  border-radius: 0;
   position: relative;
   overflow: hidden;
 }
