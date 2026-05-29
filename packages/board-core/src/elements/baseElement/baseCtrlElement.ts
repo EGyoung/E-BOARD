@@ -67,7 +67,7 @@ class BaseCtrlElement {
         const zoom = this.transformService.getView().zoom || 1;
         const box = calculateBBox(
             model.points?.map((p: any) => this.transformService.transformPoint(p)) || [],
-            zoom * (this.model.options?.lineWidth || 0)
+            zoom * (model.options?.lineWidth || 0)
         );
         const width = box ? box.maxX - box.minX : 0;
         const height = box ? box.maxY - box.minY : 0;
