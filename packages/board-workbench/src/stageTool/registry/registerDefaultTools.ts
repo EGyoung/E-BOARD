@@ -12,6 +12,7 @@ import {
     MindMapToolHandler,
     TableToolHandler,
     PictureToolHandler,
+    TextToolHandler,
 } from '../handlers';
 
 export function registerDefaultTools() {
@@ -144,5 +145,14 @@ export function registerDefaultTools() {
             name: '插入图片',
         },
         new PictureToolHandler()
+    );
+
+    // Register text tool
+    toolRegistry.register(
+        {
+            id: 'text',
+            name: '插入文本',
+        },
+        new TextToolHandler()
     );
 }

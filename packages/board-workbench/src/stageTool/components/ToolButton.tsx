@@ -113,6 +113,14 @@ const iconMap: Record<string, JSX.Element> = {
             <polyline points="21 15 16 10 5 21"></polyline>
         </svg>
     ),
+    'text': (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 6h16"></path>
+            <path d="M8 6v12"></path>
+            <path d="M16 6v12"></path>
+            <path d="M2 18h20"></path>
+        </svg>
+    ),
 };
 
 const ToolButton: React.FC<ToolButtonProps> = ({ id, name, icon, isActive, onClick }) => {

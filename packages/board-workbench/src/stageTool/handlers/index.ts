@@ -9,3 +9,4 @@ export { LaserPointerToolHandler } from './LaserPointerToolHandler';
 export { MindMapToolHandler } from './MindMapToolHandler';
 export { TableToolHandler } from './TableToolHandler';
 export { PictureToolHandler } from './PictureToolHandler';
+export { TextToolHandler } from './TextToolHandler';
