@@ -350,6 +350,17 @@
   box-sizing: border-box;
 }
 
+.selection-box-group {
+  border: 1px dashed rgba(0, 113, 227, 0.88);
+  box-shadow: 0 0 0 1px rgba(0, 113, 227, 0.12) inset;
+}
+
+.selection-box-dashed {
+  border-style: dashed !important;
+  border-width: 1.5px !important;
+  border-color: rgba(0, 113, 227, 0.7) !important;
+}
+
 .selection-handle {
   position: absolute;
   background: rgba(255, 255, 255, 0.98);

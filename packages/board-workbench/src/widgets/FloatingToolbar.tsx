@@ -153,8 +153,6 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
         onUpdate?.(updates);
     };
 
-    if (selectedElements.length === 0) return null;
-
     const visible = position.show && !isInteracting;
     const types = new Set(selectedElements.map((el: any) => el.type));
     const isSingleType = types.size === 1;
@@ -207,6 +205,8 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
         onDelete,
         onDuplicate,
     ]);
+
+    if (selectedElements.length === 0) return null;
 
     const visibleItems = floatingToolbarRegistry.getVisibleItems(toolbarContext);
 

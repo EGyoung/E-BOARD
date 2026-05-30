@@ -110,12 +110,27 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
 
     if (selectedElements.length === 0 || isDragging || !aabb) return null;
 
+    const isMultiSelect = selectedElements.length > 1;
+
     return (
         <div className="selection-overlay">
+            {isMultiSelect && (
+                <div
+                    className="selection-box selection-box-group"
+                    style={{
+                        left: aabb.x,
+                        top: aabb.y,
+                        width: aabb.width,
+                        height: aabb.height,
+                    }}
+                />
+            )}
             {boxes.map((box) => (
                 <div
                     key={box.id}
-                    className="selection-box"
+                    className={
+                        'selection-box' + (isMultiSelect ? ' selection-box-dashed' : '')
+                    }
                     style={{
                         left: box.x,
                         top: box.y,
