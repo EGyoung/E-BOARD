@@ -10,3 +10,4 @@ export { MindMapToolHandler } from './MindMapToolHandler';
 export { TableToolHandler } from './TableToolHandler';
 export { PictureToolHandler } from './PictureToolHandler';
 export { TextToolHandler } from './TextToolHandler';
+export { EraserToolHandler } from './EraserToolHandler';

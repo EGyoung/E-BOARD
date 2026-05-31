@@ -18,6 +18,55 @@ const iconMap: Record<string, JSX.Element> = {
             <circle cx="11" cy="11" r="2"></circle>
         </svg>
     ),
+    'eraser': (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+                d="M8.1 18.6L3.9 14.4C3.12 13.62 3.12 12.35 3.9 11.57L11.24 4.23C12.02 3.45 13.29 3.45 14.07 4.23L20.1 10.26C20.88 11.04 20.88 12.31 20.1 13.09L14.59 18.6H8.1Z"
+                fill="url(#eraserBodyGradient)"
+                stroke="currentColor"
+                strokeWidth="1.45"
+                strokeLinejoin="round"
+            />
+            <path
+                d="M14.23 6.02L18.31 10.1C18.7 10.49 18.7 11.12 18.31 11.51L15.73 14.09L10.23 8.59L12.81 6.02C13.2 5.63 13.84 5.63 14.23 6.02Z"
+                fill="#F7B7C8"
+                fillOpacity="0.92"
+            />
+            <path
+                d="M8.62 18.48L5.14 15L10.23 9.91L15.32 15L11.84 18.48H8.62Z"
+                fill="#EEF4FF"
+                fillOpacity="0.96"
+            />
+            <path
+                d="M9.92 9.64L15.49 15.21"
+                stroke="currentColor"
+                strokeWidth="1.15"
+                strokeLinecap="round"
+                opacity="0.52"
+            />
+            <path
+                d="M7.2 13.65L10.55 17"
+                stroke="white"
+                strokeWidth="1.2"
+                strokeLinecap="round"
+                opacity="0.86"
+            />
+            <path
+                d="M7.2 20H20.5"
+                stroke="currentColor"
+                strokeWidth="1.45"
+                strokeLinecap="round"
+                opacity="0.72"
+            />
+            <defs>
+                <linearGradient id="eraserBodyGradient" x1="4" y1="4" x2="20" y2="20" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#FFF5F8" />
+                    <stop offset="0.48" stopColor="#EEF4FF" />
+                    <stop offset="1" stopColor="#DCE8FF" />
+                </linearGradient>
+            </defs>
+        </svg>
+    ),
     'select': (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"></path>

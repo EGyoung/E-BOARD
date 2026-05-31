@@ -2,6 +2,7 @@ import { toolRegistry } from './ToolRegistry';
 import { ToolMode, ShapeType } from '../types';
 import {
     DrawToolHandler,
+    EraserToolHandler,
     SelectToolHandler,
     ShapeToolHandler,
     ClearToolHandler,
@@ -24,6 +25,16 @@ export function registerDefaultTools() {
             mode: ToolMode.DRAW,
         },
         new DrawToolHandler()
+    );
+
+    // Register eraser tool
+    toolRegistry.register(
+        {
+            id: 'eraser',
+            name: '橡皮擦',
+            mode: ToolMode.ERASER,
+        },
+        new EraserToolHandler()
     );
 
     // Register select tool

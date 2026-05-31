@@ -1,5 +1,6 @@
 export enum ToolMode {
     DRAW = 'draw',
+    ERASER = 'eraser',
     SELECT = 'selection',
     SHAPE = 'drawShape',
     LASER_POINTER = 'laserPointer',

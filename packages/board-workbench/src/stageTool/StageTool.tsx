@@ -38,6 +38,7 @@ const StageTool: React.FC<StageToolProps> = (props: any) => {
     };
 
     const drawTools = allTools.filter(t => t.mode === ToolMode.DRAW);
+    const eraserTools = allTools.filter(t => t.mode === ToolMode.ERASER);
     const selectTools = allTools.filter(t => t.mode === ToolMode.SELECT);
     const shapeTools = allTools.filter(t => t.mode === ToolMode.SHAPE);
     const specialTools = allTools.filter(t =>
@@ -64,10 +65,10 @@ const StageTool: React.FC<StageToolProps> = (props: any) => {
                 </button>
             ) : (
                 <div className="stage-tool-content">
-                    {(drawTools.length > 0 || selectTools.length > 0) && (
+                    {(drawTools.length > 0 || eraserTools.length > 0 || selectTools.length > 0) && (
                         <ToolGroup
                             title=""
-                            tools={[...drawTools, ...selectTools]}
+                            tools={[...drawTools, ...eraserTools, ...selectTools]}
                             activeTool={activeTool}
                             onToolClick={handleToolClick}
                         />

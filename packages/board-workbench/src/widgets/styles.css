@@ -20,7 +20,9 @@
   opacity: 1;
   transform: translateY(0);
   pointer-events: auto;
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
 }
 
 .floating-toolbar-hidden {
