@@ -1,32 +1,24 @@
-import { IToolHandler, ShapeType } from '../types';
+import { IToolHandler, ShapeType, ToolBoard } from '../types';
 
 export class ShapeToolHandler implements IToolHandler {
-    private shapeType: ShapeType;
 
-    constructor(shapeType: ShapeType) {
-        this.shapeType = shapeType;
-    }
 
-    activate(board: any): void {
+    activate(board: ToolBoard): void {
         try {
 
 
             const modeService = board.getService('modeService');
-            const configService = board.getService('configService')
 
             if (modeService) {
                 modeService.switchMode('drawShape');
             }
 
-            if (configService && configService.setCtxConfig) {
-                configService.setCtxConfig({ shapeType: this.shapeType });
-            }
         } catch (error) {
             console.warn('Failed to switch to shape mode:', error);
         }
     }
 
-    deactivate(board: any): void {
+    deactivate(board: ToolBoard): void {
         // Optional cleanup
     }
 }

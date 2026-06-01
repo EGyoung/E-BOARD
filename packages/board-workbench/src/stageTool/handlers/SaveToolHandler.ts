@@ -1,9 +1,9 @@
-import { IToolHandler } from '../types';
+import { IToolHandler, ToolBoard } from '../types';
 
 export class SaveToolHandler implements IToolHandler {
-    activate(board: any): void {
+    activate(board: ToolBoard): void {
         try {
-            const canvas = board.canvas;
+            const canvas = board.getCanvas();
             if (!canvas) {
                 console.warn('Canvas not found');
                 return;

@@ -1,3 +1,5 @@
+import type { EBoard } from '@e-board/board-core';
+
 export enum ToolMode {
     DRAW = 'draw',
     ERASER = 'eraser',
@@ -26,7 +28,9 @@ export interface ToolConfig {
     shapeType?: ShapeType;
 }
 
+export type ToolBoard = EBoard;
+
 export interface IToolHandler {
-    activate: (board: any) => void;
-    deactivate?: (board: any) => void;
+    activate: (board: ToolBoard) => void;
+    deactivate?: (board: ToolBoard) => void;
 }

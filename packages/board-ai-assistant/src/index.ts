@@ -1348,7 +1348,7 @@ class BoardAIAssistantPlugin {
           labelFontSize: typeof shape.textFontSize === "number" ? shape.textFontSize / zoom : undefined,
 
         }
-      } as any);
+      });
 
       this.pushNodeBox({
         kind: "rectangle",
@@ -1374,7 +1374,7 @@ class BoardAIAssistantPlugin {
           strokeStyle: shape.strokeStyle,
           lineWidth: shape.lineWidth
         }
-      } as any);
+      });
 
       return true;
     }
@@ -1393,7 +1393,7 @@ class BoardAIAssistantPlugin {
           strokeStyle: shape.strokeStyle,
           lineWidth: shape.lineWidth
         }
-      } as any);
+      });
 
       return true;
     }
@@ -1443,7 +1443,7 @@ class BoardAIAssistantPlugin {
           strokeStyle: shape.strokeStyle,
           lineWidth: shape.lineWidth
         }
-      } as any);
+      });
 
       this.pushNodeBox({
         kind: "text",
@@ -1467,7 +1467,7 @@ class BoardAIAssistantPlugin {
         width: placement.width,
         height: placement.height,
         imageData: shape.imageUrl,
-      } as any);
+      });
 
       this.pushNodeBox({
         kind: "rectangle",

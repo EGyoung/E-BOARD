@@ -1,5 +1,5 @@
 import { toolRegistry } from './ToolRegistry';
-import { ToolMode, ShapeType } from '../types';
+import { ToolMode } from '../types';
 import {
     DrawToolHandler,
     EraserToolHandler,
@@ -50,46 +50,9 @@ export function registerDefaultTools() {
         new SelectToolHandler()
     );
 
-    // Register shape tools
-    toolRegistry.register(
-        {
-            id: 'shape-rectangle',
-            name: '矩形',
-            mode: ToolMode.SHAPE,
-            shapeType: ShapeType.RECTANGLE,
-        },
-        new ShapeToolHandler(ShapeType.RECTANGLE)
-    );
 
-    // toolRegistry.register(
-    //     {
-    //         id: 'shape-circle',
-    //         name: '圆形',
-    //         mode: ToolMode.SHAPE,
-    //         shapeType: ShapeType.CIRCLE,
-    //     },
-    //     new ShapeToolHandler(ShapeType.CIRCLE)
-    // );
 
-    // toolRegistry.register(
-    //     {
-    //         id: 'shape-line',
-    //         name: '直线',
-    //         mode: ToolMode.SHAPE,
-    //         shapeType: ShapeType.LINE,
-    //     },
-    //     new ShapeToolHandler(ShapeType.LINE)
-    // );
 
-    // toolRegistry.register(
-    //     {
-    //         id: 'shape-triangle',
-    //         name: '三角形',
-    //         mode: ToolMode.SHAPE,
-    //         shapeType: ShapeType.TRIANGLE,
-    //     },
-    //     new ShapeToolHandler(ShapeType.TRIANGLE)
-    // );
 
     // Register action tools
     toolRegistry.register(
@@ -198,5 +161,14 @@ export function registerDefaultTools() {
             mode: ToolMode.CIRCLE,
         },
         new CircleToolHandler()
+    );
+
+    toolRegistry.register(
+        {
+            id: 'shape-rectangle',
+            name: '矩形',
+            mode: ToolMode.SHAPE,
+        },
+        new ShapeToolHandler()
     );
 }

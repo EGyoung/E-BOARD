@@ -1,7 +1,7 @@
-import { IToolHandler } from '../types';
+import { IToolHandler, ToolBoard } from '../types';
 
 export class PictureToolHandler implements IToolHandler {
-    activate(board: any): void {
+    activate(board: ToolBoard): void {
         try {
             // 获取 PicturePlugin
             const picturePlugin = board.getPlugin('PicturePlugin');
@@ -45,7 +45,7 @@ export class PictureToolHandler implements IToolHandler {
         }
     }
 
-    deactivate(board: any): void {
+    deactivate(board: ToolBoard): void {
         // Optional cleanup
     }
 }

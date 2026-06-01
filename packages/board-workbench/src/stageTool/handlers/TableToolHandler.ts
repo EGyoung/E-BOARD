@@ -1,7 +1,7 @@
-import { IToolHandler } from '../types';
+import { IToolHandler, ToolBoard } from '../types';
 
 export class TableToolHandler implements IToolHandler {
-    activate(board: any): void {
+    activate(board: ToolBoard): void {
         try {
             // TODO: Implement table drawing mode
             // This would require a table plugin in the core
@@ -17,7 +17,7 @@ export class TableToolHandler implements IToolHandler {
         }
     }
 
-    deactivate(board: any): void {
+    deactivate(board: ToolBoard): void {
         try {
             console.log('Table mode deactivated');
             // Cleanup table mode

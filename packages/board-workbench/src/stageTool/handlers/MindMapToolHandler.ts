@@ -1,7 +1,7 @@
-import { IToolHandler } from '../types';
+import { IToolHandler, ToolBoard } from '../types';
 
 export class MindMapToolHandler implements IToolHandler {
-    activate(board: any): void {
+    activate(board: ToolBoard): void {
         try {
             // TODO: Implement mind map mode
             // This would require a mind map plugin in the core
@@ -17,7 +17,7 @@ export class MindMapToolHandler implements IToolHandler {
         }
     }
 
-    deactivate(board: any): void {
+    deactivate(board: ToolBoard): void {
         try {
             console.log('Mind map mode deactivated');
             // Cleanup mind map mode

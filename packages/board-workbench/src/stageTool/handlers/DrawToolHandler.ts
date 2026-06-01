@@ -1,7 +1,7 @@
-import { IToolHandler } from '../types';
+import { IToolHandler, ToolBoard } from '../types';
 
 export class DrawToolHandler implements IToolHandler {
-    activate(board: any): void {
+    activate(board: ToolBoard): void {
         try {
             console.log(board, 'board')
             const modeService = board.getService('modeService');
@@ -13,7 +13,7 @@ export class DrawToolHandler implements IToolHandler {
         }
     }
 
-    deactivate(board: any): void {
+    deactivate(board: ToolBoard): void {
         // Optional cleanup
     }
 }

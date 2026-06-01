@@ -1,7 +1,7 @@
-import { IToolHandler } from '../types';
+import { IToolHandler, ToolBoard } from '../types';
 
 export class LaserPointerToolHandler implements IToolHandler {
-    activate(board: any): void {
+    activate(board: ToolBoard): void {
         try {
             // TODO: Implement laser pointer mode
             // This would require a laser pointer plugin in the core
@@ -17,7 +17,7 @@ export class LaserPointerToolHandler implements IToolHandler {
         }
     }
 
-    deactivate(board: any): void {
+    deactivate(board: ToolBoard): void {
         try {
             console.log('Laser pointer mode deactivated');
             // Cleanup laser pointer mode

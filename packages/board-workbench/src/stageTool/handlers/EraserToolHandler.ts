@@ -1,7 +1,7 @@
-import { IToolHandler } from '../types';
+import { IToolHandler, ToolBoard } from '../types';
 
 export class EraserToolHandler implements IToolHandler {
-    activate(board: any): void {
+    activate(board: ToolBoard): void {
         try {
             const modeService = board.getService('modeService');
             if (modeService) {
@@ -12,7 +12,7 @@ export class EraserToolHandler implements IToolHandler {
         }
     }
 
-    deactivate(board: any): void {
+    deactivate(board: ToolBoard): void {
         // Optional cleanup is handled by EraserPlugin mode switch hooks.
     }
 }

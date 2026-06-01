@@ -1,7 +1,7 @@
-import { IToolHandler } from '../types';
+import { IToolHandler, ToolBoard } from '../types';
 
 export class CircleToolHandler implements IToolHandler {
-    activate(board: any): void {
+    activate(board: ToolBoard): void {
         try {
             const modeService = board.getService('modeService');
             if (modeService) {
@@ -12,5 +12,5 @@ export class CircleToolHandler implements IToolHandler {
         }
     }
 
-    deactivate(board: any): void {}
+    deactivate(board: ToolBoard): void { }
 }
