@@ -40,7 +40,7 @@ const StageTool: React.FC<StageToolProps> = (props: any) => {
     const drawTools = allTools.filter(t => t.mode === ToolMode.DRAW);
     const eraserTools = allTools.filter(t => t.mode === ToolMode.ERASER);
     const selectTools = allTools.filter(t => t.mode === ToolMode.SELECT);
-    const shapeTools = allTools.filter(t => t.mode === ToolMode.SHAPE);
+    const shapeTools = allTools.filter(t => t.mode === ToolMode.SHAPE || t.mode === ToolMode.ARROW);
     const specialTools = allTools.filter(t =>
         t.mode === ToolMode.LASER_POINTER ||
         t.mode === ToolMode.MIND_MAP ||

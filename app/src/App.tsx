@@ -1,7 +1,7 @@
 import React, { useLayoutEffect, useState } from "react";
 import { DrawShapePlugin, EBoard, EraserPlugin, IConfigService, IModelService, ITransformService } from "@e-board/board-core";
 import "./styles.css";
-import { RoamPlugin, SelectionPlugin, ClearPlugin, PicturePlugin, HotkeyPlugin } from "@e-board/board-core";
+import { RoamPlugin, SelectionPlugin, ClearPlugin, PicturePlugin, HotkeyPlugin, DrawArrowPlugin } from "@e-board/board-core";
 import { BoardCollaboration } from '@e-board/board-collaboration';
 import BoardAIAssistantPlugin from "@e-board/board-ai-assistant";
 
@@ -67,7 +67,7 @@ const App: React.FC = () => {
     }
 
     const loadPlugins = async () => {
-      const plugins = [HotkeyPlugin, RoamPlugin, SelectionPlugin, DrawShapePlugin, ClearPlugin, PicturePlugin, EraserPlugin, BoardAIAssistantPlugin];
+      const plugins = [HotkeyPlugin, RoamPlugin, SelectionPlugin, DrawShapePlugin, DrawArrowPlugin, ClearPlugin, PicturePlugin, EraserPlugin, BoardAIAssistantPlugin];
       const board = new EBoard({
         container: document.getElementById("board") as HTMLDivElement,
         id: "app-board",

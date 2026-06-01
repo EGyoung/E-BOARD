@@ -6,6 +6,7 @@ export enum ToolMode {
     LASER_POINTER = 'laserPointer',
     MIND_MAP = 'mindMap',
     TABLE = 'table',
+    ARROW = 'drawArrow',
 }
 
 export enum ShapeType {

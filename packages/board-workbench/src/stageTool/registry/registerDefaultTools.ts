@@ -14,6 +14,7 @@ import {
     TableToolHandler,
     PictureToolHandler,
     TextToolHandler,
+    ArrowToolHandler,
 } from '../handlers';
 
 export function registerDefaultTools() {
@@ -165,5 +166,15 @@ export function registerDefaultTools() {
             name: '插入文本',
         },
         new TextToolHandler()
+    );
+
+    // Register arrow tool
+    toolRegistry.register(
+        {
+            id: 'arrow',
+            name: '箭头',
+            mode: ToolMode.ARROW,
+        },
+        new ArrowToolHandler()
     );
 }

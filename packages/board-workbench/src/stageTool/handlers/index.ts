@@ -11,3 +11,4 @@ export { TableToolHandler } from './TableToolHandler';
 export { PictureToolHandler } from './PictureToolHandler';
 export { TextToolHandler } from './TextToolHandler';
 export { EraserToolHandler } from './EraserToolHandler';
+export { ArrowToolHandler } from './ArrowToolHandler';

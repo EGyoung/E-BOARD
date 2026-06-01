@@ -6,5 +6,6 @@ import { default as ClearPlugin } from "./clear";
 import { default as PicturePlugin } from './picture';
 import { default as HotkeyPlugin } from './hotkey';
 import { default as EraserPlugin } from './eraser';
+import { default as DrawArrowPlugin } from './drawArrow';
 
-export { DrawPlugin, RoamPlugin, SelectionPlugin, DrawShapePlugin, ClearPlugin, PicturePlugin, HotkeyPlugin, EraserPlugin };
+export { DrawPlugin, RoamPlugin, SelectionPlugin, DrawShapePlugin, ClearPlugin, PicturePlugin, HotkeyPlugin, EraserPlugin, DrawArrowPlugin };
