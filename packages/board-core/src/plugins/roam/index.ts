@@ -67,6 +67,7 @@ class RoamPlugin implements IPlugin {
         this.view.x += deltaX / this.view.zoom;
         this.view.y += deltaY / this.view.zoom;
       }
+
       transformService.setView(this.view);
     };
 

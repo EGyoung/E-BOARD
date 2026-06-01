@@ -87,7 +87,7 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
 
         if (transformService?.onTransformChange) {
             const { dispose: transformDispose } = transformService.onTransformChange(() => {
-                requestAnimationFrame(() => recalc());
+                recalc();
             });
             disposers.push(transformDispose);
         }

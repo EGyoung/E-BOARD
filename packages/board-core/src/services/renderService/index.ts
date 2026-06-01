@@ -200,6 +200,14 @@ class RenderService implements IRenderService {
     }
   };
 
+  public renderSync = () => {
+    if (this.pendingAnimationFrameId !== null) {
+      cancelAnimationFrame(this.pendingAnimationFrameId);
+      this.pendingAnimationFrameId = null;
+    }
+    this._render();
+  };
+
 
   private scheduleZoomSettledRender() {
     if (this.zoomSettleTimerId !== null) {

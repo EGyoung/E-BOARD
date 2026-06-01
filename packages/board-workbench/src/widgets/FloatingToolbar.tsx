@@ -110,7 +110,7 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
 
         if (transformService?.onTransformChange) {
             const { dispose: transformDispose } = transformService.onTransformChange(() => {
-                setIsInteracting(true);
+                recalcPosition();
             });
             disposers.push(transformDispose);
         }

@@ -51,8 +51,8 @@ class TransformService implements ITransformService {
       const canvas = this.board.getCanvas();
       if (!ctx || !canvas) return;
       const renderService = this.board.getService('renderService')
-      renderService.reRender();
       this._onTransformChange.fire({ x: this.x, y: this.y, zoom: this.zoom });
+      renderService.renderSync();
     }
   };
 
