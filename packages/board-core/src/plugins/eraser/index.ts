@@ -112,6 +112,13 @@ class EraserPlugin implements IPlugin {
     };
   }
 
+  private getQuadraticPoint(start: Point, control: Point, end: Point, t: number): Point {
+    const u = 1 - t;
+    return {
+      x: u * u * start.x + 2 * u * t * control.x + t * t * end.x,
+      y: u * u * start.y + 2 * u * t * control.y + t * t * end.y,
+    };
+  }
 
   // 做点插值处理，方便让点和点之间更加密集
   private appendDensifiedLine(result: Point[], start: Point, end: Point, step: number) {
@@ -135,15 +142,46 @@ class EraserPlugin implements IPlugin {
     }
   }
 
+  private appendDensifiedQuadratic(result: Point[], start: Point, control: Point, end: Point, step: number) {
+    const approximateLength = Math.hypot(control.x - start.x, control.y - start.y) + Math.hypot(end.x - control.x, end.y - control.y);
+    const count = Math.max(1, Math.ceil(approximateLength / step));
+
+    for (let j = 1; j <= count; j++) {
+      result.push(this.getQuadraticPoint(start, control, end, j / count));
+    }
+  }
 
   private densifyPoints(points: Point[], step = DENSIFY_STEP) {
     if (points.length < 2) return points.map(point => ({ ...point }));
 
     const result: Point[] = [{ ...points[0] }];
 
-    for (let i = 1; i < points.length; i++) {
-      this.appendDensifiedLine(result, points[i - 1], points[i], step);
+    if (points.length === 2) {
+      this.appendDensifiedLine(result, points[0], points[1], step);
+      return result;
     }
+
+    this.appendDensifiedLine(result, points[0], points[1], step);
+
+    // 做二次贝塞尔插值
+    for (let i = 2; i < points.length; i++) {
+      const previous = points[i - 1];
+      const current = points[i];
+      const start = {
+        x: (points[i - 2].x + previous.x) / 2,
+        y: (points[i - 2].y + previous.y) / 2,
+      };
+      const end = {
+        x: (previous.x + current.x) / 2,
+        y: (previous.y + current.y) / 2,
+      };
+
+      this.appendDensifiedQuadratic(result, start, previous, end, step);
+    }
+
+    // 因为end是上一个点和当前点的中点
+    // 所以还需要处理中点和最后一个点的密集点 否则在擦除过程中会存在抖动的情况
+    this.appendDensifiedLine(result, result[result.length - 1], points[points.length - 1], step);
 
     return result;
   }
