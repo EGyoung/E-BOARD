@@ -12,3 +12,4 @@ export { PictureToolHandler } from './PictureToolHandler';
 export { TextToolHandler } from './TextToolHandler';
 export { EraserToolHandler } from './EraserToolHandler';
 export { ArrowToolHandler } from './ArrowToolHandler';
+export { LineToolHandler } from './LineToolHandler';

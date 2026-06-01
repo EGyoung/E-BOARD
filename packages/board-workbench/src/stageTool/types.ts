@@ -7,6 +7,7 @@ export enum ToolMode {
     MIND_MAP = 'mindMap',
     TABLE = 'table',
     ARROW = 'drawArrow',
+    LINE = 'drawLine',
 }
 
 export enum ShapeType {

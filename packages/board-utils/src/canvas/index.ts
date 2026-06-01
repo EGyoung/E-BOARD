@@ -43,6 +43,12 @@ export function initContextAttrs(
     const lineWidth = currentConfig.lineWidth * zoom;
     if (context.lineWidth !== lineWidth) context.lineWidth = lineWidth;
   }
+
+  if ((currentConfig as any).lineDash) {
+    context.setLineDash((currentConfig as any).lineDash.map((v: number) => v * zoom));
+  } else {
+    context.setLineDash([]);
+  }
 }
 
 

@@ -15,6 +15,7 @@ import {
     PictureToolHandler,
     TextToolHandler,
     ArrowToolHandler,
+    LineToolHandler,
 } from '../handlers';
 
 export function registerDefaultTools() {
@@ -176,5 +177,15 @@ export function registerDefaultTools() {
             mode: ToolMode.ARROW,
         },
         new ArrowToolHandler()
+    );
+
+    // Register line tool
+    toolRegistry.register(
+        {
+            id: 'straight-line',
+            name: '直线',
+            mode: ToolMode.LINE,
+        },
+        new LineToolHandler()
     );
 }
