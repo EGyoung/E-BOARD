@@ -76,7 +76,11 @@ abstract class BaseShapeDrawPlugin implements IPlugin {
     };
 
     if (isEnd) {
-      this.createModel(dc);
+      const dx = endCanvasPoint.x - this.startPoint.x;
+      const dy = endCanvasPoint.y - this.startPoint.y;
+      if (dx * dx + dy * dy > 4) {
+        this.createModel(dc);
+      }
       this.startPoint = null;
       return;
     }
