@@ -5,16 +5,20 @@ export default defineConfig({
     input: "src",
     output: "dist/esm",
     platform: "browser",
-    transformer: "swc",
+    transformer: "babel",
     sourcemap: true
   },
   cjs: {
     input: "src",
     output: "dist/cjs",
     platform: "node",
-    transformer: "swc",
+    transformer: "babel",
     sourcemap: true
   },
+  extraBabelPlugins: [
+    ["@babel/plugin-proposal-decorators", { legacy: true }],
+    ["@babel/plugin-transform-class-properties", { loose: true }]
+  ],
   prebundle: {
     deps: {}
   }
