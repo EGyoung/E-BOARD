@@ -13,3 +13,4 @@ export { TextToolHandler } from './TextToolHandler';
 export { EraserToolHandler } from './EraserToolHandler';
 export { ArrowToolHandler } from './ArrowToolHandler';
 export { LineToolHandler } from './LineToolHandler';
+export { CircleToolHandler } from './CircleToolHandler';

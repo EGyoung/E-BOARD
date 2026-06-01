@@ -8,6 +8,7 @@ export enum ToolMode {
     TABLE = 'table',
     ARROW = 'drawArrow',
     LINE = 'drawLine',
+    CIRCLE = 'drawCircle',
 }
 
 export enum ShapeType {

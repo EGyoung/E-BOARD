@@ -16,6 +16,7 @@ import {
     TextToolHandler,
     ArrowToolHandler,
     LineToolHandler,
+    CircleToolHandler,
 } from '../handlers';
 
 export function registerDefaultTools() {
@@ -187,5 +188,15 @@ export function registerDefaultTools() {
             mode: ToolMode.LINE,
         },
         new LineToolHandler()
+    );
+
+    // Register circle tool
+    toolRegistry.register(
+        {
+            id: 'circle',
+            name: '圆形',
+            mode: ToolMode.CIRCLE,
+        },
+        new CircleToolHandler()
     );
 }

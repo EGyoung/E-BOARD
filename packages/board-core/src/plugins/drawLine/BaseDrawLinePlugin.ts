@@ -6,7 +6,16 @@ import { ITransformService } from "../../services/transformService/type";
 import { IBoard, IPluginInitParams } from "../../types";
 import { IPlugin } from "../type";
 
-abstract class BaseDrawLinePlugin implements IPlugin {
+export interface DrawContext {
+  ctx: CanvasRenderingContext2D;
+  startCanvasPoint: { x: number; y: number };
+  endCanvasPoint: { x: number; y: number };
+  startWorldPoint: { x: number; y: number };
+  endWorldPoint: { x: number; y: number };
+  zoom: number;
+}
+
+abstract class BaseShapeDrawPlugin implements IPlugin {
   protected board!: IBoard;
   protected disposeList: (() => void)[] = [];
 
@@ -33,7 +42,9 @@ abstract class BaseDrawLinePlugin implements IPlugin {
   public dependencies = [];
 
   protected abstract get modeName(): string;
-  protected abstract get modelType(): string;
+
+  protected abstract drawPreview(dc: DrawContext): void;
+  protected abstract createModel(dc: DrawContext): void;
 
   protected transformPoint(point: { x: number; y: number }, inverse = false) {
     return this.transformService.transformPoint(point, inverse);
@@ -46,13 +57,7 @@ abstract class BaseDrawLinePlugin implements IPlugin {
     return { x: clientX - rect.left, y: clientY - rect.top };
   }
 
-  protected drawPreviewExtras(
-    _ctx: CanvasRenderingContext2D,
-    _start: { x: number; y: number },
-    _end: { x: number; y: number }
-  ) {}
-
-  private drawPreview(endCanvasPoint: { x: number; y: number }, isEnd = false) {
+  private handleDraw(endCanvasPoint: { x: number; y: number }, isEnd = false) {
     const ctx = this.board.getInteractionCtx();
     if (!ctx || !this.startPoint) return;
 
@@ -61,25 +66,29 @@ abstract class BaseDrawLinePlugin implements IPlugin {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    const dc: DrawContext = {
+      ctx,
+      startCanvasPoint: this.startPoint,
+      endCanvasPoint,
+      startWorldPoint: this.transformPoint(this.startPoint, true),
+      endWorldPoint: this.transformPoint(endCanvasPoint, true),
+      zoom: this.transformService.getView().zoom || 1,
+    };
+
     if (isEnd) {
-      const startWorldPoint = this.transformPoint(this.startPoint, true);
-      const endWorldPoint = this.transformPoint(endCanvasPoint, true);
-      this.modelService.createModel(this.modelType, {
-        points: [startWorldPoint, endWorldPoint],
-        options: { ...this.configService.getCtxConfig() },
-      });
+      this.createModel(dc);
       this.startPoint = null;
       return;
     }
 
     ctx.beginPath();
     ctx.save();
-    ctx.moveTo(this.startPoint.x, this.startPoint.y);
-    ctx.lineTo(endCanvasPoint.x, endCanvasPoint.y);
-
-    this.drawPreviewExtras(ctx, this.startPoint, endCanvasPoint);
-
+    this.drawPreview(dc);
     ctx.stroke();
+    if ((this.configService.getCtxConfig() as any)?.fillStyle) {
+      ctx.fillStyle = (this.configService.getCtxConfig() as any).fillStyle;
+      ctx.fill();
+    }
     ctx.restore();
   }
 
@@ -124,15 +133,13 @@ abstract class BaseDrawLinePlugin implements IPlugin {
 
     const { dispose: disposePointerMove } = eventService.onPointerMove(event => {
       if (!isDrawing) return;
-      const currentPoint = this.getCanvasPoint(event.clientX, event.clientY);
-      this.drawPreview(currentPoint);
+      this.handleDraw(this.getCanvasPoint(event.clientX, event.clientY));
     });
 
     const { dispose: disposePointerUp } = eventService.onPointerUp(event => {
       if (!isDrawing) return;
       isDrawing = false;
-      const endPoint = this.getCanvasPoint(event.clientX, event.clientY);
-      this.drawPreview(endPoint, true);
+      this.handleDraw(this.getCanvasPoint(event.clientX, event.clientY), true);
     });
 
     this.disposeList.push(disposePointerDown, disposePointerMove, disposePointerUp);
@@ -143,4 +150,4 @@ abstract class BaseDrawLinePlugin implements IPlugin {
   }
 }
 
-export { BaseDrawLinePlugin };
+export { BaseShapeDrawPlugin };

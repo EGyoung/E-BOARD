@@ -1,31 +1,30 @@
-import { BaseDrawLinePlugin } from "../drawLine/BaseDrawLinePlugin";
+import { BaseShapeDrawPlugin, DrawContext } from "../drawLine/BaseDrawLinePlugin";
 
-class DrawArrowPlugin extends BaseDrawLinePlugin {
+class DrawArrowPlugin extends BaseShapeDrawPlugin {
   public pluginName = "DrawArrowPlugin";
 
   protected get modeName() { return "drawArrow"; }
-  protected get modelType() { return "arrow"; }
 
-  protected drawPreviewExtras(
-    ctx: CanvasRenderingContext2D,
-    start: { x: number; y: number },
-    end: { x: number; y: number }
-  ) {
-    const zoom = this.transformService.getView().zoom || 1;
+  protected drawPreview(dc: DrawContext) {
+    const { ctx, startCanvasPoint: s, endCanvasPoint: e, zoom } = dc;
+    ctx.moveTo(s.x, s.y);
+    ctx.lineTo(e.x, e.y);
+
     const lineWidth = this.configService.getCtxConfig()?.lineWidth ?? 2;
     const headLength = Math.max(8, lineWidth * 4 * zoom);
+    const angle = Math.atan2(e.y - s.y, e.x - s.x);
+    const wing = Math.PI / 7;
 
-    const angle = Math.atan2(end.y - start.y, end.x - start.x);
-    const wingAngle = Math.PI / 7;
+    ctx.moveTo(e.x - headLength * Math.cos(angle - wing), e.y - headLength * Math.sin(angle - wing));
+    ctx.lineTo(e.x, e.y);
+    ctx.lineTo(e.x - headLength * Math.cos(angle + wing), e.y - headLength * Math.sin(angle + wing));
+  }
 
-    const leftX = end.x - headLength * Math.cos(angle - wingAngle);
-    const leftY = end.y - headLength * Math.sin(angle - wingAngle);
-    const rightX = end.x - headLength * Math.cos(angle + wingAngle);
-    const rightY = end.y - headLength * Math.sin(angle + wingAngle);
-
-    ctx.moveTo(leftX, leftY);
-    ctx.lineTo(end.x, end.y);
-    ctx.lineTo(rightX, rightY);
+  protected createModel(dc: DrawContext) {
+    this.modelService.createModel("arrow", {
+      points: [dc.startWorldPoint, dc.endWorldPoint],
+      options: { ...this.configService.getCtxConfig() },
+    });
   }
 }
 

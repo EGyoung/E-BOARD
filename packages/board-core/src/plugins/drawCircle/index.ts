@@ -1,9 +1,9 @@
 import { BaseShapeDrawPlugin, DrawContext } from "../drawLine/BaseDrawLinePlugin";
 
-class DrawShapePlugin extends BaseShapeDrawPlugin {
-  public pluginName = "DrawShapePlugin";
+class DrawCirclePlugin extends BaseShapeDrawPlugin {
+  public pluginName = "DrawCirclePlugin";
 
-  protected get modeName() { return "drawShape"; }
+  protected get modeName() { return "drawCircle"; }
 
   protected drawPreview(dc: DrawContext) {
     const { ctx, startCanvasPoint: s, endCanvasPoint: e } = dc;
@@ -11,7 +11,11 @@ class DrawShapePlugin extends BaseShapeDrawPlugin {
     const y = Math.min(s.y, e.y);
     const w = Math.abs(e.x - s.x);
     const h = Math.abs(e.y - s.y);
-    ctx.rect(x, y, w, h);
+    const rx = w / 2;
+    const ry = h / 2;
+    if (rx > 0 && ry > 0) {
+      ctx.ellipse(x + rx, y + ry, rx, ry, 0, 0, Math.PI * 2);
+    }
   }
 
   protected createModel(dc: DrawContext) {
@@ -20,7 +24,7 @@ class DrawShapePlugin extends BaseShapeDrawPlugin {
     const y = Math.min(s.y, e.y);
     const width = Math.abs(e.x - s.x);
     const height = Math.abs(e.y - s.y);
-    this.modelService.createModel("rectangle", {
+    this.modelService.createModel("circle", {
       points: [{ x, y }],
       width,
       height,
@@ -29,4 +33,4 @@ class DrawShapePlugin extends BaseShapeDrawPlugin {
   }
 }
 
-export default DrawShapePlugin;
+export default DrawCirclePlugin;
