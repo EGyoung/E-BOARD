@@ -1,10 +1,10 @@
 import { initContextAttrs } from "@e-board/board-utils";
-import { eBoardContainer } from "../../common/IocContainer";
-import { IModelService, IModeService, IEventService } from "../../services";
-import { IConfigService } from "../../services";
-import { ITransformService } from "../../services/transformService/type";
-import { IBoard, IPluginInitParams } from "../../types";
-import { IPlugin } from "../type";
+import { eBoardContainer } from "../common/IocContainer";
+import { IModelService, IModeService, IEventService } from "../services";
+import { IConfigService } from "../services";
+import { ITransformService } from "../services/transformService/type";
+import { IBoard, IPluginInitParams } from "../types";
+import { IPlugin } from "./type";
 
 export interface DrawContext {
   ctx: CanvasRenderingContext2D;

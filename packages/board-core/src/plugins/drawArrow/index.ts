@@ -1,4 +1,4 @@
-import { BaseShapeDrawPlugin, DrawContext } from "../drawLine/BaseDrawLinePlugin";
+import { BaseShapeDrawPlugin, DrawContext } from "../BaseShapeDrawPlugin";
 
 class DrawArrowPlugin extends BaseShapeDrawPlugin {
   public pluginName = "DrawArrowPlugin";

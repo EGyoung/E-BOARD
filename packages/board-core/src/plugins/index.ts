@@ -10,4 +10,6 @@ import { default as DrawArrowPlugin } from './drawArrow';
 import { default as DrawLinePlugin } from './drawLine';
 import { default as DrawCirclePlugin } from './drawCircle';
 
+export { BaseShapeDrawPlugin } from './BaseShapeDrawPlugin';
+export type { DrawContext } from './BaseShapeDrawPlugin';
 export { DrawPlugin, RoamPlugin, SelectionPlugin, DrawShapePlugin, ClearPlugin, PicturePlugin, HotkeyPlugin, EraserPlugin, DrawArrowPlugin, DrawLinePlugin, DrawCirclePlugin };
