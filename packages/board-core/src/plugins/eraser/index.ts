@@ -18,6 +18,7 @@ class EraserPlugin implements IPlugin {
   private hiddenLineIds = new Set<string>();
   private lastCursorScreenPoint: Point | null = null;
   private eraserSize = DEFAULT_ERASER_SIZE;
+  private showPoints = (window as any).showPoints ?? false;
   private modelService = eBoardContainer.get<IModelService>(IModelService);
   private transformService = eBoardContainer.get<ITransformService>(ITransformService);
   private historyService = eBoardContainer.get<IHistoryService>(IHistoryService);
@@ -27,11 +28,23 @@ class EraserPlugin implements IPlugin {
   public exports = {
     setEraserSize: (size: number) => this.setEraserSize(size),
     getEraserSize: () => this.eraserSize,
+    setShowPoints: (show: boolean) => { this.showPoints = show; this.drawOverlay(); },
+    getShowPoints: () => this.showPoints,
   };
 
   public init({ board }: IPluginInitParams) {
     this.board = board;
     this.initEraserMode();
+    this.initDebugPointsRenderer();
+  }
+
+  private initDebugPointsRenderer() {
+    const renderService = (this.board as any).getService('renderService');
+    renderService?.onRenderEnd?.(() => {
+      if (!this.showPoints) return;
+      const ctx = this.board.getInteractionCtx();
+      if (ctx) this.drawDebugPoints(ctx);
+    });
   }
 
   private initEraserMode() {
@@ -332,6 +345,24 @@ class EraserPlugin implements IPlugin {
     if (this.lastCursorScreenPoint) {
       eraserDrawCursor(interactionCtx, this.lastCursorScreenPoint, this.eraserSize);
     }
+
+    if (this.showPoints) {
+      this.drawDebugPoints(interactionCtx);
+    }
+  }
+
+  private drawDebugPoints(ctx: CanvasRenderingContext2D) {
+    this.modelService.getAllModels().forEach(model => {
+      if (!this.isLineModel(model)) return;
+      const densified = this.densifyPoints(model.points);
+      densified.forEach(point => {
+        const sp = this.toScreenPoint(point);
+        ctx.beginPath();
+        ctx.arc(sp.x, sp.y, 2, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 0, 0, 0.6)';
+        ctx.fill();
+      });
+    });
   }
 
   private drawLineFragment(ctx: CanvasRenderingContext2D, line: LineModel, points: Point[]) {
