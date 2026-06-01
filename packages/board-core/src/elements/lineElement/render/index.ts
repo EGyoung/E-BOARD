@@ -38,6 +38,12 @@ class Render extends BaseRender<ILineModel> {
                 context.quadraticCurveTo(p1.x, p1.y, midPointX, midPointY);
             }
         });
+
+        // 补上最后一个点 —— quadraticCurveTo 的终点是 midpoint，到不了最后的点
+        if (model.points && model.points.length > 2) {
+            const lastPoint = toScreenPoint(model.points[model.points.length - 1]);
+            context.lineTo(lastPoint.x, lastPoint.y);
+        }
         context.restore()
     };
 }
