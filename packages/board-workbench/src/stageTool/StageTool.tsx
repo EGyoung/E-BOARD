@@ -22,6 +22,8 @@ const StageTool: React.FC<StageToolProps> = (props: any) => {
         // Set board instance
         if (board) {
             toolRegistry.setBoard(board);
+            toolRegistry.activateTool('draw');
+            setActiveTool('draw');
         }
     }, [board]);
 
