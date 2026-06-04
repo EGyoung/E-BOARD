@@ -3,26 +3,16 @@ import { IToolHandler, ToolBoard } from '../types';
 export class MindMapToolHandler implements IToolHandler {
     activate(board: ToolBoard): void {
         try {
-            // TODO: Implement mind map mode
-            // This would require a mind map plugin in the core
-            console.log('Mind map mode activated');
-
-            // Example implementation when mind map plugin is available:
-            // const pluginService = board.getService(IPluginService);
-            // if (pluginService) {
-            //     pluginService.setActivePlugin('mindMap');
-            // }
+            const modeService = board.getService('modeService');
+            if (modeService) {
+                modeService.switchMode('mindMap');
+            }
         } catch (error) {
             console.warn('Failed to activate mind map:', error);
         }
     }
 
-    deactivate(board: ToolBoard): void {
-        try {
-            console.log('Mind map mode deactivated');
-            // Cleanup mind map mode
-        } catch (error) {
-            console.warn('Failed to deactivate mind map:', error);
-        }
+    deactivate(_board: ToolBoard): void {
+        // Optional cleanup when switching away from mind map mode
     }
 }

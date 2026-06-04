@@ -2,12 +2,21 @@ import { IModel } from "../../services/modelService/type";
 
 type Range = { x: number; y: number; width: number; height: number };
 
+function snapToPixel(value: number): number {
+  return Math.round(value);
+}
+
 export function drawMarquee(ctx: CanvasRenderingContext2D, range: Range) {
   ctx.save();
   ctx.strokeStyle = "rgba(0, 113, 227, 0.72)";
   ctx.setLineDash([5, 5]);
   ctx.lineWidth = 2;
-  ctx.strokeRect(range.x, range.y, range.width, range.height);
+  ctx.strokeRect(
+    snapToPixel(range.x),
+    snapToPixel(range.y),
+    snapToPixel(range.width),
+    snapToPixel(range.height),
+  );
   ctx.restore();
 }
 

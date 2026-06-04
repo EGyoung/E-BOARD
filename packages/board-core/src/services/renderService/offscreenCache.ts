@@ -37,7 +37,7 @@ export class OffscreenRenderCache {
         const needsScaleRebuild = this.cachedScale !== scale && allowScaleRebuild;
 
         if (this.dirty || needsInitialBuild || needsScaleRebuild) {
-            this.rebuild(models, scale);
+            this.rebuild(models, scale, view);
         }
     }
 
@@ -84,29 +84,29 @@ export class OffscreenRenderCache {
         return (window.devicePixelRatio || 1) * view.zoom;
     }
 
-    private rebuild(models: IModel<Record<string, any>>[], scale: number) {
+    private rebuild(models: IModel<Record<string, any>>[], scale: number, view: View) {
         let minX = Infinity;
         let minY = Infinity;
         let maxX = -Infinity;
         let maxY = -Infinity;
 
-        for (const model of models) {
-            if (!model.points?.length) continue;
+        const zoom = view.zoom;
 
-            if (model.width !== undefined && model.height !== undefined) {
-                const point = model.points[0];
-                if (point.x < minX) minX = point.x;
-                if (point.y < minY) minY = point.y;
-                if (point.x + model.width > maxX) maxX = point.x + model.width;
-                if (point.y + model.height > maxY) maxY = point.y + model.height;
-            } else {
-                for (const point of model.points) {
-                    if (point.x < minX) minX = point.x;
-                    if (point.y < minY) minY = point.y;
-                    if (point.x > maxX) maxX = point.x;
-                    if (point.y > maxY) maxY = point.y;
-                }
-            }
+        for (const model of models) {
+            const box = model.ctrlElement?.getBoundingBox?.();
+            if (!box || (box.width === 0 && box.height === 0)) continue;
+
+            // getBoundingBox 返回屏幕坐标，转换回世界坐标
+            // screenX = (worldX - view.x) * zoom → worldX = screenX / zoom + view.x
+            const worldMinX = box.minX / zoom + view.x;
+            const worldMinY = box.minY / zoom + view.y;
+            const worldMaxX = box.maxX / zoom + view.x;
+            const worldMaxY = box.maxY / zoom + view.y;
+
+            if (worldMinX < minX) minX = worldMinX;
+            if (worldMinY < minY) minY = worldMinY;
+            if (worldMaxX > maxX) maxX = worldMaxX;
+            if (worldMaxY > maxY) maxY = worldMaxY;
         }
 
         if (!isFinite(minX)) {

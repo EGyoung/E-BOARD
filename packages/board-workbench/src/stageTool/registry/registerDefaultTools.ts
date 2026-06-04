@@ -97,14 +97,14 @@ export function registerDefaultTools() {
     //     new LaserPointerToolHandler()
     // );
 
-    // toolRegistry.register(
-    //     {
-    //         id: 'mind-map',
-    //         name: '思维导图',
-    //         mode: ToolMode.MIND_MAP,
-    //     },
-    //     new MindMapToolHandler()
-    // );
+    toolRegistry.register(
+        {
+            id: 'mind-map',
+            name: '思维导图',
+            mode: ToolMode.MIND_MAP,
+        },
+        new MindMapToolHandler()
+    );
 
     // toolRegistry.register(
     //     {

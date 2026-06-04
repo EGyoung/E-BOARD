@@ -42,6 +42,14 @@ export function computeAABB(
   return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
 }
 
+/**
+ * 将坐标取整以保证在交互层（屏幕空间）上绘制出清晰的像素对齐线条。
+ * lineWidth 为偶数时取整到整数像素，避免抗锯齿导致的模糊/锯齿感。
+ */
+function snapToPixel(value: number): number {
+  return Math.round(value);
+}
+
 export function renderSelectionOverlay(
   canvas: HTMLCanvasElement,
   ctx: CanvasRenderingContext2D,
@@ -73,7 +81,12 @@ export function renderSelectionOverlay(
     ctx.strokeStyle = "rgba(0, 113, 227, 0.62)";
     ctx.setLineDash([5, 5]);
     ctx.lineWidth = 2;
-    ctx.strokeRect(bounding.x, bounding.y, bounding.width, bounding.height);
+    ctx.strokeRect(
+      snapToPixel(bounding.x),
+      snapToPixel(bounding.y),
+      snapToPixel(bounding.width),
+      snapToPixel(bounding.height),
+    );
     ctx.restore();
   });
 
@@ -84,7 +97,12 @@ export function renderSelectionOverlay(
     ctx.strokeStyle = "rgba(0, 113, 227, 0.88)";
     ctx.setLineDash([10, 5]);
     ctx.lineWidth = 2;
-    ctx.strokeRect(aabb.x, aabb.y, aabb.width, aabb.height);
+    ctx.strokeRect(
+      snapToPixel(aabb.x),
+      snapToPixel(aabb.y),
+      snapToPixel(aabb.width),
+      snapToPixel(aabb.height),
+    );
     ctx.restore();
 
     handleManager.drawHandles(container, aabb);

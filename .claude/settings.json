@@ -30,7 +30,15 @@
       "Bash(pnpm --filter @e-board/board-workbench exec tsc --noEmit --pretty false)",
       "Bash(pnpm --filter @e-board/app build)",
       "Bash(git status *)",
-      "Read(//dev/**)"
+      "Read(//dev/**)",
+      "Bash(python3)",
+      "Bash(grep -v \"^$\")",
+      "Bash(xxd)",
+      "Bash(awk -F: '$1 > 241 && $1 < 320 {print; exit}')",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('scripts',{}\\), indent=2\\)\\)\")",
+      "Bash(pnpm --filter @e-board/board-core run build)",
+      "Bash(pnpm --filter @e-board/board-utils run build)",
+      "Bash(pnpm --filter @e-board/board-workbench run build)"
     ]
   }
 }

@@ -95,7 +95,7 @@ class CanvasService implements ICanvasService {
     private initContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D | null {
         const ctx = canvas.getContext("2d", { alpha: true });
         if (ctx) {
-            ctx.scale(this.dpr, this.dpr);
+            ctx.scale(this.dpr, this.dpr)
         }
         return ctx;
     }
@@ -120,12 +120,16 @@ class CanvasService implements ICanvasService {
     updateCanvasSize(width: number, height: number): void {
         if (this.canvas && this.ctx) {
             this.updateCanvas(this.canvas, width, height);
-            this.ctx.scale(this.dpr, this.dpr);
+            this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+            this.ctx.imageSmoothingEnabled = true;
+            this.ctx.imageSmoothingQuality = "high";
         }
 
         if (this.interactionCanvas && this.interactionCtx) {
             this.updateCanvas(this.interactionCanvas, width, height);
-            this.interactionCtx.scale(this.dpr, this.dpr);
+            this.interactionCtx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+            this.interactionCtx.imageSmoothingEnabled = true;
+            this.interactionCtx.imageSmoothingQuality = "high";
         }
 
         this._canvasResize.fire({ width, height });

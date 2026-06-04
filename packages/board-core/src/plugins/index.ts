@@ -9,7 +9,8 @@ import { default as EraserPlugin } from './eraser';
 import { default as DrawArrowPlugin } from './drawArrow';
 import { default as DrawLinePlugin } from './drawLine';
 import { default as DrawCirclePlugin } from './drawCircle';
+import { default as MindMapPlugin } from './mindMap';
 
 export { BaseShapeDrawPlugin } from './BaseShapeDrawPlugin';
 export type { DrawContext } from './BaseShapeDrawPlugin';
-export { DrawPlugin, RoamPlugin, SelectionPlugin, DrawShapePlugin, ClearPlugin, PicturePlugin, HotkeyPlugin, EraserPlugin, DrawArrowPlugin, DrawLinePlugin, DrawCirclePlugin };
+export { DrawPlugin, RoamPlugin, SelectionPlugin, DrawShapePlugin, ClearPlugin, PicturePlugin, HotkeyPlugin, EraserPlugin, DrawArrowPlugin, DrawLinePlugin, DrawCirclePlugin, MindMapPlugin };
