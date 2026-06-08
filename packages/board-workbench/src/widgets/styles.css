@@ -4,9 +4,7 @@
   align-items: center;
   gap: 2px;
   padding: 6px;
-  background: var(--apple-bg-elevated);
-  backdrop-filter: var(--apple-blur);
-  -webkit-backdrop-filter: var(--apple-blur);
+  background: rgba(255, 255, 255, 0.82);
   border-radius: 18px;
   box-shadow: var(--apple-shadow);
   border: 1px solid rgba(255, 255, 255, 0.72);
@@ -269,35 +267,7 @@
   stroke-linejoin: round;
 }
 
-/* Tooltip */
-.icon-btn::after,
-.action-btn::after,
-.text-btn::after {
-  content: attr(title);
-  position: absolute;
-  bottom: -28px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 3px 8px;
-  background: rgba(255, 255, 255, 0.96);
-  color: var(--apple-text);
-  font-size: 11px;
-  border-radius: 4px;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease;
-  z-index: 10001;
-  border: 1px solid var(--apple-border);
-  box-shadow: var(--apple-shadow-soft);
-}
-
-.icon-btn:hover::after,
-.action-btn:hover::after,
-.text-btn:hover::after {
-  opacity: 1;
-  transition-delay: 0.4s;
-}
+/* Tooltip — 改用原生 title 属性，避免伪元素 hover 触发布局/合成 */
 
 /* Compact Mode */
 .floating-toolbar.compact {

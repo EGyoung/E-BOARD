@@ -25,4 +25,11 @@ body {
   overflow: hidden;
   box-shadow: 0 24px 80px rgba(15, 23, 42, 0.14);
   border: 1px solid rgba(255, 255, 255, 0.72);
+  /* 将画布容器提升为独立合成层，隔离上层 toolbar hover 触发的重绘 */
+  transform: translateZ(0);
+}
+
+/* 确保画布在独立 GPU 层，防止上层 DOM 变化引起画布重绘闪烁 */
+.board-container canvas {
+  transform: translateZ(0);
 }

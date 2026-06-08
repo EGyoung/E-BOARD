@@ -73,7 +73,7 @@ const App: React.FC = () => {
         id: "app-board",
         plugins
       });
-      initRemotePlugins(board);
+      // initRemotePlugins(board);
       // const cleanupCollaboration = initCollaboration(board);
       (window as any).board = board;
       eboard.current = board;

@@ -74,7 +74,9 @@ class CanvasService implements ICanvasService {
             display: "block",
             userSelect: "none",
             touchAction: "none",
-            zIndex: options.zIndex
+            zIndex: options.zIndex,
+            // 提升到 GPU 合成层，防止上层 DOM 元素 hover/动画时触发画布重绘闪烁
+            transform: "translateZ(0)",
         });
 
         if (options.backgroundColor) {

@@ -83,11 +83,11 @@ const commonServicesMap = [
     service: HistoryService,
     attrName: "historyService"
   },
-  {
-    name: ISelectionService,
-    service: SelectionService,
-    attrName: "selectionService"
-  },
+  // {
+  //   name: ISelectionService,
+  //   service: SelectionService,
+  //   attrName: "selectionService"
+  // },
   {
     name: IRenderService,
     service: RenderService,
