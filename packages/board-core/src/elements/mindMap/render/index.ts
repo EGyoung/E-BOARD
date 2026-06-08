@@ -23,8 +23,6 @@ interface DrawRect {
   w: number;
   h: number;
   zoom: number;
-  btnWorldX: number;
-  btnWorldY: number;
 }
 
 /** 布局节点 + 当前帧的绘制矩形 */
@@ -40,7 +38,7 @@ class Render extends BaseRender<IMindMapModel> {
   private transformService = this.board.getService("transformService");
   private eventService = this.board.getService("eventService");
   private modelService = this.board.getService("modelService");
-  private disposeMap: Record<string, () => void> = {};
+  private buttonDispose: (() => void) | null = null;
   private currentModel: IModel<IMindMapModel> | null = null;
 
   // -- 坐标转换工具 ------------------------------------------------
@@ -55,6 +53,7 @@ class Render extends BaseRender<IMindMapModel> {
     isViewChanged = false,
   ): void => {
     this.currentModel = model;
+    this.ensureButtonListener();
     const [root] = model.points!;
     const layout = layoutMindMap(model);
     const context = ctx || this.board.getCtx();
@@ -131,16 +130,14 @@ class Render extends BaseRender<IMindMapModel> {
     const tree = layout ?? layoutMindMap(model);
     const { zoom } = this.transformService.getView();
     return flattenLayout(tree).map((node) => {
-      const btnWorldX = root.x + node.x + node.width;
-      const btnWorldY = root.y + node.y + node.height / 2;
       const drawRect: DrawRect = isViewChanged
-        ? { x: root.x + node.x, y: root.y + node.y, w: node.width, h: node.height, zoom: 1, btnWorldX, btnWorldY }
+        ? { x: root.x + node.x, y: root.y + node.y, w: node.width, h: node.height, zoom: 1 }
         : (() => {
           const { x, y } = this.transformPoint({
             x: root.x + node.x,
             y: root.y + node.y,
           });
-          return { x, y, w: node.width * zoom, h: node.height * zoom, zoom, btnWorldX, btnWorldY };
+          return { x, y, w: node.width * zoom, h: node.height * zoom, zoom };
         })();
 
       return { ...node, drawRect };
@@ -190,64 +187,70 @@ class Render extends BaseRender<IMindMapModel> {
     context.fillStyle = style.textColor ?? DEFAULT_TEXT_COLOR;
     context.fillText(label, cx, cy);
     context.restore();
-    this.initButton(context, x + w, cy, node.id, zoom, node.drawRect.btnWorldX, node.drawRect.btnWorldY);
+    this.initButton(context, x + w, cy, node.id, zoom);
 
   };
 
-  private initButton =
-    (
-      ctx: CanvasRenderingContext2D,
-      x: number,
-      y: number,
-      id: string,
-      renderZoom: number,
-      btnWorldX: number,
-      btnWorldY: number,
-    ) => {
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(x, y, DEFAULT_BUTTON * renderZoom, 0, Math.PI * 2);
-      ctx.fillStyle = 'black';
-      ctx.fill();
-      ctx.lineWidth = 1.5 * renderZoom;
-      ctx.strokeStyle = '#95E1D3';
-      ctx.stroke();
-      ctx.restore();
-      ctx.beginPath();
-      this.addButtonEventListener(btnWorldX, btnWorldY, `${id}`)
-    }
-
-  private addButtonEventListener = (
-    btnWorldX: number,
-    btnWorldY: number,
-    id: string,
+  // -- 按钮渲染（只绘制，不绑定事件）-------------------------------
+  private initButton = (
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    _id: string,
+    renderZoom: number,
   ) => {
-    // 如果已注册，先销毁旧的，用新坐标重新注册
-    if (this.disposeMap[id]) {
-      this.disposeMap[id]();
-    }
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(x, y, DEFAULT_BUTTON * renderZoom, 0, Math.PI * 2);
+    ctx.fillStyle = 'black';
+    ctx.fill();
+    ctx.lineWidth = 1.5 * renderZoom;
+    ctx.strokeStyle = '#95E1D3';
+    ctx.stroke();
+    ctx.restore();
+    ctx.beginPath();
+  };
+
+  // -- 事件委托：只注册一个全局监听器，点击时动态做 hit test ---------
+  private ensureButtonListener = (): void => {
+    if (this.buttonDispose) return;
+
     const { dispose } = this.eventService.onPointerDown((event) => {
+      const model = this.currentModel;
+      if (!model?.points) return;
+
       const canvas = this.board.getInteractionCanvas();
       if (!canvas) return;
       const rect = canvas.getBoundingClientRect();
       const eventX = event.clientX - rect.left;
       const eventY = event.clientY - rect.top;
 
-      // 始终用世界坐标 + 当前视图动态换算屏幕位置
-      const screenPos = this.transformPoint({ x: btnWorldX, y: btnWorldY });
-      const actualZoom = this.transformService.getView().zoom;
-      const hitRadius = DEFAULT_BUTTON * actualZoom;
+      // 动态计算当前所有按钮位置并做 hit test
+      const [root] = model.points!;
+      const layout = layoutMindMap(model);
+      const nodes = flattenLayout(layout);
 
-      const dx = eventX - screenPos.x;
-      const dy = eventY - screenPos.y;
-      if (dx * dx + dy * dy <= hitRadius * hitRadius) {
-        // console.log(`Button ${id} clicked!`);
-        this.addChildNode(id)
+      for (const node of nodes) {
+        // 按钮在世界坐标中的位置（节点右侧中点）
+        const btnWorldX = root.x + node.x + node.width;
+        const btnWorldY = root.y + node.y + node.height / 2;
 
+        // 世界坐标 → 屏幕坐标
+        const screenPos = this.transformPoint({ x: btnWorldX, y: btnWorldY });
+        const actualZoom = this.transformService.getView().zoom;
+        const hitRadius = DEFAULT_BUTTON * actualZoom;
+
+        const dx = eventX - screenPos.x;
+        const dy = eventY - screenPos.y;
+        if (dx * dx + dy * dy <= hitRadius * hitRadius) {
+          this.addChildNode(node.id);
+          return;
+        }
       }
-    })
-    this.disposeMap[id] = dispose;
-  }
+    });
+
+    this.buttonDispose = dispose;
+  };
 
   private addChildNode = (id: string) => {
     if (!this.currentModel) return;
