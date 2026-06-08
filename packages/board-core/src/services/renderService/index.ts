@@ -22,8 +22,6 @@ type RenderFrame = {
   view: View;
 }
 
-type RenderMode = 'direct' | 'dirty' | 'offscreen';
-
 @injectable()
 class RenderService implements IRenderService {
   private board!: IBoard;
@@ -41,7 +39,6 @@ class RenderService implements IRenderService {
   private renderHandlerRegistry!: RenderHandlerRegistry;
   private offscreenCache!: OffscreenRenderCache;
   private transformService!: ITransformService;
-  private lastRenderMode: RenderMode = 'direct';
   private zoomSettleTimerId: number | null = null;
   private forceOffscreenScaleRebuild = false;
 
@@ -179,7 +176,6 @@ class RenderService implements IRenderService {
 
     this.pendingDirtyRange = null;
     this.tileIndexView = null;
-    this.lastRenderMode = 'direct';
     this.forceOffscreenScaleRebuild = false;
 
     if (this.renderHandlerRegistry) {
@@ -237,18 +233,12 @@ class RenderService implements IRenderService {
       view: frame.view,
       renderHandlerRegistry: this.renderHandlerRegistry,
     });
-    this.lastRenderMode = 'direct';
   }
 
   private renderDirtyChanges(frame: RenderFrame): boolean {
     const dirtyRange = this.pendingDirtyRange;
     if (!dirtyRange) {
       return false;
-    }
-
-    if (this.lastRenderMode === 'offscreen') {
-      this.renderDirtyComposite(frame, dirtyRange);
-      return true;
     }
 
     renderDirtyRect({
@@ -262,49 +252,7 @@ class RenderService implements IRenderService {
       renderHandlerRegistry: this.renderHandlerRegistry,
     });
     this.pendingDirtyRange = null;
-    this.lastRenderMode = 'dirty';
     return true;
-  }
-
-  private renderDirtyComposite(frame: RenderFrame, dirtyRange: Range) {
-    frame.context.clearRect(0, 0, frame.canvas.width, frame.canvas.height);
-
-    if (this.offscreenCache.canDraw()) {
-      this.offscreenCache.draw(frame.context, frame.view);
-    } else {
-      // 无缓存可用，回退到全量 direct render
-      this.renderDirectFrame(frame);
-      this.rebuildTileIndex(frame.view);
-      this.pendingDirtyRange = null;
-      this.lastRenderMode = 'direct';
-      return;
-    }
-
-    // 清空交互画布的脏区
-    if (frame.interactionCtx) {
-      const { minX, minY, maxX, maxY } = dirtyRange;
-      frame.interactionCtx.clearRect(
-        Math.floor(minX),
-        Math.floor(minY),
-        Math.ceil(maxX - minX),
-        Math.ceil(maxY - minY),
-      );
-    }
-
-    // 在脏区上渲染变更的 model（传 null 跳过交互画布的重复清空）
-    renderDirtyRect({
-      context: frame.context,
-      interactionCtx: null,
-      models: frame.models,
-      currentRange: dirtyRange,
-      tileManager: this.tileManager,
-      tileBuffer: RenderService.TILE_BUFFER,
-      transformService: this.transformService,
-      renderHandlerRegistry: this.renderHandlerRegistry,
-    });
-
-    this.pendingDirtyRange = null;
-    this.lastRenderMode = 'dirty';
   }
 
   private renderFromOffscreenOrDirect(frame: RenderFrame) {
@@ -328,7 +276,6 @@ class RenderService implements IRenderService {
       return;
     }
 
-    this.lastRenderMode = 'offscreen';
   }
 
 
@@ -358,7 +305,6 @@ class RenderService implements IRenderService {
       this.clearContexts(frame);
 
       if (!models.length) {
-        this.lastRenderMode = 'direct';
         return;
       }
 
