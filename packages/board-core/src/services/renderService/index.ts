@@ -230,13 +230,6 @@ class RenderService implements IRenderService {
     }
   }
 
-  private renderAfterOffscreenEdit(frame: RenderFrame) {
-    this.pendingDirtyRange = null;
-    this.clearContexts(frame);
-    this.renderDirectFrame(frame);
-    this.rebuildTileIndex(frame.view);
-  }
-
   private renderDirectFrame(frame: RenderFrame) {
     renderDirect({
       context: frame.context,
@@ -254,7 +247,7 @@ class RenderService implements IRenderService {
     }
 
     if (this.lastRenderMode === 'offscreen') {
-      this.renderAfterOffscreenEdit(frame);
+      this.renderDirtyComposite(frame, dirtyRange);
       return true;
     }
 
@@ -271,6 +264,47 @@ class RenderService implements IRenderService {
     this.pendingDirtyRange = null;
     this.lastRenderMode = 'dirty';
     return true;
+  }
+
+  private renderDirtyComposite(frame: RenderFrame, dirtyRange: Range) {
+    frame.context.clearRect(0, 0, frame.canvas.width, frame.canvas.height);
+
+    if (this.offscreenCache.canDraw()) {
+      this.offscreenCache.draw(frame.context, frame.view);
+    } else {
+      // 无缓存可用，回退到全量 direct render
+      this.renderDirectFrame(frame);
+      this.rebuildTileIndex(frame.view);
+      this.pendingDirtyRange = null;
+      this.lastRenderMode = 'direct';
+      return;
+    }
+
+    // 清空交互画布的脏区
+    if (frame.interactionCtx) {
+      const { minX, minY, maxX, maxY } = dirtyRange;
+      frame.interactionCtx.clearRect(
+        Math.floor(minX),
+        Math.floor(minY),
+        Math.ceil(maxX - minX),
+        Math.ceil(maxY - minY),
+      );
+    }
+
+    // 在脏区上渲染变更的 model（传 null 跳过交互画布的重复清空）
+    renderDirtyRect({
+      context: frame.context,
+      interactionCtx: null,
+      models: frame.models,
+      currentRange: dirtyRange,
+      tileManager: this.tileManager,
+      tileBuffer: RenderService.TILE_BUFFER,
+      transformService: this.transformService,
+      renderHandlerRegistry: this.renderHandlerRegistry,
+    });
+
+    this.pendingDirtyRange = null;
+    this.lastRenderMode = 'dirty';
   }
 
   private renderFromOffscreenOrDirect(frame: RenderFrame) {
