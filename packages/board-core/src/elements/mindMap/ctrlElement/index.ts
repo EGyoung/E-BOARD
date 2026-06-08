@@ -4,6 +4,8 @@ import { IConfigService, IModel } from "../../../services";
 import { BaseCtrlElement } from "../../baseElement/baseCtrlElement";
 import { layoutMindMap, flattenLayout } from "../layout";
 
+const DEFAULT_BUTTON = 6;
+
 class MindMapCtrlElement extends BaseCtrlElement {
     protected static configService: IConfigService | null = null;
 
@@ -79,7 +81,7 @@ class MindMapCtrlElement extends BaseCtrlElement {
 
                 minX = Math.min(minX, screenPos.x);
                 minY = Math.min(minY, screenPos.y);
-                maxX = Math.max(maxX, screenPos.x + screenW);
+                maxX = Math.max(maxX, screenPos.x + screenW + DEFAULT_BUTTON * zoom);
                 maxY = Math.max(maxY, screenPos.y + screenH);
             }
 
