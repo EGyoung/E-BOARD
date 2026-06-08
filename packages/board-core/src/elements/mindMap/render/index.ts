@@ -51,33 +51,92 @@ class Render extends BaseRender<IMindMapModel> {
     isViewChanged = false,
   ): void => {
     const [root] = model.points!;
+    const layout = layoutMindMap(model);
+    const context = ctx || this.board.getCtx();
+    if (!context) return;
 
-    const nodes = this.buildDrawNodes(model, root, isViewChanged);
+    // 先绘制连接线（在节点下方）
+    this.renderLines(layout, root, context, isViewChanged);
+
+    // 再绘制节点块
+    const nodes = this.buildDrawNodes(model, root, isViewChanged, layout);
     for (const node of nodes) {
       this.renderBlock(node, ctx);
     }
   };
+
+  // -- 递归绘制父子连接线 ----------------------------------------
+  private renderLines(
+    node: MindMapLayoutNode,
+    root: { x: number; y: number },
+    ctx: CanvasRenderingContext2D,
+    isViewChanged: boolean,
+  ): void {
+    if (!node.children) return;
+
+    const zoom = this.transformService.getView().zoom;
+
+    for (const child of node.children) {
+      let px: number, py: number, cx: number, cy: number;
+
+      const parentWorldX = root.x + node.x + node.width;
+      const parentWorldY = root.y + node.y + node.height / 2;
+      const childWorldX = root.x + child.x;
+      const childWorldY = root.y + child.y + child.height / 2;
+
+      if (isViewChanged) {
+        // direct/offscreen 路径：世界坐标，canvas transform 处理缩放
+        px = parentWorldX;
+        py = parentWorldY;
+        cx = childWorldX;
+        cy = childWorldY;
+      } else {
+        // dirty rect 路径：转换为屏幕坐标（CSS 像素）
+        const pScreen = this.transformPoint({ x: parentWorldX, y: parentWorldY });
+        px = pScreen.x;
+        py = pScreen.y;
+        const cScreen = this.transformPoint({ x: childWorldX, y: childWorldY });
+        cx = cScreen.x;
+        cy = cScreen.y;
+      }
+
+      const lineWidth = isViewChanged ? 1.5 : 1.5 * zoom;
+
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      ctx.quadraticCurveTo(px, cy, cx, cy);
+      ctx.strokeStyle = '#C0C0C0';
+      ctx.lineWidth = lineWidth;
+      ctx.stroke();
+
+      this.renderLines(child, root, ctx, isViewChanged);
+    }
+
+    // 清空路径，避免外层 stroke() 重复描边
+    ctx.beginPath();
+  }
 
   // -- 构建带屏幕坐标的节点列表 ----------------------------------
   private buildDrawNodes(
     model: IModel<IMindMapModel>,
     root: { x: number; y: number },
     isViewChanged: boolean,
+    layout?: MindMapLayoutNode,
   ): DrawNode[] {
-    const layout = layoutMindMap(model);
+    const tree = layout ?? layoutMindMap(model);
     const { zoom } = this.transformService.getView();
-    return flattenLayout(layout).map((node) => {
+    return flattenLayout(tree).map((node) => {
       const btnWorldX = root.x + node.x + node.width;
-        const btnWorldY = root.y + node.y + node.height / 2;
-        const drawRect: DrawRect = isViewChanged
-          ? { x: root.x + node.x, y: root.y + node.y, w: node.width, h: node.height, zoom: 1, btnWorldX, btnWorldY }
-          : (() => {
-            const { x, y } = this.transformPoint({
-              x: root.x + node.x,
-              y: root.y + node.y,
-            });
-            return { x, y, w: node.width * zoom, h: node.height * zoom, zoom, btnWorldX, btnWorldY };
-          })();
+      const btnWorldY = root.y + node.y + node.height / 2;
+      const drawRect: DrawRect = isViewChanged
+        ? { x: root.x + node.x, y: root.y + node.y, w: node.width, h: node.height, zoom: 1, btnWorldX, btnWorldY }
+        : (() => {
+          const { x, y } = this.transformPoint({
+            x: root.x + node.x,
+            y: root.y + node.y,
+          });
+          return { x, y, w: node.width * zoom, h: node.height * zoom, zoom, btnWorldX, btnWorldY };
+        })();
 
       return { ...node, drawRect };
     });
