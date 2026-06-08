@@ -34,6 +34,7 @@ export interface MindMapLayoutNode {
   style?: MindMapNodeStyle;
   label?: string;
   children?: MindMapLayoutNode[];
+  isCollapsed?: boolean;
 }
 
 /** 布局参数 */

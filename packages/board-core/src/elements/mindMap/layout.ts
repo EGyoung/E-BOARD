@@ -15,7 +15,7 @@ export const DEFAULT_OPTIONS = {
  * - 多子节点：累加各子树高度 + 间距，与自身高度取较大值
  */
 export function getSubtreeHeight(node: MindMapNode, vGap: number): number {
-  if (!node.children || node.children.length === 0) {
+  if (!node.children || node.children.length === 0 || node.isCollapsed) {
     return node.height;
   }
 
@@ -59,9 +59,10 @@ export function layoutMindMap(
       height: n.height,
       style: n.style,
       label: n.label,
+      isCollapsed: n.isCollapsed,
     };
 
-    if (!n.children || n.children.length === 0) {
+    if (!n.children || n.children.length === 0 || n.isCollapsed) {
       return result;
     }
 
