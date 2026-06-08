@@ -1,7 +1,8 @@
+import { inject, injectable } from "inversify";
 import { IModel } from "../../../services/modelService/type";
 
 import { BaseRender } from "../../baseElement/baseRender";
-import { flattenLayout, layoutMindMap } from "../layout";
+import { findNodeById, flattenLayout, layoutMindMap } from "../layout";
 import { IMindMapModel, MindMapLayoutNode } from "../types";
 
 // ---------------------------------------------------------------------------
@@ -34,10 +35,13 @@ interface DrawNode extends MindMapLayoutNode {
 // ---------------------------------------------------------------------------
 // Render
 // ---------------------------------------------------------------------------
+
 class Render extends BaseRender<IMindMapModel> {
   private transformService = this.board.getService("transformService");
   private eventService = this.board.getService("eventService");
+  private modelService = this.board.getService("modelService");
   private disposeMap: Record<string, () => void> = {};
+  private currentModel: IModel<IMindMapModel> | null = null;
 
   // -- 坐标转换工具 ------------------------------------------------
   private transformPoint(point: { x: number; y: number }, inverse = false) {
@@ -50,6 +54,7 @@ class Render extends BaseRender<IMindMapModel> {
     ctx: CanvasRenderingContext2D | null,
     isViewChanged = false,
   ): void => {
+    this.currentModel = model;
     const [root] = model.points!;
     const layout = layoutMindMap(model);
     const context = ctx || this.board.getCtx();
@@ -209,7 +214,7 @@ class Render extends BaseRender<IMindMapModel> {
       ctx.stroke();
       ctx.restore();
       ctx.beginPath();
-      this.addButtonEventListener(btnWorldX, btnWorldY, `btn-${id}`)
+      this.addButtonEventListener(btnWorldX, btnWorldY, `${id}`)
     }
 
   private addButtonEventListener = (
@@ -217,8 +222,9 @@ class Render extends BaseRender<IMindMapModel> {
     btnWorldY: number,
     id: string,
   ) => {
+    // 如果已注册，先销毁旧的，用新坐标重新注册
     if (this.disposeMap[id]) {
-      return
+      this.disposeMap[id]();
     }
     const { dispose } = this.eventService.onPointerDown((event) => {
       const canvas = this.board.getInteractionCanvas();
@@ -235,10 +241,35 @@ class Render extends BaseRender<IMindMapModel> {
       const dx = eventX - screenPos.x;
       const dy = eventY - screenPos.y;
       if (dx * dx + dy * dy <= hitRadius * hitRadius) {
-        console.log(`Button ${id} clicked!`);
+        // console.log(`Button ${id} clicked!`);
+        this.addChildNode(id)
+
       }
     })
     this.disposeMap[id] = dispose;
+  }
+
+  private addChildNode = (id: string) => {
+    if (!this.currentModel) return;
+    console.log("add child to leaf node", id);
+
+    const targetNode = findNodeById(this.currentModel as any, id);
+    if (!targetNode) return;
+
+    if (!targetNode.children) {
+      targetNode.children = []
+    }
+    targetNode.children.push({
+      id: `${id}-${Date.now()}`,
+      label: '新节点',
+      width: 90,
+      height: 36,
+      style: { fillStyle: '#95E1D3' },
+      isCollapsed: false
+    } as any)
+    this.modelService.updateModel(this.currentModel.id, {
+      ...this.currentModel,
+    })
   }
 
 

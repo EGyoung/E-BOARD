@@ -21,6 +21,7 @@ export interface MindMapNode {
   height: number;
   style?: MindMapNodeStyle;
   children?: MindMapNode[];
+  isCollapsed?: boolean; // 是否折叠子节点
 }
 
 /** 布局计算后的单个节点（含坐标，保持树形结构） */

@@ -22,8 +22,8 @@ const DEFAULT_MIND_MAP_TREE: MindMapNode = {
       height: 40,
       style: { fillStyle: '#4ECDC4' },
       children: [
-        { id: 'child1-1', label: '子主题 1-1', width: 90, height: 36, style: { fillStyle: '#95E1D3' } },
-        { id: 'child1-2', label: '子主题 1-2', width: 90, height: 36, style: { fillStyle: '#95E1D3' } },
+        { id: 'child1-1', label: '子主题 1-1', width: 90, height: 36, style: { fillStyle: '#95E1D3' }, isCollapsed: false },
+        { id: 'child1-2', label: '子主题 1-2', width: 90, height: 36, style: { fillStyle: '#95E1D3' }, isCollapsed: false },
       ],
     },
     {
@@ -32,6 +32,7 @@ const DEFAULT_MIND_MAP_TREE: MindMapNode = {
       width: 100,
       height: 40,
       style: { fillStyle: '#45B7D1' },
+      isCollapsed: false
     },
     {
       id: 'child3',
@@ -39,6 +40,7 @@ const DEFAULT_MIND_MAP_TREE: MindMapNode = {
       width: 100,
       height: 40,
       style: { fillStyle: '#96CEB4' },
+      isCollapsed: false
     },
   ],
 };

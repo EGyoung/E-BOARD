@@ -107,3 +107,16 @@ export function flattenLayout(root: MindMapLayoutNode): MindMapLayoutNode[] {
   }
   return result;
 }
+
+
+export const findNodeById = (root: MindMapLayoutNode, id: string) => {
+  if (root.id === id) return root
+
+  if (root.children) {
+    for (const child of root.children) {
+      const found = findNodeById(child, id) as MindMapLayoutNode | null;
+      if (found) return found;
+    }
+  }
+  return null;
+};
