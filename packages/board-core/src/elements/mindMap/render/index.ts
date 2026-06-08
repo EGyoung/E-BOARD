@@ -11,6 +11,7 @@ const DEFAULT_FONT_SIZE = 14;
 const DEFAULT_LINE_WIDTH = 2;
 const DEFAULT_BORDER_RADIUS = 8;
 const DEFAULT_TEXT_COLOR = "#333333";
+const DEFAULT_BUTTON = 6
 
 // ---------------------------------------------------------------------------
 // 类型
@@ -21,6 +22,8 @@ interface DrawRect {
   w: number;
   h: number;
   zoom: number;
+  btnWorldX: number;
+  btnWorldY: number;
 }
 
 /** 布局节点 + 当前帧的绘制矩形 */
@@ -33,6 +36,8 @@ interface DrawNode extends MindMapLayoutNode {
 // ---------------------------------------------------------------------------
 class Render extends BaseRender<IMindMapModel> {
   private transformService = this.board.getService("transformService");
+  private eventService = this.board.getService("eventService");
+  private disposeMap: Record<string, () => void> = {};
 
   // -- 坐标转换工具 ------------------------------------------------
   private transformPoint(point: { x: number; y: number }, inverse = false) {
@@ -46,9 +51,8 @@ class Render extends BaseRender<IMindMapModel> {
     isViewChanged = false,
   ): void => {
     const [root] = model.points!;
-    const zoom = this.transformService.getView().zoom;
 
-    const nodes = this.buildDrawNodes(model, root, zoom, isViewChanged);
+    const nodes = this.buildDrawNodes(model, root, isViewChanged);
     for (const node of nodes) {
       this.renderBlock(node, ctx);
     }
@@ -58,19 +62,21 @@ class Render extends BaseRender<IMindMapModel> {
   private buildDrawNodes(
     model: IModel<IMindMapModel>,
     root: { x: number; y: number },
-    zoom: number,
     isViewChanged: boolean,
   ): DrawNode[] {
     const layout = layoutMindMap(model);
+    const { zoom } = this.transformService.getView();
     return flattenLayout(layout).map((node) => {
-      const drawRect: DrawRect = isViewChanged
-        ? { x: root.x + node.x, y: root.y + node.y, w: node.width, h: node.height, zoom: 1 }
-        : (() => {
+      const btnWorldX = root.x + node.x + node.width;
+        const btnWorldY = root.y + node.y + node.height / 2;
+        const drawRect: DrawRect = isViewChanged
+          ? { x: root.x + node.x, y: root.y + node.y, w: node.width, h: node.height, zoom: 1, btnWorldX, btnWorldY }
+          : (() => {
             const { x, y } = this.transformPoint({
               x: root.x + node.x,
               y: root.y + node.y,
             });
-            return { x, y, w: node.width * zoom, h: node.height * zoom, zoom };
+            return { x, y, w: node.width * zoom, h: node.height * zoom, zoom, btnWorldX, btnWorldY };
           })();
 
       return { ...node, drawRect };
@@ -120,7 +126,62 @@ class Render extends BaseRender<IMindMapModel> {
     context.fillStyle = style.textColor ?? DEFAULT_TEXT_COLOR;
     context.fillText(label, cx, cy);
     context.restore();
+    this.initButton(context, x + w, cy, node.id, zoom, node.drawRect.btnWorldX, node.drawRect.btnWorldY);
+
   };
+
+  private initButton =
+    (
+      ctx: CanvasRenderingContext2D,
+      x: number,
+      y: number,
+      id: string,
+      renderZoom: number,
+      btnWorldX: number,
+      btnWorldY: number,
+    ) => {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(x, y, DEFAULT_BUTTON * renderZoom, 0, Math.PI * 2);
+      ctx.fillStyle = 'black';
+      ctx.fill();
+      ctx.lineWidth = 1.5 * renderZoom;
+      ctx.strokeStyle = '#95E1D3';
+      ctx.stroke();
+      ctx.restore();
+      ctx.beginPath();
+      this.addButtonEventListener(btnWorldX, btnWorldY, `btn-${id}`)
+    }
+
+  private addButtonEventListener = (
+    btnWorldX: number,
+    btnWorldY: number,
+    id: string,
+  ) => {
+    if (this.disposeMap[id]) {
+      return
+    }
+    const { dispose } = this.eventService.onPointerDown((event) => {
+      const canvas = this.board.getInteractionCanvas();
+      if (!canvas) return;
+      const rect = canvas.getBoundingClientRect();
+      const eventX = event.clientX - rect.left;
+      const eventY = event.clientY - rect.top;
+
+      // 始终用世界坐标 + 当前视图动态换算屏幕位置
+      const screenPos = this.transformPoint({ x: btnWorldX, y: btnWorldY });
+      const actualZoom = this.transformService.getView().zoom;
+      const hitRadius = DEFAULT_BUTTON * actualZoom;
+
+      const dx = eventX - screenPos.x;
+      const dy = eventY - screenPos.y;
+      if (dx * dx + dy * dy <= hitRadius * hitRadius) {
+        console.log(`Button ${id} clicked!`);
+      }
+    })
+    this.disposeMap[id] = dispose;
+  }
+
 
   // -- 圆角矩形路径 ----------------------------------------------
   private drawRoundedRect(
