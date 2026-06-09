@@ -532,7 +532,7 @@ class Render extends BaseRender<IMindMapModel> {
       id: `${id}-${Date.now()}`,
       label: '新节点',
       width: 90,
-      height: 36,
+      height: 40,
       style: { fillStyle: '#95E1D3' },
       isCollapsed: false,
     };
