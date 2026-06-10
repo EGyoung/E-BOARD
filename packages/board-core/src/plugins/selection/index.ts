@@ -239,7 +239,7 @@ class SelectionPlugin implements IPlugin {
           applyDragToModels(
             deltaX, deltaY, this.selectModels,
             this.initialModelPositions, this.modelService,
-            this.transformService, undefined, e,
+            this.transformService, e,
           );
           this.emitElementsMoving(this.getCurrentSelectedModels());
           return;

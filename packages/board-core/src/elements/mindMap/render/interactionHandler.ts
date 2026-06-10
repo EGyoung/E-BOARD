@@ -1,40 +1,36 @@
 import { IModel } from "../../../services/modelService/type";
 import { flattenLayout, layoutMindMap } from "../layout";
-import { IMindMapModel, MindMapLayoutNode } from "../types";
+import { IMindMapModel } from "../types";
 
 // ---------------------------------------------------------------------------
-// 常量（按钮布局）
+// 常量
 // ---------------------------------------------------------------------------
 export const COLLAPSE_BTN_RADIUS = 8;
 const COLLAPSE_BTN_BORDER = "#bbb";
 const COLLAPSE_BTN_FILL = "#fff";
 const COLLAPSE_BTN_SYMBOL = "#555";
 
-export const ADD_BTN_RADIUS = 7;
-const ADD_BTN_BORDER = "#4CAF50";
-const ADD_BTN_FILL = "#E8F5E9";
-const ADD_BTN_SYMBOL = "#4CAF50";
-
 const BTN_GAP = 6;
 const BTN_SPACING = 20;
+const ADD_BTN_SIZE = 22; // DOM 按钮的基准尺寸（px，在 zoom=1 时）
 
-export const BTN_HOVER_EXTEND = BTN_GAP + COLLAPSE_BTN_RADIUS + BTN_SPACING + ADD_BTN_RADIUS * 2 + 4;
+export const BTN_HOVER_EXTEND = BTN_GAP + COLLAPSE_BTN_RADIUS + BTN_SPACING + ADD_BTN_SIZE / 2;
 
 // ---------------------------------------------------------------------------
 // 工具：计算按钮的屏幕坐标偏移量（世界坐标，未乘 zoom）
 // ---------------------------------------------------------------------------
-export function getAddBtnOffset(hasCollapseBtn: boolean): number {
+function getAddBtnOffset(hasCollapseBtn: boolean): number {
   return hasCollapseBtn
-    ? BTN_GAP + COLLAPSE_BTN_RADIUS + BTN_SPACING + ADD_BTN_RADIUS
-    : BTN_GAP + ADD_BTN_RADIUS;
+    ? BTN_GAP + COLLAPSE_BTN_RADIUS + BTN_SPACING + ADD_BTN_SIZE / 2
+    : BTN_GAP + ADD_BTN_SIZE / 2;
 }
 
-export function getCollapseBtnOffset(): number {
+function getCollapseBtnOffset(): number {
   return BTN_GAP + COLLAPSE_BTN_RADIUS;
 }
 
 // ---------------------------------------------------------------------------
-// 纯绘制函数（无状态，不依赖 Render 实例）
+// 纯绘制函数（Canvas）
 // ---------------------------------------------------------------------------
 
 export function renderCollapseButton(
@@ -83,40 +79,6 @@ export function renderCollapseButton(
   }
 }
 
-export function renderAddButton(
-  ctx: CanvasRenderingContext2D,
-  cx: number,
-  cy: number,
-  zoom: number,
-): void {
-  const r = ADD_BTN_RADIUS * zoom;
-  const lineW = 1.5 * zoom;
-  const symbolLen = 4.5 * zoom;
-
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.fillStyle = ADD_BTN_FILL;
-  ctx.fill();
-  ctx.lineWidth = lineW;
-  ctx.strokeStyle = ADD_BTN_BORDER;
-  ctx.stroke();
-  ctx.restore();
-
-  // "+" 符号
-  ctx.save();
-  ctx.beginPath();
-  ctx.moveTo(cx - symbolLen, cy);
-  ctx.lineTo(cx + symbolLen, cy);
-  ctx.moveTo(cx, cy - symbolLen);
-  ctx.lineTo(cx, cy + symbolLen);
-  ctx.strokeStyle = ADD_BTN_SYMBOL;
-  ctx.lineWidth = lineW;
-  ctx.lineCap = "round";
-  ctx.stroke();
-  ctx.restore();
-}
-
 export function drawRoundedRect(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -161,7 +123,7 @@ export function updateTreeNode(
 }
 
 // ---------------------------------------------------------------------------
-// 交互处理器：管理所有事件监听和交互状态
+// 交互处理器
 // ---------------------------------------------------------------------------
 
 export interface InteractionServices {
@@ -180,8 +142,8 @@ export interface InteractionServices {
     onRenderEnd: (cb: () => void) => { dispose: () => void };
   };
   board: {
+    getContainer: () => HTMLElement | null;
     getInteractionCanvas: () => HTMLCanvasElement | null;
-    getInteractionCtx: () => CanvasRenderingContext2D | null;
   };
 }
 
@@ -189,16 +151,125 @@ export class InteractionHandler {
   private clickDispose: (() => void) | null = null;
   private hoverDispose: (() => void) | null = null;
   private hoveredNodeId: string | null = null;
-  private prevHoverBtnRect: { x: number; y: number; w: number; h: number } | null = null;
+
+  /** DOM add 按钮（hover 时显示，点击添加子节点） */
+  private addBtnEl: HTMLButtonElement | null = null;
 
   /** 由 Render 在每次 render() 调用时注入 */
   public currentModel: IModel<IMindMapModel> | null = null;
 
-  constructor(private s: InteractionServices) {}
+  constructor(private s: InteractionServices) { }
 
   // -- 坐标转换 --------------------------------------------------
   private transformPoint(point: { x: number; y: number }, inverse = false) {
     return this.s.transformService.transformPoint(point, inverse);
+  }
+
+  // -- DOM add 按钮 ----------------------------------------------
+
+  /** 懒创建 DOM add 按钮元素 */
+  private getOrCreateAddBtn(): HTMLButtonElement {
+    if (this.addBtnEl) return this.addBtnEl;
+
+    const container = this.s.board.getContainer();
+    if (!container) throw new Error('container not found');
+
+    const btn = document.createElement('button');
+    btn.className = 'mindmap-add-btn';
+    btn.innerHTML = `
+      <svg width="100%" height="100%" viewBox="0 0 24 24" fill="none"
+           xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="11" fill="#E8F5E9" stroke="#4CAF50" stroke-width="1.5"/>
+        <line x1="8" y1="12" x2="16" y2="12" stroke="#4CAF50" stroke-width="2" stroke-linecap="round"/>
+        <line x1="12" y1="8" x2="12" y2="16" stroke="#4CAF50" stroke-width="2" stroke-linecap="round"/>
+      </svg>`;
+    Object.assign(btn.style, {
+      position: 'absolute',
+      display: 'none',
+      width: ADD_BTN_SIZE + 'px',
+      height: ADD_BTN_SIZE + 'px',
+      padding: '0',
+      border: 'none',
+      background: 'transparent',
+      cursor: 'pointer',
+      zIndex: '10',
+      transform: 'translate(-50%, -50%)',
+      pointerEvents: 'auto',
+    });
+
+    btn.addEventListener('pointerdown', (e) => {
+      // e.stopPropagation();
+      if (this.hoveredNodeId) {
+        this.addChildNode(this.hoveredNodeId);
+      }
+    });
+
+    // 防止按钮上的 pointer 事件干扰 canvas hover 检测
+    btn.addEventListener('pointerdown', (e) => e.stopPropagation());
+
+    container.appendChild(btn);
+    this.addBtnEl = btn;
+    return btn;
+  }
+
+  /** 更新 DOM add 按钮的位置和可见性 */
+  private updateAddButton(): void {
+    const btn = this.getOrCreateAddBtn();
+
+    if (!this.hoveredNodeId) {
+      btn.style.display = 'none';
+      return;
+    }
+
+    const model = this.currentModel;
+    if (!model?.points) {
+      btn.style.display = 'none';
+      return;
+    }
+
+    const [root] = model.points!;
+    const zoom = this.s.transformService.getView().zoom;
+    const layout = layoutMindMap(model);
+    const nodes = flattenLayout(layout);
+    const node = nodes.find(n => n.id === this.hoveredNodeId);
+    if (!node) {
+      btn.style.display = 'none';
+      return;
+    }
+
+    // 世界坐标 → 屏幕坐标
+    const screenPos = this.transformPoint({
+      x: root.x + node.x + node.width,
+      y: root.y + node.y + node.height / 2,
+    });
+
+    const hasChildren = !!(node.children && node.children.length > 0);
+    const offset = getAddBtnOffset(hasChildren || !!node.isCollapsed) * zoom;
+
+    // 屏幕坐标 + canvas 在页面中的偏移 → 相对于 container 的坐标
+    const canvas = this.s.board.getInteractionCanvas();
+    if (!canvas) return;
+    const canvasRect = canvas.getBoundingClientRect();
+    const container = this.s.board.getContainer();
+    const containerRect = container?.getBoundingClientRect();
+    const containerLeft = containerRect?.left ?? 0;
+    const containerTop = containerRect?.top ?? 0;
+    const left = screenPos.x + offset + canvasRect.left - containerLeft;
+    const top = screenPos.y + canvasRect.top - containerTop;
+
+    btn.style.display = '';
+    btn.style.left = left + 'px';
+    btn.style.top = top + 'px';
+    btn.style.width = ADD_BTN_SIZE * zoom + 'px';
+    btn.style.height = ADD_BTN_SIZE * zoom + 'px';
+  }
+
+  /** 移除 DOM add 按钮 */
+  private removeAddButton(): void {
+    if (this.addBtnEl) {
+      this.addBtnEl.remove();
+      this.addBtnEl = null;
+    }
   }
 
   // -- 公开 API --------------------------------------------------
@@ -206,6 +277,15 @@ export class InteractionHandler {
   public getHoveredNodeId(): string | null {
     return this.hoveredNodeId;
   }
+
+  /** 销毁所有监听器和 DOM 元素 */
+  public dispose(): void {
+    this.clickDispose?.();
+    this.hoverDispose?.();
+    this.removeAddButton();
+  }
+
+  // -- Canvas 点击检测（折叠按钮 + fallback for add 按钮）-------
 
   public ensureClickListener(): void {
     if (this.clickDispose) return;
@@ -229,7 +309,7 @@ export class InteractionHandler {
         const hasChildren = !!(node.children && node.children.length > 0);
         const isCollapsed = !!node.isCollapsed;
 
-        // 折叠按钮
+        // 折叠按钮 hit test
         if (hasChildren || isCollapsed) {
           const offset = getCollapseBtnOffset();
           const btnWorldX = root.x + node.x + node.width + offset;
@@ -243,32 +323,20 @@ export class InteractionHandler {
             return;
           }
         }
-
-        // 添加按钮
-        {
-          const offset = getAddBtnOffset(hasChildren || isCollapsed);
-          const btnWorldX = root.x + node.x + node.width + offset;
-          const btnWorldY = root.y + node.y + node.height / 2;
-          const screen = this.transformPoint({ x: btnWorldX, y: btnWorldY });
-          const r = ADD_BTN_RADIUS * actualZoom;
-          const dx = eventX - screen.x;
-          const dy = eventY - screen.y;
-          if (dx * dx + dy * dy <= r * r) {
-            this.addChildNode(node.id);
-            return;
-          }
-        }
       }
     });
 
     this.clickDispose = dispose;
   }
 
+  // -- hover 检测 ------------------------------------------------
+
   public ensureHoverListener(): void {
     if (this.hoverDispose) return;
 
+    // 视图变化时更新按钮位置（pan/zoom 会改变屏幕坐标）
     const { dispose: renderDispose } = this.s.renderService.onRenderEnd(() => {
-      this.drawHoverOverlay();
+      this.updateAddButton();
     });
 
     const { dispose: moveDispose } = this.s.eventService.onPointerMove((event) => {
@@ -309,7 +377,7 @@ export class InteractionHandler {
 
       if (newHoveredId !== this.hoveredNodeId) {
         this.hoveredNodeId = newHoveredId;
-        this.drawHoverOverlay();
+        this.updateAddButton();
       }
     });
 
@@ -317,61 +385,6 @@ export class InteractionHandler {
       renderDispose();
       moveDispose();
     };
-  }
-
-  // -- hover 覆盖层绘制 ------------------------------------------
-
-  private drawHoverOverlay(): void {
-    const ctx = this.s.board.getInteractionCtx();
-    if (!ctx) return;
-
-    // 清除上一次的按钮区域
-    if (this.prevHoverBtnRect) {
-      ctx.clearRect(
-        this.prevHoverBtnRect.x,
-        this.prevHoverBtnRect.y,
-        this.prevHoverBtnRect.w,
-        this.prevHoverBtnRect.h,
-      );
-      this.prevHoverBtnRect = null;
-    }
-
-    if (!this.hoveredNodeId) return;
-
-    const model = this.currentModel;
-    if (!model?.points) return;
-
-    const [root] = model.points!;
-    const zoom = this.s.transformService.getView().zoom;
-    const layout = layoutMindMap(model);
-    const nodes = flattenLayout(layout);
-    const node = nodes.find(n => n.id === this.hoveredNodeId);
-    if (!node) return;
-
-    const screenPos = this.transformPoint({
-      x: root.x + node.x,
-      y: root.y + node.y,
-    });
-    const screenW = node.width * zoom;
-    const screenH = node.height * zoom;
-    const screenCY = screenPos.y + screenH / 2;
-
-    const hasChildren = !!(node.children && node.children.length > 0);
-    const offset = getAddBtnOffset(hasChildren || !!node.isCollapsed) * zoom;
-
-    const btnCX = screenPos.x + screenW + offset;
-    const btnCY = screenCY;
-
-    const padding = 4 * zoom;
-    const btnR = ADD_BTN_RADIUS * zoom;
-    this.prevHoverBtnRect = {
-      x: btnCX - btnR - padding,
-      y: btnCY - btnR - padding,
-      w: btnR * 2 + padding * 2,
-      h: btnR * 2 + padding * 2,
-    };
-
-    renderAddButton(ctx, btnCX, btnCY, zoom);
   }
 
   // -- 模型变更 --------------------------------------------------

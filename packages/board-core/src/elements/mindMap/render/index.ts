@@ -51,8 +51,8 @@ class Render extends BaseRender<IMindMapModel> {
       modelService: this.board.getService("modelService"),
       renderService: this.board.getService("renderService"),
       board: {
+        getContainer: () => this.board.getContainer(),
         getInteractionCanvas: () => this.board.getInteractionCanvas(),
-        getInteractionCtx: () => this.board.getInteractionCtx(),
       },
     };
     this.interaction = new InteractionHandler(services);

@@ -76,6 +76,7 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
         if (!board) return;
         const eventService = board.getService?.('eventService');
         const transformService = board.getService?.('transformService');
+        const modelService = board.getService?.('modelService');
         if (!eventService) return;
 
         const disposers: (() => void)[] = [];
@@ -90,6 +91,17 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
                 recalc();
             });
             disposers.push(transformDispose);
+        }
+
+        // model 变更时（如添加子节点、折叠等），刷新选中框
+        if (modelService?.onModelOperation) {
+            const { dispose: modelDispose } = modelService.onModelOperation((event: any) => {
+                const selectedIds = selectedElementsRef.current?.map((el: any) => el.id) ?? [];
+                if (selectedIds.includes(event.modelId)) {
+                    requestAnimationFrame(() => recalc());
+                }
+            });
+            disposers.push(modelDispose);
         }
 
         const selectionPlugin = board.getPlugin?.('SelectionPlugin');

@@ -8,7 +8,6 @@ export function applyDragToModels(
   initialModelPositions: Map<string, { x: number; y: number }[]>,
   modelService: IModelService,
   transformService: ITransformService,
-  onElementMove?: (id: string, e: PointerEvent) => void,
   event?: PointerEvent,
 ) {
   const zoom = transformService.getView().zoom || 1;
