@@ -54,7 +54,6 @@ class Render extends BaseRender<IMindMapModel> {
     const services: InteractionServices = {
       transformService: this.transformService,
       eventService: this.board.getService("eventService"),
-      modelService: this.board.getService("modelService"),
       renderService: this.board.getService("renderService"),
       board: {
         getContainer: () => this.board.getContainer(),

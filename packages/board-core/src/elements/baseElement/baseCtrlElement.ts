@@ -1,6 +1,6 @@
 import { calculateBBox, cloneDeep } from "@e-board/board-utils";
 import { eBoardContainer } from "../../common/IocContainer";
-import { IModel, IModelService, ITransformService } from "../../services";
+import { IModel, IModelData, IModelService, ITransformService } from "../../services";
 import { IProps, IPoint } from "../type";
 
 // 默认是线段
@@ -34,6 +34,54 @@ class BaseCtrlElement {
             throw new Error('modelService is undefined')
         }
         return this.modelService.getModelById(this.modelId) as IModel
+    }
+
+    /**
+     * 直接设置模型字段，替换式更新。
+     * 调用后自动触发视图重绘。
+     *
+     * @example
+     *   ctrl.setState({ points: [{ x: 0, y: 0 }] })
+     *   ctrl.setState({ options: { strokeStyle: '#ff0000' } })
+     */
+    public setState = (updates: Partial<IModelData>): void => {
+        this.modelService.updateModel(this.modelId, updates);
+    }
+
+    /**
+     * 深度合并模型字段，对嵌套对象（如 options）做逐属性合并而非整体替换。
+     * 调用后自动触发视图重绘。
+     *
+     * @example
+     *   ctrl.merge({ options: { lineWidth: 4 } })  // 只改 lineWidth，保留其他 options
+     *   ctrl.merge({ width: 200, height: 100 })
+     */
+    public merge = (updates: Partial<IModelData>): void => {
+        const current = this.model;
+        if (!current) return;
+
+        const merged: Record<string, any> = {};
+        for (const key of Object.keys(updates) as (keyof typeof updates)[]) {
+            const val = updates[key];
+            if (val === undefined) continue;
+
+            const currentVal = (current as any)[key];
+            if (
+                currentVal !== null &&
+                currentVal !== undefined &&
+                typeof currentVal === 'object' &&
+                !Array.isArray(currentVal) &&
+                typeof val === 'object' &&
+                !Array.isArray(val)
+            ) {
+                // 嵌套对象：逐属性合并
+                merged[key] = { ...currentVal, ...(val as object) };
+            } else {
+                merged[key] = val;
+            }
+        }
+
+        this.modelService.updateModel(this.modelId, merged);
     }
     public isHit = (params: { point: IPoint; }) => {
         const { point, } = params;

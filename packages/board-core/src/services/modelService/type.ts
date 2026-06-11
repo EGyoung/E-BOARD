@@ -14,8 +14,8 @@ export interface ModelChangeEvent {
   type: ModelChangeType;
   modelId: string;
   model?: IModel;
-  updates?: Partial<Omit<IModel, "id">>;
-  previousState?: Partial<Omit<IModel, "id">>;
+  updates?: Partial<IModelData>;
+  previousState?: Partial<IModelData>;
   deletedModels?: Map<string, IModel>;
   operationSource?: OperationSource;
 }
@@ -26,13 +26,13 @@ export interface IModelService<ExtensionOptions extends Record<string, any> =
   createModel(type: string, options?: Partial<IModel<ExtensionOptions>>): IModel<ExtensionOptions>;
   getAllModels(): IModel<ExtensionOptions>[];
   getModelById(id: string): IModel<ExtensionOptions> | undefined;
-  updateModel(id: string, updates: Partial<Omit<IModel<ExtensionOptions>, "id">>): IModel<ExtensionOptions> | undefined;
+  updateModel(id: string, updates: Partial<IModelData<ExtensionOptions>>): IModel<ExtensionOptions> | undefined;
   deleteModel(id: string): boolean;
   clearModels(): void;
   onModelOperation: (listener: (event: ModelChangeEvent) => void) => { dispose: () => void };
 }
 
-interface ModelOptions {
+export interface ModelOptions {
   strokeStyle?: string;
   lineWidth?: number;
   lineCap?: CanvasLineCap;
@@ -47,19 +47,34 @@ export type IPoint = {
   y: number;
 }
 
-export type IModel<T extends Record<string, any> = Record<string, any>> = {
-  id: string;
+// ---------------------------------------------------------------------------
+// 模型数据层 — 纯数据字段，可被 setState / merge 修改
+// ---------------------------------------------------------------------------
+export type IModelData<T extends Record<string, any> = Record<string, any>> = {
   type: string;
   points?: IPoint[];
   options?: ModelOptions;
-  ctrlElement: {
-    getBoundingBox: (model?: IModel<any>) => BoundingBox;
-    isHit: (params: any) => boolean;
-    onElementMove?: (e: any) => void;
-    canResize?: () => boolean;
-  },
 } & T
 
+// ---------------------------------------------------------------------------
+// 控制层 — 运行时行为，不属于模型数据
+// ---------------------------------------------------------------------------
+export interface ICtrlElement<T extends Record<string, any> = Record<string, any>> {
+  getBoundingBox: (model?: IModel<T>) => BoundingBox;
+  isHit: (params: any) => boolean;
+  onElementMove?: (e: any) => void;
+  canResize?: () => boolean;
+  setState: (updates: Partial<IModelData<T>>) => void;
+  merge: (updates: Partial<IModelData<T>>) => void;
+}
+
+// ---------------------------------------------------------------------------
+// 完整模型 = 标识 + 数据 + 控制层
+// ---------------------------------------------------------------------------
+export type IModel<T extends Record<string, any> = Record<string, any>> = IModelData<T> & {
+  id: string;
+  ctrlElement: ICtrlElement<T>;
+}
 
 
 
@@ -73,7 +88,5 @@ export type BoundingBox = {
   maxX: number;
   maxY: number;
 };
-
-// export type BaseCtrlElement<Model> = 
 
 export const IModelService = Symbol("IModelService");

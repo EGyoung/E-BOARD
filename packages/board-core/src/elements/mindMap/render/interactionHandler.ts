@@ -136,9 +136,6 @@ export interface InteractionServices {
     onPointerDown: (cb: (e: PointerEvent) => void) => { dispose: () => void };
     onPointerMove: (cb: (e: PointerEvent) => void) => { dispose: () => void };
   };
-  modelService: {
-    updateModel: (id: string, updates: any) => any;
-  };
   renderService: {
     onRenderEnd: (cb: () => void) => { dispose: () => void };
   };
@@ -399,7 +396,7 @@ export class InteractionHandler {
       (node) => ({ ...node, isCollapsed: !node.isCollapsed }),
     );
 
-    this.s.modelService.updateModel(this.currentModel.id, updated);
+    this.currentModel.ctrlElement.setState(updated);
   }
 
   private addChildNode(id: string): void {
@@ -440,6 +437,6 @@ export class InteractionHandler {
       }),
     );
 
-    this.s.modelService.updateModel(this.currentModel.id, updated);
+    this.currentModel.ctrlElement.setState(updated);
   }
 }
