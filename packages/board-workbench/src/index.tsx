@@ -1,6 +1,6 @@
 import Panel from './panel/Panel';
 import { StageTool, toolRegistry, registerDefaultTools } from './stageTool';
-import { FloatingToolbar, SelectionOverlay, floatingToolbarRegistry, registerDefaultToolbarItems } from './widgets';
+import { FloatingToolbar, floatingToolbarRegistry, registerDefaultToolbarItems } from './widgets';
 
 export {
     Panel,
@@ -8,7 +8,6 @@ export {
     toolRegistry,
     registerDefaultTools,
     FloatingToolbar,
-    SelectionOverlay,
     floatingToolbarRegistry,
     registerDefaultToolbarItems,
 };

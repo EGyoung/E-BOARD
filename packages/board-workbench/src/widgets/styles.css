@@ -340,4 +340,5 @@
   pointer-events: none;
   box-sizing: border-box;
   box-shadow: 0 2px 6px rgba(0, 113, 227, 0.16);
+  cursor: pointer;
 }
