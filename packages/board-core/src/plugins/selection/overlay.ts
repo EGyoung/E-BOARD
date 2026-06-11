@@ -78,11 +78,13 @@ export class SelectionDOMOverlay {
 
   /**
    * 重绘覆盖层。返回计算出的 AABB 包围盒（屏幕坐标）。
+   * @param showHandles 是否显示缩放手柄，默认 true
    */
   update(
     container: HTMLElement,
     selectedModelIds: Set<string>,
     modelService: IModelService,
+    showHandles: boolean = true,
   ): ScreenRect | null {
     this.remove();
 
@@ -133,7 +135,9 @@ export class SelectionDOMOverlay {
     }
 
     // 手柄
-    this.renderHandles(container, aabb);
+    if (showHandles) {
+      this.renderHandles(container, aabb);
+    }
 
     return aabb;
   }

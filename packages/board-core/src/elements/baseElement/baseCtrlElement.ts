@@ -62,6 +62,11 @@ class BaseCtrlElement {
     }
 
 
+    /** 是否允许缩放，默认 true。子类可覆写返回 false 来禁止缩放 */
+    public canResize = (): boolean => {
+        return true;
+    }
+
     // 脏矩形渲染时，会需要用到上一个状态的models来计算包围盒, 需要外面传入，其他情况默认使用最新的models
     public getBoundingBox = (model: IModel = this.model) => {
         const zoom = this.transformService.getView().zoom || 1;

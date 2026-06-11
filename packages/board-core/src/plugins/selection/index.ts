@@ -145,12 +145,22 @@ class SelectionPlugin implements IPlugin {
     if (this.state.isDragging) return;
     const container = this.board.getContainer();
     if (!container) return;
-    this.state.AABbBox = this.overlay.update(container, this.state.selectModels, this.modelService);
+    const showHandles = this.canResizeSelected();
+    this.state.AABbBox = this.overlay.update(container, this.state.selectModels, this.modelService, showHandles);
   };
 
   // ===================================================================
   // 工具
   // ===================================================================
+
+  /** 检查所有选中元素是否都允许缩放 */
+  private canResizeSelected(): boolean {
+    for (const id of this.state.selectModels) {
+      const model = this.modelService.getModelById(id);
+      if (model?.ctrlElement?.canResize && !model.ctrlElement.canResize()) return false;
+    }
+    return true;
+  }
 
   private resetAllState() {
     this.overlay.remove();

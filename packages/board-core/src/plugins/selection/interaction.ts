@@ -67,9 +67,9 @@ export class SelectionInteraction {
     const onPointerDown = (e: PointerEvent) => {
       if (e.button !== 0) return;
 
-      // 1) 手柄 → resize
+      // 1) 手柄 → resize（仅当所有选中元素都允许缩放时）
       const handle = hitTestHandles({ x: e.clientX, y: e.clientY }, this.state.AABbBox);
-      if (handle && this.state.AABbBox && this.state.selectModels.size > 0) {
+      if (handle && this.state.AABbBox && this.state.selectModels.size > 0 && this.canResizeSelected()) {
         this.startResize(handle, e);
         bindMoveUp();
         return;
@@ -256,6 +256,15 @@ export class SelectionInteraction {
   }
 
   // -- 工具 -----------------------------------------------------
+
+  /** 检查所有选中元素是否都允许缩放 */
+  private canResizeSelected(): boolean {
+    for (const id of this.state.selectModels) {
+      const model = this.modelService.getModelById(id);
+      if (model?.ctrlElement?.canResize && !model.ctrlElement.canResize()) return false;
+    }
+    return true;
+  }
 
   private isInsideAABB(e: PointerEvent): boolean {
     const box = this.state.AABbBox;

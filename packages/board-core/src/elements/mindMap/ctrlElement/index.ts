@@ -7,6 +7,8 @@ import { layoutMindMap, flattenLayout } from "../layout";
 const DEFAULT_BUTTON = 6;
 
 class MindMapCtrlElement extends BaseCtrlElement {
+    public canResize = () => false;
+
     protected static configService: IConfigService | null = null;
 
     protected get configService() {

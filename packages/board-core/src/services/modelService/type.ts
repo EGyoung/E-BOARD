@@ -56,6 +56,7 @@ export type IModel<T extends Record<string, any> = Record<string, any>> = {
     getBoundingBox: (model?: IModel<any>) => BoundingBox;
     isHit: (params: any) => boolean;
     onElementMove?: (e: any) => void;
+    canResize?: () => boolean;
   },
 } & T
 
