@@ -2,7 +2,7 @@
 
 > 基于 Canvas 的插件化白板引擎，支持绘图、思维导图、多人协作等场景。
 
-[![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
 [在线预览 →](https://egyoung.github.io/E-BOARD)
@@ -119,10 +119,11 @@ pnpm build
 
 ## 许可证
 
-[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+[GPL v3](https://www.gnu.org/licenses/gpl-3.0)
 
-本项目采用 **署名-非商业性使用-相同方式共享** 许可证：
+本项目采用 GNU General Public License v3.0 发布：
 
-- **署名** — 使用本项目时必须注明原作者
-- **非商业** — 不得将本项目用于商业目的
-- **相同方式共享** — 修改或二次开发的作品必须以相同许可证发布
+- **自由使用** — 允许个人和商业用途
+- **自由修改** — 可以修改源代码
+- **自由分发** — 可以分发副本
+- **Copyleft** — 衍生作品必须以相同的 GPL 许可证开源
