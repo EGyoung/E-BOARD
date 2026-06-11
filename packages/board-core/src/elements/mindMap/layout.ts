@@ -4,8 +4,8 @@ import { MindMapNode, MindMapLayoutNode, MindMapLayoutOptions } from './types';
 export const DEFAULT_OPTIONS = {
   startX: 300,
   startY: 300,
-  hGap: 80,
-  vGap: 30,
+  hGap: 90,
+  vGap: 24,
 } as const;
 
 /**

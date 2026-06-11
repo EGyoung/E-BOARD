@@ -6,9 +6,9 @@ import { IMindMapModel } from "../types";
 // 常量
 // ---------------------------------------------------------------------------
 export const COLLAPSE_BTN_RADIUS = 8;
-const COLLAPSE_BTN_BORDER = "#bbb";
-const COLLAPSE_BTN_FILL = "#fff";
-const COLLAPSE_BTN_SYMBOL = "#555";
+const COLLAPSE_BTN_BORDER = "#C4D0E0";
+const COLLAPSE_BTN_FILL = "#F5F7FA";
+const COLLAPSE_BTN_SYMBOL = "#7B8BA3";
 
 const BTN_GAP = 6;
 const BTN_SPACING = 20;
@@ -179,9 +179,9 @@ export class InteractionHandler {
     btn.innerHTML = `
       <svg width="100%" height="100%" viewBox="0 0 24 24" fill="none"
            xmlns="http://www.w3.org/2000/svg">
-        <circle cx="12" cy="12" r="11" fill="#E8F5E9" stroke="#4CAF50" stroke-width="1.5"/>
-        <line x1="8" y1="12" x2="16" y2="12" stroke="#4CAF50" stroke-width="2" stroke-linecap="round"/>
-        <line x1="12" y1="8" x2="12" y2="16" stroke="#4CAF50" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="12" cy="12" r="11" fill="#EDF2FB" stroke="#4A90D9" stroke-width="1.5"/>
+        <line x1="8" y1="12" x2="16" y2="12" stroke="#4A90D9" stroke-width="2" stroke-linecap="round"/>
+        <line x1="12" y1="8" x2="12" y2="16" stroke="#4A90D9" stroke-width="2" stroke-linecap="round"/>
       </svg>`;
     Object.assign(btn.style, {
       position: 'absolute',
@@ -407,9 +407,15 @@ export class InteractionHandler {
     const newNode = {
       id: `${id}-${Date.now()}`,
       label: '新节点',
-      width: 90,
+      width: 96,
       height: 36,
-      style: { fillStyle: '#95E1D3' },
+      style: {
+        fillStyle: '#A8E6CF',
+        strokeStyle: '#8DD4B5',
+        textColor: '#2D5A3D',
+        fontSize: 12,
+        borderRadius: 8,
+      },
       isCollapsed: false,
     };
 

@@ -15,9 +15,15 @@ import {
 // 常量
 // ---------------------------------------------------------------------------
 const DEFAULT_FONT_SIZE = 14;
-const DEFAULT_LINE_WIDTH = 2;
-const DEFAULT_BORDER_RADIUS = 8;
+const DEFAULT_FONT_FAMILY = '"PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif';
+const DEFAULT_BORDER_RADIUS = 10;
 const DEFAULT_TEXT_COLOR = "#333333";
+const DEFAULT_STROKE_WIDTH = 1.5;
+const LINE_COLOR = "#C4D0E0";
+const LINE_WIDTH = 2.5;
+const SHADOW_BLUR = 6;
+const SHADOW_OFFSET_Y = 2;
+const SHADOW_COLOR = "rgba(0, 0, 0, 0.10)";
 const BTN_GAP = 6;
 
 // ---------------------------------------------------------------------------
@@ -124,8 +130,9 @@ class Render extends BaseRender<IMindMapModel> {
       ctx.beginPath();
       ctx.moveTo(px, py);
       ctx.quadraticCurveTo(px, cy, cx, cy);
-      ctx.strokeStyle = '#C0C0C0';
-      ctx.lineWidth = isViewChanged ? 1.5 : 1.5 * zoom;
+      ctx.strokeStyle = LINE_COLOR;
+      ctx.lineWidth = isViewChanged ? LINE_WIDTH : LINE_WIDTH * zoom;
+      ctx.lineCap = "round";
       ctx.stroke();
 
       this.renderLines(child, root, ctx, isViewChanged);
@@ -169,6 +176,13 @@ class Render extends BaseRender<IMindMapModel> {
     const { x, y, w, h, zoom } = node.drawRect;
     const style = node.style ?? {};
 
+    // 阴影
+    context.save();
+    context.shadowColor = SHADOW_COLOR;
+    context.shadowBlur = SHADOW_BLUR * zoom;
+    context.shadowOffsetX = 0;
+    context.shadowOffsetY = SHADOW_OFFSET_Y * zoom;
+
     // 圆角矩形
     const radius = (style.borderRadius ?? DEFAULT_BORDER_RADIUS) * zoom;
     drawRoundedRect(context, x, y, w, h, radius);
@@ -178,13 +192,22 @@ class Render extends BaseRender<IMindMapModel> {
       context.fillStyle = style.fillStyle;
       context.fill();
     }
+    // 无 fillStyle 时使用默认白色背景
+    else {
+      context.fillStyle = "#FFFFFF";
+      context.fill();
+    }
+
+    // 清除阴影再描边（避免描边也有阴影）
+    context.shadowColor = "transparent";
+    context.shadowBlur = 0;
+    context.shadowOffsetY = 0;
 
     // 描边
-    if (style.strokeStyle) {
-      context.strokeStyle = style.strokeStyle;
-      context.lineWidth = (style as any).lineWidth ?? DEFAULT_LINE_WIDTH;
-      context.stroke();
-    }
+    context.strokeStyle = style.strokeStyle ?? "rgba(0,0,0,0.08)";
+    context.lineWidth = ((style as any).lineWidth ?? DEFAULT_STROKE_WIDTH) * zoom;
+    context.stroke();
+    context.restore();
 
     // 文字
     const label = node.label?.trim();
@@ -197,7 +220,7 @@ class Render extends BaseRender<IMindMapModel> {
     context.save();
     context.textAlign = "center";
     context.textBaseline = "middle";
-    context.font = `${fontSize}px sans-serif`;
+    context.font = `600 ${fontSize}px ${DEFAULT_FONT_FAMILY}`;
     context.fillStyle = style.textColor ?? DEFAULT_TEXT_COLOR;
     context.fillText(label, cx, cy);
     context.restore();
