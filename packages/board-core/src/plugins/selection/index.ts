@@ -9,7 +9,7 @@ import { Emitter } from "@e-board/board-utils";
 import { ResizeHandle, MIN_ELEMENT_SIZE, hitTestHandles } from "./handles";
 import { applyResizeToModels } from "./resize";
 import { applyDragToModels } from "./drag";
-import { drawMarquee, computeSelectedByMarquee } from "./marquee";
+import { computeSelectedByMarquee } from "./marquee";
 import { SelectionDOMOverlay } from "./overlay";
 
 type Box = { x: number; y: number; width: number; height: number };
@@ -107,21 +107,10 @@ class SelectionPlugin implements IPlugin {
   private renderOverlay = () => {
     if (this.isDragging) return;
 
-    // Canvas — 仅用于 marquee（拖选瞬时框）
-    const canvas = this.board.getInteractionCanvas();
-    const ctx = this.board.getInteractionCtx();
-    if (canvas && ctx) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      if (this.currentSelectRange) {
-        drawMarquee(ctx, this.currentSelectRange);
-      }
-    }
-
-    // DOM — 选中框 + 手柄
     const container = this.board.getContainer();
-    if (container) {
-      this.AABbBox = this.overlay.update(container, this.selectModels, this.modelService);
-    }
+    if (!container) return;
+
+    this.AABbBox = this.overlay.update(container, this.selectModels, this.modelService);
   };
 
   // ===================================================================
@@ -130,9 +119,7 @@ class SelectionPlugin implements IPlugin {
 
   private initSelect() {
     const container = this.board.getContainer();
-    const canvas = this.board.getInteractionCanvas();
-    const ctx = this.board.getInteractionCtx();
-    if (!canvas || !container || !ctx) return;
+    if (!container) return;
 
     // -- PointerDown ----------------------------------------------
     const onPointerDown = (e: PointerEvent) => {
@@ -198,7 +185,7 @@ class SelectionPlugin implements IPlugin {
         }
 
         // Marquee（拖选）
-        this.handleMarquee(e, ctx);
+        this.handleMarquee(e);
       });
     };
 
@@ -212,7 +199,7 @@ class SelectionPlugin implements IPlugin {
       } else if (this.selectModels.size > 0) {
         this.endDrag();
       } else {
-        this.endMarquee(ctx);
+        this.endMarquee();
       }
 
       unbindMoveUp();
@@ -291,12 +278,18 @@ class SelectionPlugin implements IPlugin {
     this._onElementsMoving.fire(this.getCurrentModels());
   }
 
-  private handleMarquee(e: PointerEvent, ctx: CanvasRenderingContext2D) {
+  private handleMarquee(e: PointerEvent) {
+    const container = this.board.getContainer();
+    if (!container) return;
     const w = e.clientX - this.pointerDownPoint!.x;
     const h = e.clientY - this.pointerDownPoint!.y;
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    this.currentSelectRange = { x: this.pointerDownPoint!.x, y: this.pointerDownPoint!.y, width: w || 1, height: h || 1 };
-    drawMarquee(ctx, this.currentSelectRange);
+    this.currentSelectRange = {
+      x: Math.min(this.pointerDownPoint!.x, e.clientX),
+      y: Math.min(this.pointerDownPoint!.y, e.clientY),
+      width: Math.abs(w) || 1,
+      height: Math.abs(h) || 1,
+    };
+    this.overlay.showMarquee(container, this.currentSelectRange);
   }
 
   private endResize() {
@@ -315,8 +308,8 @@ class SelectionPlugin implements IPlugin {
     requestAnimationFrame(this.renderOverlay);
   }
 
-  private endMarquee(ctx: CanvasRenderingContext2D) {
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  private endMarquee() {
+    this.overlay.hideMarquee();
     this.pointerDownPoint = null;
 
     if (this.currentSelectRange) {
@@ -332,8 +325,6 @@ class SelectionPlugin implements IPlugin {
   // ===================================================================
 
   private resetAllState() {
-    const canvas = this.board.getInteractionCanvas();
-    canvas?.getContext("2d")?.clearRect(0, 0, canvas.width, canvas.height);
     this.overlay.remove();
     this.initialModelPositions.clear();
     this.currentSelectRange = null;

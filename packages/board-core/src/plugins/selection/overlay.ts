@@ -5,13 +5,14 @@ type Box = { x: number; y: number; width: number; height: number };
 
 /**
  * 选中框 DOM 覆盖层。
- * 用绝对定位 div 渲染选中虚线框 + AABB 外框 + 8 个手柄。
+ * 统一用绝对定位 div 渲染：选中虚线框 + AABB 外框 + 手柄 + 拖选框。
  * 独立于 Canvas 渲染管线，不受脏矩形/offscreen cache 影响。
  */
 export class SelectionDOMOverlay {
   private handleEls = new Map<ResizeHandle, HTMLDivElement>();
   private selectionBoxEls = new Map<string, HTMLDivElement>();
   private aabbBoxEl: HTMLDivElement | null = null;
+  private marqueeEl: HTMLDivElement | null = null;
 
   // -- 样式常量 --------------------------------------------------
   private static readonly SEL_BOX_STYLE = [
@@ -25,7 +26,6 @@ export class SelectionDOMOverlay {
   private static readonly AABB_BOX_STYLE = [
     "position: absolute;",
     "border: 2px solid rgba(0,113,227,0.88);",
-    "border-style: dashed;",
     "pointer-events: none;",
     "z-index: 998;",
     "box-sizing: border-box;",
@@ -40,6 +40,9 @@ export class SelectionDOMOverlay {
     "z-index: 999;",
     "box-shadow: 0 2px 6px rgba(0,113,227,0.16);",
   ].join("");
+
+  /** 超过此数量跳过逐元素选中框，只渲染 AABB 外框 */
+  private static readonly MAX_INDIVIDUAL_BOXES = 20;
 
   // -- 公开接口 --------------------------------------------------
 
@@ -74,19 +77,22 @@ export class SelectionDOMOverlay {
 
     const aabb: Box = { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
     const isMulti = boxes.length > 1;
+    const showIndividual = boxes.length <= SelectionDOMOverlay.MAX_INDIVIDUAL_BOXES;
 
-    // 每个元素的虚线框
-    for (const box of boxes) {
-      const el = document.createElement("div");
-      el.style.cssText =
-        `left: ${box.x}px; top: ${box.y}px; width: ${box.w}px; height: ${box.h}px; ` +
-        SelectionDOMOverlay.SEL_BOX_STYLE +
-        (isMulti ? " border-style: dashed;" : " border-style: solid;");
-      container.appendChild(el);
-      this.selectionBoxEls.set(box.id, el);
+    // 元素选中框（超阈值时只显示 AABB）
+    if (showIndividual) {
+      for (const box of boxes) {
+        const el = document.createElement("div");
+        el.style.cssText =
+          `left: ${box.x}px; top: ${box.y}px; width: ${box.w}px; height: ${box.h}px; ` +
+          SelectionDOMOverlay.SEL_BOX_STYLE +
+          (isMulti ? " border-style: dashed;" : " border-style: solid;");
+        container.appendChild(el);
+        this.selectionBoxEls.set(box.id, el);
+      }
     }
 
-    // 多选 AABB 外框
+    // AABB 外框（多选时始终显示）
     if (isMulti) {
       const el = document.createElement("div");
       el.style.cssText =
@@ -102,7 +108,7 @@ export class SelectionDOMOverlay {
     return aabb;
   }
 
-  /** 移除所有 DOM 元素 */
+  /** 移除所有 DOM 元素（选中框、手柄、marquee） */
   remove(): void {
     this.selectionBoxEls.forEach(el => el.remove());
     this.selectionBoxEls.clear();
@@ -112,6 +118,37 @@ export class SelectionDOMOverlay {
     }
     this.handleEls.forEach(el => el.remove());
     this.handleEls.clear();
+    this.hideMarquee();
+  }
+
+  // -- Marquee（拖选瞬时框）---------------------------------------
+
+  private static readonly MARQUEE_STYLE = [
+    "position: absolute;",
+    "border: 2px solid rgba(0,113,227,0.72);",
+    "border-style: dashed;",
+    "pointer-events: none;",
+    "z-index: 997;",
+    "box-sizing: border-box;",
+  ].join("");
+
+  showMarquee(container: HTMLElement, rect: Box): void {
+    if (!this.marqueeEl) {
+      this.marqueeEl = document.createElement("div");
+      this.marqueeEl.style.cssText = SelectionDOMOverlay.MARQUEE_STYLE;
+      container.appendChild(this.marqueeEl);
+    }
+    this.marqueeEl.style.left = `${rect.x}px`;
+    this.marqueeEl.style.top = `${rect.y}px`;
+    this.marqueeEl.style.width = `${rect.width}px`;
+    this.marqueeEl.style.height = `${rect.height}px`;
+  }
+
+  hideMarquee(): void {
+    if (this.marqueeEl) {
+      this.marqueeEl.remove();
+      this.marqueeEl = null;
+    }
   }
 
   // -- 手柄渲染 --------------------------------------------------
