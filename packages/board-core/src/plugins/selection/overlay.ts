@@ -1,13 +1,43 @@
-import { IModelService } from "../../services/modelService/type";
-import { ResizeHandle, HANDLE_SIZE, getHandlePositions } from "./handles";
+import { IModel, IModelService } from "../../services/modelService/type";
 
-type Box = { x: number; y: number; width: number; height: number };
+// ---------------------------------------------------------------------------
+// 类型 & 手柄工具
+// ---------------------------------------------------------------------------
 
-/**
- * 选中框 DOM 覆盖层。
- * 统一用绝对定位 div 渲染：选中虚线框 + AABB 外框 + 手柄 + 拖选框。
- * 独立于 Canvas 渲染管线，不受脏矩形/offscreen cache 影响。
- */
+export type ScreenRect = { x: number; y: number; width: number; height: number };
+
+export type ResizeHandle = "nw" | "n" | "ne" | "w" | "e" | "sw" | "s" | "se";
+
+export const HANDLE_SIZE = 8;
+export const MIN_ELEMENT_SIZE = 10;
+
+export function getHandlePositions(box: ScreenRect): Record<ResizeHandle, { x: number; y: number }> {
+  const { x, y, width, height } = box;
+  const mx = x + width / 2;
+  const my = y + height / 2;
+  return {
+    nw: { x, y }, n: { x: mx, y }, ne: { x: x + width, y },
+    w: { x, y: my }, e: { x: x + width, y: my },
+    sw: { x, y: y + height }, s: { x: mx, y: y + height }, se: { x: x + width, y: y + height },
+  };
+}
+
+export function hitTestHandles(point: { x: number; y: number }, aabb: ScreenRect | null): ResizeHandle | null {
+  if (!aabb) return null;
+  const handles = getHandlePositions(aabb);
+  const half = HANDLE_SIZE / 2 + 2;
+  for (const [key, pos] of Object.entries(handles)) {
+    if (Math.abs(point.x - pos.x) <= half && Math.abs(point.y - pos.y) <= half) {
+      return key as ResizeHandle;
+    }
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// SelectionDOMOverlay
+// ---------------------------------------------------------------------------
+
 export class SelectionDOMOverlay {
   private handleEls = new Map<ResizeHandle, HTMLDivElement>();
   private selectionBoxEls = new Map<string, HTMLDivElement>();
@@ -53,7 +83,7 @@ export class SelectionDOMOverlay {
     container: HTMLElement,
     selectedModelIds: Set<string>,
     modelService: IModelService,
-  ): Box | null {
+  ): ScreenRect | null {
     this.remove();
 
     if (selectedModelIds.size === 0) return null;
@@ -75,7 +105,7 @@ export class SelectionDOMOverlay {
 
     if (!isFinite(minX)) return null;
 
-    const aabb: Box = { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+    const aabb: ScreenRect = { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
     const isMulti = boxes.length > 1;
     const showIndividual = boxes.length <= SelectionDOMOverlay.MAX_INDIVIDUAL_BOXES;
 
@@ -132,7 +162,7 @@ export class SelectionDOMOverlay {
     "box-sizing: border-box;",
   ].join("");
 
-  showMarquee(container: HTMLElement, rect: Box): void {
+  showMarquee(container: HTMLElement, rect: ScreenRect): void {
     if (!this.marqueeEl) {
       this.marqueeEl = document.createElement("div");
       this.marqueeEl.style.cssText = SelectionDOMOverlay.MARQUEE_STYLE;
@@ -153,7 +183,7 @@ export class SelectionDOMOverlay {
 
   // -- 手柄渲染 --------------------------------------------------
 
-  private renderHandles(container: HTMLElement, box: Box): void {
+  private renderHandles(container: HTMLElement, box: ScreenRect): void {
     const handles = getHandlePositions(box);
     const half = HANDLE_SIZE / 2;
 
@@ -171,4 +201,36 @@ export class SelectionDOMOverlay {
       el.style.top = `${pos.y - half}px`;
     }
   }
+}
+
+// ---------------------------------------------------------------------------
+// Marquee 碰撞检测
+// ---------------------------------------------------------------------------
+
+type Range = { x: number; y: number; width: number; height: number };
+
+/** 计算拖选框覆盖的 model ID 列表 */
+export function computeSelectedByMarquee(range: Range, models: IModel[]): string[] {
+  const selectRect = {
+    x: Math.min(range.x, range.x + range.width),
+    y: Math.min(range.y, range.y + range.height),
+    width: Math.abs(range.width),
+    height: Math.abs(range.height),
+  };
+
+  const selected: string[] = [];
+  for (const model of models) {
+    const bounding = model.ctrlElement?.getBoundingBox();
+    if (!bounding) continue;
+
+    if (
+      bounding.minX < selectRect.x + selectRect.width &&
+      bounding.maxX > selectRect.x &&
+      bounding.minY < selectRect.y + selectRect.height &&
+      bounding.maxY > selectRect.y
+    ) {
+      selected.push(model.id);
+    }
+  }
+  return selected;
 }
