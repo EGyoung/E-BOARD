@@ -16,3 +16,4 @@ export default mindMapElement;
 
 // ========== 布局 & 渲染工具函数 ==========
 export type { MindMapNode, MindMapNodeStyle, MindMapLayoutNode, MindMapLayoutOptions, IMindMapModel } from './types';
+export { NODE_SIZE_PRESETS, NODE_STYLE_PRESETS } from './types';

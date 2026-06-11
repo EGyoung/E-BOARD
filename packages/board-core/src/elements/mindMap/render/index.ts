@@ -224,6 +224,7 @@ class Render extends BaseRender<IMindMapModel> {
     context.fillStyle = style.textColor ?? DEFAULT_TEXT_COLOR;
     context.fillText(label, cx, cy);
     context.restore();
+    context.beginPath()
 
     // 折叠/展开按钮：有子节点的节点始终显示
     const hasChildren = !!(node.children && node.children.length > 0);

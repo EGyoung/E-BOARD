@@ -121,3 +121,15 @@ export const findNodeById = (root: MindMapLayoutNode, id: string) => {
   }
   return null;
 };
+
+/** 获取节点在树中的深度（根节点深度 = 0） */
+export function getNodeDepth(root: MindMapNode, targetId: string, depth = 0): number {
+  if (root.id === targetId) return depth;
+  if (root.children) {
+    for (const child of root.children) {
+      const d = getNodeDepth(child, targetId, depth + 1);
+      if (d >= 0) return d;
+    }
+  }
+  return -1;
+}

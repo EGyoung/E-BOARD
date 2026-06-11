@@ -1,5 +1,6 @@
 import { IModel } from "../../../services/modelService/type";
-import { flattenLayout, layoutMindMap } from "../layout";
+import { flattenLayout, layoutMindMap, getNodeDepth, findNodeById } from "../layout";
+import { NODE_SIZE_PRESETS, NODE_STYLE_PRESETS } from "../types";
 import { IMindMapModel } from "../types";
 
 // ---------------------------------------------------------------------------
@@ -404,18 +405,29 @@ export class InteractionHandler {
   private addChildNode(id: string): void {
     if (!this.currentModel) return;
 
+    // 计算父节点深度，应用对应层级样式
+    const depth = getNodeDepth(this.currentModel as any, id);
+    const isLevel1 = depth === 0; // 父是根节点 → 新节点为 Level 1
+
+    // Level 1：按已有子节点数轮换颜色
+    const parentNode = findNodeById(
+      layoutMindMap(this.currentModel as any),
+      id,
+    );
+    const siblingCount = parentNode?.children?.length ?? 0;
+    const colors = NODE_STYLE_PRESETS.level1;
+    const colorStyle = isLevel1
+      ? colors[siblingCount % colors.length]
+      : NODE_STYLE_PRESETS.level2Plus;
+    const size = isLevel1
+      ? NODE_SIZE_PRESETS.level1
+      : NODE_SIZE_PRESETS.level2Plus;
+
     const newNode = {
       id: `${id}-${Date.now()}`,
       label: '新节点',
-      width: 96,
-      height: 36,
-      style: {
-        fillStyle: '#A8E6CF',
-        strokeStyle: '#8DD4B5',
-        textColor: '#2D5A3D',
-        fontSize: 12,
-        borderRadius: 8,
-      },
+      ...size,
+      style: { ...colorStyle },
       isCollapsed: false,
     };
 

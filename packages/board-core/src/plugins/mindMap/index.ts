@@ -5,47 +5,38 @@ import { ITransformService } from "../../services/transformService/type";
 import { IBoard, IPluginInitParams } from "../../types";
 import { IPlugin } from "../type";
 import type { MindMapNode } from "../../elements/mindMap";
+import { NODE_SIZE_PRESETS, NODE_STYLE_PRESETS } from "../../elements/mindMap";
 
 const CURRENT_MODE = "mindMap";
 
 const DEFAULT_MIND_MAP_TREE: MindMapNode = {
   id: 'root',
   label: '中心主题',
-  width: 140,
-  height: 54,
-  style: {
-    fillStyle: '#4A90D9',
-    strokeStyle: '#3A7BC8',
-    textColor: '#FFFFFF',
-    fontSize: 16,
-    borderRadius: 12,
-  },
+  ...NODE_SIZE_PRESETS.root,
+  style: { ...NODE_STYLE_PRESETS.root },
   children: [
     {
       id: 'child1',
       label: '主题 1',
-      width: 110,
-      height: 42,
-      style: { fillStyle: '#5CC9C1', strokeStyle: '#4AB8B0', textColor: '#FFFFFF', fontSize: 14, borderRadius: 10 },
+      ...NODE_SIZE_PRESETS.level1,
+      style: { ...NODE_STYLE_PRESETS.level1[0] },
       children: [
-        { id: 'child1-1', label: '子主题 1-1', width: 96, height: 36, style: { fillStyle: '#A8E6CF', strokeStyle: '#8DD4B5', textColor: '#2D5A3D', fontSize: 12, borderRadius: 8 }, isCollapsed: false },
-        { id: 'child1-2', label: '子主题 1-2', width: 96, height: 36, style: { fillStyle: '#A8E6CF', strokeStyle: '#8DD4B5', textColor: '#2D5A3D', fontSize: 12, borderRadius: 8 }, isCollapsed: false },
+        { id: 'child1-1', label: '子主题 1-1', ...NODE_SIZE_PRESETS.level2Plus, style: { ...NODE_STYLE_PRESETS.level2Plus }, isCollapsed: false },
+        { id: 'child1-2', label: '子主题 1-2', ...NODE_SIZE_PRESETS.level2Plus, style: { ...NODE_STYLE_PRESETS.level2Plus }, isCollapsed: false },
       ],
     },
     {
       id: 'child2',
       label: '主题 2',
-      width: 110,
-      height: 42,
-      style: { fillStyle: '#F5A623', strokeStyle: '#E09515', textColor: '#FFFFFF', fontSize: 14, borderRadius: 10 },
+      ...NODE_SIZE_PRESETS.level1,
+      style: { ...NODE_STYLE_PRESETS.level1[1] },
       isCollapsed: false
     },
     {
       id: 'child3',
       label: '主题 3',
-      width: 110,
-      height: 42,
-      style: { fillStyle: '#B8A9D4', strokeStyle: '#A394C4', textColor: '#FFFFFF', fontSize: 14, borderRadius: 10 },
+      ...NODE_SIZE_PRESETS.level1,
+      style: { ...NODE_STYLE_PRESETS.level1[2] },
       isCollapsed: false
     },
   ],
