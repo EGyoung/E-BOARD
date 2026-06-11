@@ -1,5 +1,5 @@
 import { eBoardContainer } from "../../common/IocContainer";
-import { IModeService, IEventService, IModelService } from "../../services";
+import { IModeService, IEventService, IModelService, IPluginService } from "../../services";
 import { uuid } from "@e-board/board-utils";
 import { ITransformService } from "../../services/transformService/type";
 import { IBoard, IPluginInitParams } from "../../types";
@@ -81,11 +81,19 @@ class MindMapPlugin implements IPlugin {
                 const screenPoint = { x: e.clientX - rect.left, y: e.clientY - rect.top };
                 const worldPoint = this.transformService.transformPoint(screenPoint, true);
 
-                this.modelService.createModel('mindMap', {
+                const model = this.modelService.createModel('mindMap', {
                   ...DEFAULT_MIND_MAP_TREE,
                   id: uuid(),
                   points: [worldPoint],
-                })
+                });
+
+                // 创建完成后切换到选中态，显示底部工具栏
+                const modeService = eBoardContainer.get<IModeService>(IModeService);
+                modeService.switchMode('selection');
+
+                const pluginService = eBoardContainer.get<IPluginService>(IPluginService);
+                const selectionPlugin = pluginService.getPlugin('SelectionPlugin');
+                selectionPlugin?.exports?.addSelectedModels?.(model.id);
               } catch (err) {
                 // swallow any errors from click handler
                 // console.warn(err);

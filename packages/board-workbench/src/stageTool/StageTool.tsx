@@ -27,6 +27,29 @@ const StageTool: React.FC<StageToolProps> = (props: any) => {
         }
     }, [board]);
 
+    // 监听 mode service 的模式变化，同步更新底部工具栏的选中态
+    useEffect(() => {
+        if (!board) return;
+
+        const modeService = board.getService('modeService');
+        if (!modeService?.onModeChange) return;
+
+        const { dispose } = modeService.onModeChange((event: any) => {
+            const currentMode = event.currentMode;
+            if (!currentMode) {
+                setActiveTool(null);
+                return;
+            }
+            // 通过 mode 查找对应的 tool id
+            const tools = toolRegistry.getToolsByMode(currentMode);
+            if (tools.length > 0) {
+                setActiveTool(tools[0].id);
+            }
+        });
+
+        return dispose;
+    }, [board]);
+
     const handleToolClick = (id: string) => {
         toolRegistry.activateTool(id);
 

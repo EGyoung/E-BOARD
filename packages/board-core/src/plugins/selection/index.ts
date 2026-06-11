@@ -38,6 +38,7 @@ class SelectionPlugin implements IPlugin {
   public exports = {
     getSelectedModelsId: this.getSelectedModelsId.bind(this),
     getSelectedModels: this.getSelectedModels.bind(this),
+    addSelectedModels: this.addSelectedModels.bind(this),
     onSelectedElements: this.onSelectedElements.bind(this),
     onElementsMoving: this.onElementMoving.bind(this),
     onDraggingChange: this.onDraggingChange.bind(this),

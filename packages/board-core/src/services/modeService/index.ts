@@ -1,9 +1,11 @@
 
+import { Emitter } from "@e-board/board-utils";
 import { IBoard, IServiceInitParams } from "../../types";
 import {
   IModeService,
   IModeServiceOptions,
-  Mode
+  Mode,
+  ModeChangeEvent,
 } from "./type";
 import { injectable } from "inversify";
 
@@ -12,6 +14,9 @@ class ModeService implements IModeService {
   private board!: IBoard;
   private currentMode: Mode = null;
   private modeHandler = new Map<Mode, IModeServiceOptions>();
+
+  private _onModeChange = new Emitter<ModeChangeEvent>();
+  public onModeChange = this._onModeChange.event;
 
   init({ board }: IServiceInitParams): void {
     this.board = board;
@@ -28,6 +33,9 @@ class ModeService implements IModeService {
     });
     let prevMode = this.currentMode;
     this.currentMode = mode;
+
+    // 通知模式变化监听器
+    this._onModeChange.fire({ prevMode, currentMode: mode });
 
     // 触发所有模式的 afterSwitchMode
     this.modeHandler.forEach(handler => {
