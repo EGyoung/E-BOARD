@@ -1,5 +1,6 @@
 import React, { useLayoutEffect, useState } from "react";
 import { DrawShapePlugin, EBoard, EraserPlugin, IConfigService, IModelService, ITransformService } from "@e-board/board-core";
+import { TextEditor } from '@e-board/board-text-editor'
 import "./styles.css";
 import { RoamPlugin, SelectionPlugin, ClearPlugin, PicturePlugin, HotkeyPlugin, DrawArrowPlugin, DrawLinePlugin, DrawCirclePlugin, MindMapPlugin } from "@e-board/board-core";
 import { BoardCollaboration } from '@e-board/board-collaboration';
@@ -72,6 +73,11 @@ const App: React.FC = () => {
         id: "app-board",
         plugins
       });
+      const textEditor = new TextEditor({
+        interactionCanvas: board.getInteractionCanvas()!,
+        canvas: board.getCanvas()!,
+      });
+      console.log(textEditor, 'textEditor');
       // initRemotePlugins(board);
       // const cleanupCollaboration = initCollaboration(board);
       (window as any).board = board;

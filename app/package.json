@@ -14,6 +14,7 @@
     "@e-board/board-workbench": "workspace:*",
     "@e-board/board-plugin-fps": "workspace:*",
     "@e-board/board-collaboration": "workspace:*",
+    "@e-board/board-text-editor": "workspace:*",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

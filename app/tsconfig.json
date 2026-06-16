@@ -28,6 +28,7 @@
     { "path": "../packages/board-plugin-fps" },
     { "path": "../packages/board-websocket" },
     { "path": "../packages/board-collaboration" },
-    { "path": "../packages/board-ai-assistant" }
+    { "path": "../packages/board-ai-assistant" },
+    { "path": "../packages/board-text-editor" }
   ]
 }
