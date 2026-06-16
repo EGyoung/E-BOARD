@@ -79,7 +79,7 @@ class Cursor {
 
     private showById(id: string) {
         this.stopById(id)
-        this.visibleMap.set(id, true)
+        this.visibleMap.set(id, false)
 
         if (!this.domMap.has(id)) {
             const dom = this.createCaret(id)
@@ -90,7 +90,7 @@ class Cursor {
         const timer = window.setInterval(() => {
             const dom = this.domMap.get(id)
             if (!dom) return
-            const isVisible = this.visibleMap.get(id) ?? true
+            const isVisible = this.visibleMap.get(id) ?? false
             dom.style.visibility = isVisible ? 'visible' : 'hidden'
             this.visibleMap.set(id, !isVisible)
         }, BLINK_MS)
