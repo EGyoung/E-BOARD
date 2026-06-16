@@ -20,9 +20,9 @@ class Cursor {
     private cursorIds: string[] = []
     private currentCursorId = ''
     private domMap = new Map<string, HTMLDivElement>()
-    private visibleMap = new Map<string, boolean>()
-    private timerMap = new Map<string, number>()
     private style: Required<CursorStyle>
+    private isVisible = true
+    private timer = 0
 
     constructor(style?: CursorStyle) {
         this.style = { ...DEFAULT_STYLE, ...style }
@@ -53,22 +53,22 @@ class Cursor {
 
     showAll() {
         for (const id of this.cursorIds) {
-            this.showById(id)
+            this.ensureDom(id)
         }
+        this.startTimer()
     }
 
     stopAll() {
-        for (const id of this.cursorIds) {
-            this.stopById(id)
-        }
+        this.stopTimer()
     }
 
     show() {
-        this.showById(this.currentCursorId)
+        this.ensureDom(this.currentCursorId)
+        this.startTimer()
     }
 
     stop() {
-        this.stopById(this.currentCursorId)
+        this.stopTimer()
     }
 
     /** 隐藏光标 DOM 但不销毁，可配合 show 恢复 */
@@ -77,32 +77,37 @@ class Cursor {
         if (dom) dom.style.visibility = 'hidden'
     }
 
-    private showById(id: string) {
-        this.stopById(id)
-        this.visibleMap.set(id, false)
-
+    private ensureDom(id: string) {
         if (!this.domMap.has(id)) {
             const dom = this.createCaret(id)
             this.domMap.set(id, dom)
             document.body.appendChild(dom)
         }
-
-        const timer = window.setInterval(() => {
-            const dom = this.domMap.get(id)
-            if (!dom) return
-            const isVisible = this.visibleMap.get(id) ?? false
-            dom.style.visibility = isVisible ? 'visible' : 'hidden'
-            this.visibleMap.set(id, !isVisible)
-        }, BLINK_MS)
-
-        this.timerMap.set(id, timer)
     }
 
-    private stopById(id: string) {
-        const timer = this.timerMap.get(id)
-        if (timer) {
-            window.clearInterval(timer)
-            this.timerMap.delete(id)
+    private startTimer() {
+        this.stopTimer()
+        // 初始为 false，第一次 tick 立即隐藏，之后正常闪烁
+        this.isVisible = true
+
+        const tick = () => {
+            const visibility = this.isVisible ? 'visible' : 'hidden'
+            for (const id of this.cursorIds) {
+                const dom = this.domMap.get(id)
+                if (dom) dom.style.visibility = visibility
+            }
+            this.isVisible = !this.isVisible
+        }
+
+        // 立即执行第一次切换，之后正常循环
+        tick()
+        this.timer = window.setInterval(tick, BLINK_MS)
+    }
+
+    private stopTimer() {
+        if (this.timer) {
+            window.clearInterval(this.timer)
+            this.timer = 0
         }
     }
 
@@ -114,10 +119,9 @@ class Cursor {
     }
 
     dispose() {
-        this.stopAll()
+        this.stopTimer()
         this.domMap.forEach(dom => dom.remove())
         this.domMap.clear()
-        this.visibleMap.clear()
         this.cursorIds = []
     }
 }
